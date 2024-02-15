@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "Accessibility Highlighter",
+  "version": "1.0",
+  "description": "A browser extension to highlight Accessibility problems on the page to gives a visual indication of what the problems are",
+  "permissions": ["storage", "activeTab", "scripting"],
+  "host_permissions": ["*://*/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_icon": {
+      "16": "icon-16.png",
+      "48": "icon-48.png",
+      "128": "icon-128.png"
+    },
+    "default_title": "Toggle Accessibility Highlighter"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["contentScript.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
