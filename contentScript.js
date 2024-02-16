@@ -478,5 +478,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log("Message received", message);
   if (message.action === "toggleAccessibilityHighlight") {
     toggleAccessibilityHighlight(message.isEnabled);
+	  
+	sendResponse(message.isEnabled ? 'highlighted' : 'unhighlighted');
+	
+	return true;
   }
+  
+  return false;
 });
