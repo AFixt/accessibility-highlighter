@@ -150,6 +150,7 @@ function overlay(overlayClass, level, msg) {
   overlayEl.style.width = width + "px";
   overlayEl.style.height = height + "px";
   overlayEl.style.display = "inline";
+  overlayEl.setAttribute('data-a11ymessage', msg); // Set the data-a11ymessage attribute
 
   overlayEl.style.zIndex = "1000";
   overlayEl.style.opacity = "0.2";
