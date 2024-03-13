@@ -22,9 +22,9 @@ This extension's goal is simply to provide a visual demonstration of accessibili
 
 ## How to use
 
-Once it is installed, it will add a button to the browser. Clicking that button toggles the visualization: a hashed area will appear on top of any areas of the page with accessibility errors. If you do not see any hashed areas, do not congratulate yourself. The extension has such a small set of tests that you shouldn't make any assumptions that the page is error-free.
+Once it is installed, it will add a button to the browser (the icon is currently hard to see in dark mode). Clicking that button toggles the visualization: a hashed area will appear on top of any areas of the page with accessibility errors. If you do not see any hashed areas, do not congratulate yourself. The extension has such a small set of tests that you shouldn't make any assumptions that the page is error-free.
 
-When the highlighting is active, the browser console will also have a table that logs the accessibility issues.
+When the highlighting is active, the browser console will log the actual elements-in-error and also have a table that logs the accessibility issues.
 
 The highlighting `div` will also have an attribute called `data-a11ymessage` which describes the error. Go to the "elements" tab in devtools and search for that attribute to see what the error was. *Pay close attention:* This `div` is the highlight `div`. The element with the error will be the preceding element in the DOM.
 
