@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Accessibility Highlighter",
   "version": "1.0",
-  "description": "A browser extension to highlight Accessibility problems on the page to gives a visual indication of what the problems are",
+  "description": "A browser extension to highlight Accessibility problems on the page, giving a visual indication of what the problems are",
   "permissions": ["storage", "activeTab", "scripting"],
   "host_permissions": ["*://*/*"],
   "background": {

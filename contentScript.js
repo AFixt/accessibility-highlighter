@@ -244,7 +244,7 @@ function runAccessibilityChecks() {
     "[role=link]:not([aria-label]):not([aria-labelledby]):not(:empty)"
   );
   const linkElements = document.querySelectorAll(
-    "a[href]:not([aria-label]):not([aria-labelledby]):not(:empty)"
+    "a[href]:not([aria-label]):not([aria-labelledby]):not(:empty):not([role=button])"
   );
 
   const allLinkElements = Array.from(roleLinkElements).concat(Array.from(linkElements));
@@ -360,7 +360,7 @@ function runAccessibilityChecks() {
     const element = elementsWithTabIndex[i];
     console.log(element);
 
-    overlay.call(element, "overlay", "error", "Element with tabindex attribute");
+    overlay.call(element, "overlay", "warning", "Non-actionable element with tabindex attribute");
   }
 
   // Check for image elements with bad alt attribute values
