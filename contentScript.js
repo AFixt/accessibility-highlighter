@@ -369,7 +369,7 @@ function runAccessibilityChecks() {
     const element = imageElements[i];
     const altValue = element.getAttribute("alt");
 
-    if (stupidAlts.includes(altValue)) {
+    if (stupidAlts.includes(altValue.toLowerCase())) {
       console.log(element);
       overlay.call(
         element,
@@ -386,7 +386,7 @@ function runAccessibilityChecks() {
     const element = linkElementsWithBadText[i];
     const linkText = element.textContent.trim();
 
-    if (stupidLinkText.includes(linkText)) {
+    if (stupidLinkText.includes(linkText.toLowerCase())) {
       console.log(element);
       overlay.call(
         element,
@@ -404,7 +404,7 @@ function runAccessibilityChecks() {
     const linkTitle = element.getAttribute("title");
     const linkText = element.textContent.trim();
 
-    if (linkTitle === linkText) {
+    if (linkTitle.toLowerCase() === linkText.toLowerCase()) {
       console.log(element);
       overlay.call(
         element,
