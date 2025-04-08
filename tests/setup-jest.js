@@ -146,6 +146,16 @@ global.runAccessibilityChecks = jest.fn().mockImplementation(() => {
       Message: 'Link element with matching text content found',
       Element: '<a href="#">click here</a>'
     });
+    global.logs.push({
+      Level: 'error',
+      Message: 'Table with uninformative summary attribute',
+      Element: '<table summary="layout table for navigation">'
+    });
+    global.logs.push({
+      Level: 'warning',
+      Message: 'Non-actionable element with tabindex=0',
+      Element: '<div tabindex="0">I can receive focus but do nothing</div>'
+    });
   }
 });
 

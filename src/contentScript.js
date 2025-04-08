@@ -225,10 +225,9 @@ function runAccessibilityChecks() {
     Array.from(buttonElements)
   );
 
-  for (let i = 0; i < allButtonElements.length; i++) {
-    const element = allButtonElements[i];
+  for (const element of allButtonElements) {
     console.log(element);
-
+  
     if (!element.textContent || element.textContent.trim() === "") {
       overlay.call(
         element,
@@ -249,10 +248,9 @@ function runAccessibilityChecks() {
 
   const allLinkElements = Array.from(roleLinkElements).concat(Array.from(linkElements));
 
-  for (let i = 0; i < allLinkElements.length; i++) {
-    const element = allLinkElements[i];
+  for (const element of allLinkElements) {
     console.log(element);
-
+  
     if (!element.textContent || element.textContent.trim() === "") {
       overlay.call(
         element,
@@ -265,19 +263,19 @@ function runAccessibilityChecks() {
 
   // Check for fieldsets without legends
   const fieldsetElements = document.querySelectorAll("fieldset:not(:has(legend))");
-  for (let i = 0; i < fieldsetElements.length; i++) {
-    console.log(fieldsetElements[i]);
-    overlay.call(fieldsetElements[i], "overlay", "error", "fieldset without legend");
+  for (const element of fieldsetElements) {
+    console.log(element);
+    overlay.call(element, "overlay", "error", "fieldset without legend");
   }
 
   // Check for missing text alternatives on input type=image
   const inputImageElements = document.querySelectorAll(
     "input[type=image]:not([alt]):not([aria-label])"
   );
-  for (let i = 0; i < inputImageElements.length; i++) {
-    console.log(inputImageElements[i]);
+  for (const element of inputImageElements) {
+    console.log(element);
     overlay.call(
-      inputImageElements[i],
+      element,
       "overlay",
       "error",
       "input type=image without alt or aria-label"
@@ -306,10 +304,9 @@ function runAccessibilityChecks() {
 
   // check for iframe elements without title attribute
   const iframeElements = document.querySelectorAll("iframe:not([title])");
-  for (let i = 0; i < iframeElements.length; i++) {
-    const element = iframeElements[i];
+  for (const element of iframeElements) {
     console.log(element);
-
+  
     overlay.call(element, "overlay", "error", "iframe element without a title attribute");
   }
 
@@ -317,8 +314,7 @@ function runAccessibilityChecks() {
   const linkElementsWithInvalidHref = document.querySelectorAll(
     'a[href="#"]:not([role="button"]), a[href*="javascript:"]:not([role="button"])'
   );
-  for (let i = 0; i < linkElementsWithInvalidHref.length; i++) {
-    const element = linkElementsWithInvalidHref[i];
+  for (const element of linkElementsWithInvalidHref) {
     console.log(element);
     overlay.call(element, "overlay", "error", "Invalid link href attribute");
   }
@@ -327,8 +323,7 @@ function runAccessibilityChecks() {
   const formFields = document.querySelectorAll(
     "input:not([type='submit']):not([type='image']):not([type='hidden'], select, textarea"
   );
-  for (let i = 0; i < formFields.length; i++) {
-    const element = formFields[i];
+  for (const element of formFields) {
     const id = element.getAttribute("id");
 
     if (!id || !document.querySelector("label[for='" + id + "']")) {
@@ -344,28 +339,35 @@ function runAccessibilityChecks() {
 
   //Check for media elements with autoplay attribute
   const mediaElements = document.querySelectorAll("audio[autoplay], video[autoplay]");
-  for (let i = 0; i < mediaElements.length; i++) {
-    const element = mediaElements[i];
+  for (const element of mediaElements) {
     console.log(element);
 
     overlay.call(element, "overlay", "error", "Media element set to autoplay");
   }
 
-  // Check for elements with tabindex attribute
+  // Check for non-actionable elements with positive tabindex
   const elementsWithTabIndex = document.querySelectorAll(
     "[tabindex]:not(a):not(area):not(button):not(input):not(select):not(textarea):not([role])"
   );
-  for (let i = 0; i < elementsWithTabIndex.length; i++) {
-    const element = elementsWithTabIndex[i];
-    console.log(element);
-
-    overlay.call(element, "overlay", "warning", "Non-actionable element with tabindex attribute");
+  for (const element of elementsWithTabIndex) {
+    const tabindexValue = parseInt(element.getAttribute("tabindex"), 10);
+    
+    // Only flag elements with tabindex=0 or positive tabindex values
+    // Negative tabindex values (-1) are often used to make elements programmatically focusable but not in tab order
+    if (!isNaN(tabindexValue) && tabindexValue >= 0) {
+      console.log(element);
+      overlay.call(
+        element, 
+        "overlay", 
+        "warning", 
+        `Non-actionable element with tabindex=${tabindexValue}`
+      );
+    }
   }
 
   // Check for image elements with bad alt attribute values
   const imageElements = document.querySelectorAll("img[alt]");
-  for (let i = 0; i < imageElements.length; i++) {
-    const element = imageElements[i];
+  for (const element of imageElements) {
     const altValue = element.getAttribute("alt");
 
     if (stupidAlts.includes(altValue.toLowerCase())) {
@@ -381,8 +383,7 @@ function runAccessibilityChecks() {
 
   // Check for link elements with bad text content
   const linkElementsWithBadText = document.querySelectorAll("a");
-  for (let i = 0; i < linkElementsWithBadText.length; i++) {
-    const element = linkElementsWithBadText[i];
+  for (const element of linkElementsWithBadText) {
     const linkText = element.textContent.trim();
 
     if (stupidLinkText.includes(linkText.toLowerCase())) {
@@ -398,11 +399,10 @@ function runAccessibilityChecks() {
 
   //Check for links with matching title and text content
   const linkElementsWithMatchingTitle = document.querySelectorAll("a[title]");
-  for (let i = 0; i < linkElementsWithMatchingTitle.length; i++) {
-    const element = linkElementsWithMatchingTitle[i];
+  for (const element of linkElementsWithMatchingTitle) {
     const linkTitle = element.getAttribute("title");
     const linkText = element.textContent.trim();
-
+  
     if (linkTitle.toLowerCase() === linkText.toLowerCase()) {
       console.log(element);
       overlay.call(
@@ -418,8 +418,7 @@ function runAccessibilityChecks() {
   const imageElementsWithTitleAndEmptyAlt = document.querySelectorAll(
     "img[alt=''][title]:not([alt])"
   );
-  for (let i = 0; i < imageElementsWithTitleAndEmptyAlt.length; i++) {
-    const element = imageElementsWithTitleAndEmptyAlt[i];
+  for (const element of imageElementsWithTitleAndEmptyAlt) {
     console.log(element);
     overlay.call(
       element,
@@ -433,8 +432,7 @@ function runAccessibilityChecks() {
   const imageElementsWithDiffAltAndTitle = document.querySelectorAll(
     "img[alt][title]:not([alt=''][title='']):not([alt=''][title]):not([alt][title=''])"
   );
-  for (let i = 0; i < imageElementsWithDiffAltAndTitle.length; i++) {
-    const element = imageElementsWithDiffAltAndTitle[i];
+  for (const element of imageElementsWithDiffAltAndTitle) {
     console.log(element);
     overlay.call(
       element,
@@ -447,8 +445,7 @@ function runAccessibilityChecks() {
   // Check for text elements with font size smaller than 12px
   const textElements = document.querySelectorAll("*");
 
-  for (let i = 0; i < textElements.length; i++) {
-    const element = textElements[i];
+  for (const element of textElements) {
     const computedStyle = getComputedStyle(element);
     const fontSize = parseFloat(computedStyle.fontSize);
 
@@ -480,6 +477,23 @@ function runAccessibilityChecks() {
   for (const element of mediaElementsWithoutCaptions) {
     console.log(element);
     overlay.call(element, "overlay", "error", "Media element without captions track");
+  }
+  
+  // Check for tables with uninformative summary attributes
+  const tablesWithSummary = document.querySelectorAll("table[summary]");
+  for (const element of tablesWithSummary) {
+    const summaryValue = element.getAttribute("summary").trim();
+    
+    if (stupidTableSummaries.some(badSummary => 
+      summaryValue.toLowerCase().includes(badSummary.toLowerCase()))) {
+      console.log(element);
+      overlay.call(
+        element,
+        "overlay",
+        "error",
+        "Table with uninformative summary attribute"
+      );
+    }
   }
 
   if (logs.length > 0) {

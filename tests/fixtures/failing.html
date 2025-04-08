@@ -136,6 +136,13 @@
           </td>
         </tr>
       </table>
+      
+      <!-- Table with bad summary -->
+      <table summary="layout table for navigation">
+        <tr>
+          <td>Bad summary example</td>
+        </tr>
+      </table>
     </div>
     
     <div>
@@ -150,8 +157,10 @@
       <!-- Media without captions -->
       <video controls src="video.mp4" width="300" height="200"></video>
       
-      <!-- Non-actionable element with tabindex -->
-      <div tabindex="0">I can receive focus but do nothing</div>
+      <!-- Non-actionable elements with tabindex -->
+      <div tabindex="0">I can receive focus but do nothing (tabindex=0)</div>
+      <div tabindex="1">I can receive focus but do nothing (tabindex=1)</div>
+      <div tabindex="-1">I should not trigger a warning (tabindex=-1)</div>
       
       <!-- Small text -->
       <p class="small-text">This text is too small to read comfortably</p>
