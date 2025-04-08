@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Accessibility Highlighter Manual Test Runner</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    
+    header {
+      margin-bottom: 20px;
+      border-bottom: 1px solid #ddd;
+    }
+    
+    h1 {
+      margin-bottom: 10px;
+    }
+    
+    .test-controls {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 20px;
+      padding: 10px;
+      background-color: #f5f5f5;
+      border-radius: 4px;
+    }
+    
+    button {
+      padding: 8px 16px;
+      background-color: #0066cc;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    button:hover {
+      background-color: #0055aa;
+    }
+    
+    .test-frame-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .iframe-container {
+      flex: 1;
+      border: 1px solid #ddd;
+      position: relative;
+    }
+    
+    iframe {
+      width: 100%;
+      height: 100%;
+      min-height: 500px;
+      border: none;
+    }
+    
+    .results {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #f8f8f8;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      height: 200px;
+      overflow: auto;
+    }
+    
+    .test-status {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    
+    .pass {
+      color: green;
+    }
+    
+    .fail {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Accessibility Highlighter Manual Test Runner</h1>
+      <p>Use this page to test the accessibility highlighter against real HTML fixtures</p>
+    </header>
+    
+    <div class="test-controls">
+      <button id="loadPassing">Load Passing HTML</button>
+      <button id="loadFailing">Load Failing HTML</button>
+      <button id="runTest">Run Highlighter</button>
+      <button id="clearHighlights">Clear Highlights</button>
+    </div>
+    
+    <div class="test-frame-container">
+      <div class="iframe-container">
+        <iframe id="testFrame" src="about:blank" title="Test frame for accessibility checks"></iframe>
+      </div>
+      
+      <div class="results">
+        <div class="test-status">Test results will appear here</div>
+        <div id="resultsLog"></div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // Load the content script into the page
+    const contentScriptSrc = '../contentScript.js';
+    
+    // References to DOM elements
+    const testFrame = document.getElementById('testFrame');
+    const resultsLog = document.getElementById('resultsLog');
+    const loadPassingBtn = document.getElementById('loadPassing');
+    const loadFailingBtn = document.getElementById('loadFailing');
+    const runTestBtn = document.getElementById('runTest');
+    const clearHighlightsBtn = document.getElementById('clearHighlights');
+    
+    // Function to log results
+    function logResult(message, isError = false) {
+      const logEntry = document.createElement('div');
+      logEntry.textContent = message;
+      if (isError) {
+        logEntry.style.color = 'red';
+      }
+      resultsLog.appendChild(logEntry);
+    }
+    
+    // Load the test fixtures
+    loadPassingBtn.addEventListener('click', () => {
+      testFrame.src = './fixtures/passing.html';
+      logResult('Loaded passing HTML fixture');
+    });
+    
+    loadFailingBtn.addEventListener('click', () => {
+      testFrame.src = './fixtures/failing.html';
+      logResult('Loaded failing HTML fixture');
+    });
+    
+    // Run the highlighter test
+    runTestBtn.addEventListener('click', () => {
+      try {
+        const frameWindow = testFrame.contentWindow;
+        
+        // Check if frame is loaded
+        if (!frameWindow || !frameWindow.document) {
+          logResult('Frame not loaded. Please load a test fixture first.', true);
+          return;
+        }
+        
+        // Create a script element to inject the content script
+        const script = frameWindow.document.createElement('script');
+        script.src = contentScriptSrc;
+        
+        // When script loads, run the accessibility checks
+        script.onload = () => {
+          try {
+            // Directly invoke runAccessibilityChecks
+            frameWindow.runAccessibilityChecks();
+            
+            // Get the results
+            setTimeout(() => {
+              const overlays = frameWindow.document.querySelectorAll('.a11y-error, .a11y-warning');
+              logResult(`Found ${overlays.length} accessibility issues`);
+              
+              // Set test status
+              const testStatus = document.querySelector('.test-status');
+              if (testFrame.src.includes('passing.html') && overlays.length === 0) {
+                testStatus.textContent = 'TEST PASSED: No issues found in passing fixture';
+                testStatus.className = 'test-status pass';
+              } else if (testFrame.src.includes('failing.html') && overlays.length > 0) {
+                testStatus.textContent = `TEST PASSED: Found ${overlays.length} issues in failing fixture`;
+                testStatus.className = 'test-status pass';
+              } else if (testFrame.src.includes('passing.html') && overlays.length > 0) {
+                testStatus.textContent = `TEST FAILED: Found ${overlays.length} issues in passing fixture`;
+                testStatus.className = 'test-status fail';
+              } else if (testFrame.src.includes('failing.html') && overlays.length === 0) {
+                testStatus.textContent = 'TEST FAILED: No issues found in failing fixture';
+                testStatus.className = 'test-status fail';
+              }
+            }, 500);
+          } catch (err) {
+            logResult(`Error running accessibility checks: ${err.message}`, true);
+          }
+        };
+        
+        script.onerror = () => {
+          logResult('Failed to load content script', true);
+        };
+        
+        frameWindow.document.head.appendChild(script);
+      } catch (err) {
+        logResult(`Error: ${err.message}`, true);
+      }
+    });
+    
+    // Clear highlights
+    clearHighlightsBtn.addEventListener('click', () => {
+      try {
+        const frameWindow = testFrame.contentWindow;
+        
+        // Check if frame is loaded
+        if (!frameWindow || !frameWindow.document) {
+          logResult('Frame not loaded. Please load a test fixture first.', true);
+          return;
+        }
+        
+        // Remove all overlays
+        const overlays = frameWindow.document.querySelectorAll('.a11y-error, .a11y-warning');
+        overlays.forEach(overlay => overlay.parentNode.removeChild(overlay));
+        
+        logResult(`Cleared ${overlays.length} highlights`);
+      } catch (err) {
+        logResult(`Error clearing highlights: ${err.message}`, true);
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Accessibility Highlighter - Passing Examples</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      font-size: 16px;
+    }
+    header, main, footer, nav {
+      margin-bottom: 20px;
+      padding: 10px;
+      border: 1px solid #ddd;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    legend {
+      font-weight: bold;
+      padding: 0 5px;
+    }
+    fieldset {
+      margin-bottom: 15px;
+      padding: 10px;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    iframe {
+      border: 0;
+      width: 100%;
+      height: 150px;
+    }
+  </style>
+</head>
+<body>
+  <header role="banner">
+    <h1>Accessibility Highlighter - Passing Examples</h1>
+    <nav role="navigation">
+      <ul>
+        <li><a href="#images">Images</a></li>
+        <li><a href="#tables">Tables</a></li>
+        <li><a href="#forms">Forms</a></li>
+        <li><a href="#links">Links</a></li>
+        <li><a href="#media">Media</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main id="main" role="main">
+    <section id="images">
+      <h2>Accessible Images</h2>
+      
+      <!-- Informative image with descriptive alt -->
+      <img src="example.jpg" alt="A group of diverse people collaborating on a project around a table with laptops and notes">
+      
+      <!-- Decorative image with empty alt -->
+      <img src="decorative.jpg" alt="">
+      
+      <!-- Image with role -->
+      <div role="img" aria-label="Company logo showing a blue mountain with a sun rising behind it"></div>
+    </section>
+
+    <section id="tables">
+      <h2>Accessible Tables</h2>
+      
+      <table>
+        <caption>Monthly Budget</caption>
+        <thead>
+          <tr>
+            <th scope="col">Category</th>
+            <th scope="col">Budget</th>
+            <th scope="col">Actual</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">Housing</th>
+            <td>$1,200</td>
+            <td>$1,150</td>
+          </tr>
+          <tr>
+            <th scope="row">Transportation</th>
+            <td>$350</td>
+            <td>$325</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="forms">
+      <h2>Accessible Forms</h2>
+      
+      <form>
+        <fieldset>
+          <legend>Personal Information</legend>
+          
+          <div class="form-group">
+            <label for="name">Full Name:</label>
+            <input type="text" id="name" name="name">
+          </div>
+          
+          <div class="form-group">
+            <label for="email">Email Address:</label>
+            <input type="email" id="email" name="email">
+          </div>
+        </fieldset>
+        
+        <fieldset>
+          <legend>Preferences</legend>
+          
+          <div class="form-group">
+            <label for="theme">Preferred Theme:</label>
+            <select id="theme" name="theme">
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+              <option value="system">System Default</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="comments">Additional Comments:</label>
+            <textarea id="comments" name="comments" rows="4"></textarea>
+          </div>
+        </fieldset>
+        
+        <button type="submit">Submit Form</button>
+        <button type="reset" aria-label="Reset form fields">Clear</button>
+      </form>
+    </section>
+
+    <section id="links">
+      <h2>Accessible Links</h2>
+      
+      <ul>
+        <li><a href="https://example.com/documentation">Complete documentation with examples</a></li>
+        <li><a href="https://example.com/tutorials">Beginner tutorials for new users</a></li>
+        <li><a href="https://example.com/contact" aria-label="Contact our support team">Support</a></li>
+      </ul>
+      
+      <!-- Button styled as a link, with proper role -->
+      <a href="#" role="button" aria-label="Toggle dark mode">🌙</a>
+    </section>
+
+    <section id="media">
+      <h2>Accessible Media</h2>
+      
+      <video controls>
+        <source src="video.mp4" type="video/mp4">
+        <track kind="captions" src="captions.vtt" srclang="en" label="English">
+        Your browser does not support the video tag.
+      </video>
+      
+      <audio controls>
+        <source src="audio.mp3" type="audio/mpeg">
+        <track kind="captions" src="audio-captions.vtt" srclang="en" label="English">
+        Your browser does not support the audio tag.
+      </audio>
+      
+      <iframe title="Map showing our office location" src="map.html"></iframe>
+    </section>
+  </main>
+
+  <aside role="complementary">
+    <h2>Related Resources</h2>
+    <ul>
+      <li><a href="https://www.w3.org/WAI/">W3C Web Accessibility Initiative</a></li>
+      <li><a href="https://www.w3.org/TR/WCAG21/">WCAG 2.1 Guidelines</a></li>
+    </ul>
+  </aside>
+
+  <footer role="contentinfo">
+    <p>&copy; 2025 Accessibility Highlighter Example</p>
+  </footer>
+</body>
+</html>

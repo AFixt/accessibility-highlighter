@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Accessibility Highlighter - Failing Examples</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+    .small-text {
+      font-size: 10px;
+    }
+    .link-button {
+      display: inline-block;
+      padding: 8px 12px;
+      background: #0066cc;
+      color: white;
+      text-decoration: none;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    td {
+      border: 1px solid #ddd;
+      padding: 8px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Missing landmark elements -->
+  <div>
+    <h1>Accessibility Issues Examples</h1>
+    
+    <div>
+      <h2>Missing Alt Text</h2>
+      <!-- Missing alt attribute -->
+      <img src="logo.png">
+      
+      <!-- Empty alt with title -->
+      <img src="banner.jpg" alt="" title="Company banner showing our headquarters">
+      
+      <!-- Uninformative alt text -->
+      <img src="chart.png" alt="image">
+      
+      <!-- Different alt and title -->
+      <img src="profile.jpg" alt="Profile photo" title="John Smith, CEO">
+      
+      <!-- Missing aria-label on role="img" -->
+      <div role="img"></div>
+    </div>
+    
+    <div>
+      <h2>Button Issues</h2>
+      
+      <!-- Empty button without label -->
+      <button></button>
+      
+      <!-- Button with icon but no accessible name -->
+      <button><span>🔍</span></button>
+      
+      <!-- Role button without accessible name -->
+      <div role="button"></div>
+    </div>
+    
+    <div>
+      <h2>Link Issues</h2>
+      
+      <!-- Generic link text -->
+      <a href="https://example.com">click here</a>
+      <a href="https://example.com">read more</a>
+      
+      <!-- Empty link -->
+      <a href="https://example.com"></a>
+      
+      <!-- Invalid href -->
+      <a href="#">Menu toggle</a>
+      <a href="javascript:void(0)">Open modal</a>
+      
+      <!-- Matching title and text -->
+      <a href="contact.html" title="Contact Us">Contact Us</a>
+    </div>
+    
+    <div>
+      <h2>Form Issues</h2>
+      
+      <!-- Fieldset without legend -->
+      <fieldset>
+        <div>
+          <input type="text" placeholder="First Name">
+          <input type="text" placeholder="Last Name">
+        </div>
+      </fieldset>
+      
+      <!-- Form fields without labels -->
+      <div>
+        <input type="text" placeholder="Email">
+        <input type="password" placeholder="Password">
+        <select>
+          <option>Choose an option</option>
+        </select>
+        <textarea placeholder="Comments"></textarea>
+      </div>
+      
+      <!-- Input type=image without alt -->
+      <input type="image" src="submit.png">
+    </div>
+    
+    <div>
+      <h2>Table Issues</h2>
+      
+      <!-- Table without header cells -->
+      <table>
+        <tr>
+          <td>Product</td>
+          <td>Price</td>
+          <td>Quantity</td>
+        </tr>
+        <tr>
+          <td>Widget</td>
+          <td>$10.00</td>
+          <td>5</td>
+        </tr>
+      </table>
+      
+      <!-- Nested tables -->
+      <table>
+        <tr>
+          <td>
+            <table>
+              <tr>
+                <td>Nested table content</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </div>
+    
+    <div>
+      <h2>Other Issues</h2>
+      
+      <!-- Iframe without title -->
+      <iframe src="embed.html" width="300" height="200"></iframe>
+      
+      <!-- Media with autoplay -->
+      <video autoplay src="video.mp4" width="300" height="200"></video>
+      
+      <!-- Media without captions -->
+      <video controls src="video.mp4" width="300" height="200"></video>
+      
+      <!-- Non-actionable element with tabindex -->
+      <div tabindex="0">I can receive focus but do nothing</div>
+      
+      <!-- Small text -->
+      <p class="small-text">This text is too small to read comfortably</p>
+    </div>
+  </div>
+</body>
+</html>

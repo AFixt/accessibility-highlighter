@@ -1,1 +1,7 @@
 /.idea
+/node_modules
+/coverage
+/dist
+*.zip
+*.log
+.DS_Store
