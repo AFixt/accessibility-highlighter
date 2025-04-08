@@ -193,9 +193,9 @@ function removeAccessibilityOverlays() {
 function runAccessibilityChecks() {
   // Check for missing alt attributes on images
   const images = document.querySelectorAll("img:not([alt])");
-  for (let i = 0; i < images.length; i++) {
-    console.log(images[i]);
-    overlay.call(images[i], "overlay", "error", "img does not have an alt attribute");
+  for (const element of images) {
+    console.log(element);
+    overlay.call(element, "overlay", "error", "img does not have an alt attribute");
   }
 
   // Check for missing labels on items with img role
@@ -203,10 +203,10 @@ function runAccessibilityChecks() {
     "[role=img]:not([aria-label]):not([aria-labelledby])"
   );
 
-  for (let i = 0; i < roleImgElements.length; i++) {
-    console.log(roleImgElements[i]);
+  for (const element of roleImgElements) {
+    console.log(element);
     overlay.call(
-      roleImgElements[i],
+      element,
       "overlay",
       "error",
       "role=img without aria-label or aria-labelledby"
@@ -286,10 +286,10 @@ function runAccessibilityChecks() {
 
   // check for table without TH elements
   const tableElementsWithoutTH = document.querySelectorAll("table:not(:has(th))");
-  for (let i = 0; i < tableElementsWithoutTH.length; i++) {
-    console.log(tableElementsWithoutTH[i]);
+  for (const element of tableElementsWithoutTH) {
+    console.log(element);
     overlay.call(
-      tableElementsWithoutTH[i],
+      element,
       "overlay",
       "error",
       "table without any th elements"
@@ -298,8 +298,7 @@ function runAccessibilityChecks() {
 
   //check for table elements inside th or td elements
   const tableElements = document.querySelectorAll("th table, td table");
-  for (let i = 0; i < tableElements.length; i++) {
-    const element = tableElements[i];
+  for (const element of tableElements) {
     console.log(element);
 
     overlay.call(element, "overlay", "error", "Nested table elements");
@@ -369,7 +368,7 @@ function runAccessibilityChecks() {
     const element = imageElements[i];
     const altValue = element.getAttribute("alt");
 
-    if (stupidAlts.includes(altValue)) {
+    if (stupidAlts.includes(altValue.toLowerCase())) {
       console.log(element);
       overlay.call(
         element,
@@ -386,7 +385,7 @@ function runAccessibilityChecks() {
     const element = linkElementsWithBadText[i];
     const linkText = element.textContent.trim();
 
-    if (stupidLinkText.includes(linkText)) {
+    if (stupidLinkText.includes(linkText.toLowerCase())) {
       console.log(element);
       overlay.call(
         element,
@@ -404,7 +403,7 @@ function runAccessibilityChecks() {
     const linkTitle = element.getAttribute("title");
     const linkText = element.textContent.trim();
 
-    if (linkTitle === linkText) {
+    if (linkTitle.toLowerCase() === linkText.toLowerCase()) {
       console.log(element);
       overlay.call(
         element,
@@ -478,8 +477,7 @@ function runAccessibilityChecks() {
   const mediaElementsWithoutCaptions = document.querySelectorAll(
     "video:not(:has(track[kind='captions'])), audio:not(:has(track[kind='captions']))"
   );
-  for (let i = 0; i < mediaElementsWithoutCaptions.length; i++) {
-    const element = mediaElementsWithoutCaptions[i];
+  for (const element of mediaElementsWithoutCaptions) {
     console.log(element);
     overlay.call(element, "overlay", "error", "Media element without captions track");
   }
