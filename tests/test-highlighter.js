@@ -144,5 +144,18 @@ describe('Accessibility Highlighter', () => {
     test('should detect generic link text', () => {
       expect(global.logs.some(log => log.Message.includes('Link element with matching text content found'))).toBe(true);
     });
+    
+    test('should detect tables with uninformative summary attributes', () => {
+      expect(global.logs.some(log => log.Message.includes('Table with uninformative summary attribute'))).toBe(true);
+    });
+    
+    test('should detect non-actionable elements with positive tabindex', () => {
+      expect(global.logs.some(log => log.Message.includes('Non-actionable element with tabindex=0'))).toBe(true);
+    });
+    
+    test('should not flag elements with negative tabindex', () => {
+      // This negative test checks that our tabindex check is improved
+      expect(global.logs.every(log => !log.Message.includes('tabindex=-1'))).toBe(true);
+    });
   });
 });

@@ -1,6 +1,6 @@
 {
   "name": "@afixt/a11y-highlighter",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "The Accessibility Highlighter finds accessibility problems on a website and highlights them on the page to give a visual indication of what the problems are. It also logs errors to console and annotates the DOM.",
   "main": "src/background.js",
   "scripts": {
