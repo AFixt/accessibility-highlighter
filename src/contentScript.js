@@ -135,37 +135,41 @@ const deprecatedElements = [
  */
 function overlay(overlayClass, level, msg) {
   const elementInError = this;
-  const height = elementInError.offsetHeight;
-  const width = elementInError.offsetWidth;
-  const pos = {
-    top: elementInError.offsetTop,
-    left: elementInError.offsetLeft,
-  };
+  
+  // Get accurate element position and dimensions using getBoundingClientRect
+  const rect = elementInError.getBoundingClientRect();
+  
+  // Create overlay element
   const overlayEl = document.createElement("div");
   overlayEl.classList.add(overlayClass);
-  elementInError.parentNode.appendChild(overlayEl);
-  overlayEl.style.position = "absolute";
-  overlayEl.style.top = pos.top + "px";
-  overlayEl.style.left = pos.left + "px";
-  overlayEl.style.width = width + "px";
-  overlayEl.style.height = height + "px";
-  overlayEl.style.display = "inline";
-  overlayEl.setAttribute('data-a11ymessage', msg); // Set the data-a11ymessage attribute
-
-  overlayEl.style.zIndex = "1000";
-  overlayEl.style.opacity = "0.2";
-  overlayEl.style.MozBorderRadius = "10px";
-  overlayEl.style.borderRadius = "10px";
+  
+  // Append to document body for consistent positioning
+  document.body.appendChild(overlayEl);
+  
+  // Set positioning styles
+  overlayEl.style.position = "fixed";
+  overlayEl.style.top = rect.top + "px";
+  overlayEl.style.left = rect.left + "px";
+  overlayEl.style.width = rect.width + "px";
+  overlayEl.style.height = rect.height + "px";
+  overlayEl.style.display = "block";
+  overlayEl.setAttribute('data-a11ymessage', msg);
+  
+  // Set overlay appearance
+  overlayEl.style.pointerEvents = "none";
+  overlayEl.style.zIndex = "2147483647"; // Highest z-index
+  overlayEl.style.opacity = "0.4";
+  overlayEl.style.borderRadius = "5px";
   overlayEl.style.backgroundImage =
     "repeating-linear-gradient(45deg, transparent, transparent 15px, rgba(255,255,255,.5) 15px, rgba(255,255,255,.5) 30px)";
 
   if (level === "error") {
     overlayEl.style.backgroundColor = "#FF0000";
-    overlayEl.style.border = "6px solid #FF0000";
+    overlayEl.style.border = "2px solid #FF0000";
     overlayEl.classList.add("a11y-error");
   } else if (level === "warning") {
     overlayEl.style.backgroundColor = "#FFA500";
-    overlayEl.style.border = "6px solid #FFA500";
+    overlayEl.style.border = "2px solid #FFA500";
     overlayEl.classList.add("a11y-warning");
   }
 
@@ -181,9 +185,11 @@ function overlay(overlayClass, level, msg) {
  * Removes all highlighting overlays from the page.
  */
 function removeAccessibilityOverlays() {
-  const errorOverlays = document.querySelectorAll(".a11y-error, .a11y-warning");
+  const errorOverlays = document.querySelectorAll(".a11y-error, .a11y-warning, .overlay");
   errorOverlays.forEach((overlay) => {
-    overlay.parentNode.removeChild(overlay);
+    if (overlay.parentNode) {
+      overlay.parentNode.removeChild(overlay);
+    }
   });
 }
 
