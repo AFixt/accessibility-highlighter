@@ -5,3 +5,5 @@
 *.zip
 *.log
 .DS_Store
+CLAUDE.md
+.claude
