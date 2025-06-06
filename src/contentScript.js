@@ -139,17 +139,20 @@ function overlay(overlayClass, level, msg) {
   // Get accurate element position and dimensions using getBoundingClientRect
   const rect = elementInError.getBoundingClientRect();
   
+  // Skip if element is not visible
+  if (rect.width === 0 || rect.height === 0) {
+    console.warn('Skipping overlay for zero-sized element:', elementInError);
+    return;
+  }
+  
   // Create overlay element
   const overlayEl = document.createElement("div");
   overlayEl.classList.add(overlayClass);
   
-  // Append to document body for consistent positioning
-  document.body.appendChild(overlayEl);
-  
-  // Set positioning styles
-  overlayEl.style.position = "fixed";
-  overlayEl.style.top = rect.top + "px";
-  overlayEl.style.left = rect.left + "px";
+  // Set positioning styles BEFORE appending to DOM
+  overlayEl.style.position = "absolute";
+  overlayEl.style.top = (rect.top + window.scrollY) + "px";
+  overlayEl.style.left = (rect.left + window.scrollX) + "px";
   overlayEl.style.width = rect.width + "px";
   overlayEl.style.height = rect.height + "px";
   overlayEl.style.display = "block";
@@ -172,6 +175,9 @@ function overlay(overlayClass, level, msg) {
     overlayEl.style.border = "2px solid #FFA500";
     overlayEl.classList.add("a11y-warning");
   }
+  
+  // Append overlay to document body
+  document.body.appendChild(overlayEl);
 
   // push the error to the logs array
   logs.push({
