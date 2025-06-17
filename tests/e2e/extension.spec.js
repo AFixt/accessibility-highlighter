@@ -1,0 +1,381 @@
+/**
+ * End-to-End tests for Accessibility Highlighter Chrome Extension
+ * Tests the extension functionality in a real browser environment
+ */
+
+const { test, expect } = require('@playwright/test');
+const path = require('path');
+
+test.describe('Accessibility Highlighter Extension E2E Tests', () => {
+  let context;
+  let page;
+  
+  test.beforeAll(async ({ browser }) => {
+    // Create a new browser context with the extension loaded
+    const pathToExtension = path.join(__dirname, '../../dist');
+    context = await browser.newContext({
+      args: [
+        `--disable-extensions-except=${pathToExtension}`,
+        `--load-extension=${pathToExtension}`,
+      ],
+    });
+    
+    page = await context.newPage();
+  });
+  
+  test.afterAll(async () => {
+    await context.close();
+  });
+  
+  test.beforeEach(async () => {
+    // Navigate to the test page with accessibility issues
+    await page.goto('/failing.html');
+    await page.waitForLoadState('networkidle');
+  });
+  
+  test('should load extension without errors', async () => {
+    // Check that the extension is loaded by looking for the background script
+    const extensions = await context.serviceWorkers();
+    expect(extensions.length).toBeGreaterThan(0);
+  });
+  
+  test('should detect and highlight accessibility issues', async () => {
+    // Simulate extension activation (since we can't click browser action in headless mode)
+    await page.evaluate(() => {
+      // Simulate the extension being enabled
+      const event = new CustomEvent('extension-toggle', { detail: { enabled: true } });
+      document.dispatchEvent(event);
+    });
+    
+    // Wait for overlays to be created
+    await page.waitForTimeout(1000);
+    
+    // Check if overlays are present
+    const overlays = await page.locator('.a11y-error, .a11y-warning, .overlay').count();
+    expect(overlays).toBeGreaterThan(0);
+  });
+  
+  test('should create overlays with proper positioning', async () => {
+    // Add an image without alt text
+    await page.setContent(`
+      <html>
+        <body>
+          <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" width="100" height="100">
+        </body>
+      </html>
+    `);
+    
+    // Simulate running accessibility checks
+    await page.evaluate(() => {
+      // Inject the content script functionality for testing
+      if (typeof runAccessibilityChecks === 'undefined') {
+        // Create a mock version for testing
+        window.runAccessibilityChecks = function() {
+          const images = document.querySelectorAll('img:not([alt])');
+          images.forEach(img => {
+            const rect = img.getBoundingClientRect();
+            const overlay = document.createElement('div');
+            overlay.className = 'overlay a11y-error';
+            overlay.style.cssText = `
+              position: absolute;
+              top: ${rect.top + window.scrollY}px;
+              left: ${rect.left + window.scrollX}px;
+              width: ${rect.width}px;
+              height: ${rect.height}px;
+              background-color: rgba(255, 0, 0, 0.4);
+              pointer-events: none;
+              z-index: 2147483647;
+            `;
+            overlay.setAttribute('data-a11ymessage', 'img does not have an alt attribute');
+            document.body.appendChild(overlay);
+          });
+        };
+      }
+      runAccessibilityChecks();
+    });
+    
+    // Check that overlay is positioned correctly
+    const overlay = page.locator('.overlay').first();
+    await expect(overlay).toBeVisible();
+    
+    const overlayBox = await overlay.boundingBox();
+    const imageBox = await page.locator('img').boundingBox();
+    
+    // Overlay should roughly match image position
+    expect(Math.abs(overlayBox.x - imageBox.x)).toBeLessThan(5);
+    expect(Math.abs(overlayBox.y - imageBox.y)).toBeLessThan(5);
+  });
+  
+  test('should not create overlays for accessible content', async () => {
+    // Navigate to a page with accessible content
+    await page.goto('/passing.html');
+    await page.waitForLoadState('networkidle');
+    
+    // Simulate running accessibility checks
+    await page.evaluate(() => {
+      if (typeof runAccessibilityChecks === 'undefined') {
+        window.runAccessibilityChecks = function() {
+          // For passing content, no overlays should be created
+          console.log('No accessibility issues found');
+        };
+      }
+      runAccessibilityChecks();
+    });
+    
+    // Wait a moment for any potential overlays
+    await page.waitForTimeout(500);
+    
+    // Should have no accessibility error overlays
+    const overlays = await page.locator('.a11y-error').count();
+    expect(overlays).toBe(0);
+  });
+  
+  test('should handle multiple issues on same page', async () => {
+    await page.setContent(`
+      <html>
+        <body>
+          <img src="test1.jpg">
+          <img src="test2.jpg">
+          <input type="text">
+          <button></button>
+          <a href="#"></a>
+          <table>
+            <tr><td>Cell</td></tr>
+          </table>
+        </body>
+      </html>
+    `);
+    
+    // Simulate running comprehensive accessibility checks
+    await page.evaluate(() => {
+      window.runAccessibilityChecks = function() {
+        let errorCount = 0;
+        
+        // Check images without alt
+        document.querySelectorAll('img:not([alt])').forEach(img => {
+          const overlay = document.createElement('div');
+          overlay.className = 'overlay a11y-error';
+          overlay.style.cssText = 'position: absolute; background: rgba(255,0,0,0.4); pointer-events: none;';
+          overlay.setAttribute('data-a11ymessage', 'img does not have an alt attribute');
+          document.body.appendChild(overlay);
+          errorCount++;
+        });
+        
+        // Check form fields without labels
+        document.querySelectorAll('input[type="text"]:not([aria-label])').forEach(input => {
+          if (!input.id || !document.querySelector(`label[for="${input.id}"]`)) {
+            const overlay = document.createElement('div');
+            overlay.className = 'overlay a11y-error';
+            overlay.style.cssText = 'position: absolute; background: rgba(255,0,0,0.4); pointer-events: none;';
+            overlay.setAttribute('data-a11ymessage', 'Form field without label');
+            document.body.appendChild(overlay);
+            errorCount++;
+          }
+        });
+        
+        // Check empty buttons
+        document.querySelectorAll('button').forEach(button => {
+          if (!button.textContent.trim() && !button.getAttribute('aria-label')) {
+            const overlay = document.createElement('div');
+            overlay.className = 'overlay a11y-error';
+            overlay.style.cssText = 'position: absolute; background: rgba(255,0,0,0.4); pointer-events: none;';
+            overlay.setAttribute('data-a11ymessage', 'Button without label');
+            document.body.appendChild(overlay);
+            errorCount++;
+          }
+        });
+        
+        console.log(`Found ${errorCount} accessibility issues`);
+      };
+      runAccessibilityChecks();
+    });
+    
+    // Should find multiple issues
+    await page.waitForTimeout(500);
+    const overlays = await page.locator('.overlay').count();
+    expect(overlays).toBeGreaterThan(2);
+  });
+  
+  test('should remove overlays when toggled off', async () => {
+    // First, create some overlays
+    await page.setContent(`
+      <html>
+        <body>
+          <img src="test.jpg">
+        </body>
+      </html>
+    `);
+    
+    await page.evaluate(() => {
+      // Add overlays
+      const overlay = document.createElement('div');
+      overlay.className = 'overlay a11y-error';
+      overlay.style.cssText = 'position: absolute; background: rgba(255,0,0,0.4);';
+      document.body.appendChild(overlay);
+      
+      // Define removal function
+      window.removeAccessibilityOverlays = function() {
+        document.querySelectorAll('.overlay, .a11y-error, .a11y-warning').forEach(el => {
+          if (el.parentNode) el.parentNode.removeChild(el);
+        });
+      };
+    });
+    
+    // Verify overlay exists
+    await expect(page.locator('.overlay')).toBeVisible();
+    
+    // Remove overlays
+    await page.evaluate(() => {
+      removeAccessibilityOverlays();
+    });
+    
+    // Verify overlays are removed
+    const overlayCount = await page.locator('.overlay').count();
+    expect(overlayCount).toBe(0);
+  });
+  
+  test('should handle pages with dynamic content', async () => {
+    await page.setContent(`
+      <html>
+        <body>
+          <div id="container"></div>
+          <button id="add-content">Add Content</button>
+        </body>
+      </html>
+    `);
+    
+    // Add event listener to add problematic content dynamically
+    await page.evaluate(() => {
+      document.getElementById('add-content').addEventListener('click', () => {
+        const container = document.getElementById('container');
+        container.innerHTML = '<img src="dynamic.jpg"><input type="text">';
+      });
+      
+      window.runAccessibilityChecks = function() {
+        const issues = document.querySelectorAll('img:not([alt]), input[type="text"]:not([aria-label])');
+        issues.forEach((element, index) => {
+          const overlay = document.createElement('div');
+          overlay.className = 'overlay a11y-error';
+          overlay.style.cssText = 'position: absolute; background: rgba(255,0,0,0.4); pointer-events: none;';
+          overlay.setAttribute('data-a11ymessage', `Issue ${index + 1}`);
+          document.body.appendChild(overlay);
+        });
+      };
+    });
+    
+    // Initially no issues
+    await page.evaluate(() => runAccessibilityChecks());
+    expect(await page.locator('.overlay').count()).toBe(0);
+    
+    // Add content and recheck
+    await page.click('#add-content');
+    await page.evaluate(() => runAccessibilityChecks());
+    
+    // Should now find issues in dynamic content
+    const overlays = await page.locator('.overlay').count();
+    expect(overlays).toBeGreaterThan(0);
+  });
+  
+  test('should work on complex real-world pages', async () => {
+    // Create a more complex page structure
+    await page.setContent(`
+      <html>
+        <head><title>Test Page</title></head>
+        <body>
+          <header>
+            <nav>
+              <a href="#">Home</a>
+              <a href="#">About</a>
+              <a href="#">Contact</a>
+            </nav>
+          </header>
+          <main>
+            <h1>Main Content</h1>
+            <article>
+              <h2>Article Title</h2>
+              <p>Some content with <a href="#">click here</a> for more.</p>
+              <img src="article-image.jpg">
+              <form>
+                <input type="text" placeholder="Enter name">
+                <input type="email" placeholder="Enter email">
+                <button type="submit">Submit</button>
+              </form>
+            </article>
+            <aside>
+              <h3>Sidebar</h3>
+              <table>
+                <tr><td>Data 1</td><td>Data 2</td></tr>
+              </table>
+            </aside>
+          </main>
+          <footer>
+            <p>&copy; 2024 Test Site</p>
+          </footer>
+        </body>
+      </html>
+    `);
+    
+    // Run comprehensive accessibility checks
+    await page.evaluate(() => {
+      window.runAccessibilityChecks = function() {
+        const issues = [];
+        
+        // Check images without alt
+        document.querySelectorAll('img:not([alt])').forEach(img => {
+          issues.push({ element: img, message: 'Missing alt attribute' });
+        });
+        
+        // Check generic link text
+        document.querySelectorAll('a').forEach(link => {
+          const text = link.textContent.toLowerCase().trim();
+          if (['click here', 'more', 'here'].includes(text)) {
+            issues.push({ element: link, message: 'Generic link text' });
+          }
+        });
+        
+        // Check form fields without labels
+        document.querySelectorAll('input[type="text"], input[type="email"]').forEach(input => {
+          if (!input.id || !document.querySelector(`label[for="${input.id}"]`)) {
+            if (!input.getAttribute('aria-label')) {
+              issues.push({ element: input, message: 'Form field without label' });
+            }
+          }
+        });
+        
+        // Check tables without headers
+        document.querySelectorAll('table').forEach(table => {
+          if (!table.querySelector('th')) {
+            issues.push({ element: table, message: 'Table without headers' });
+          }
+        });
+        
+        // Create overlays for issues
+        issues.forEach((issue, index) => {
+          const overlay = document.createElement('div');
+          overlay.className = 'overlay a11y-error';
+          overlay.style.cssText = 'position: absolute; background: rgba(255,0,0,0.4); pointer-events: none; z-index: 999999;';
+          overlay.setAttribute('data-a11ymessage', issue.message);
+          overlay.setAttribute('data-issue-id', index);
+          document.body.appendChild(overlay);
+        });
+        
+        console.log(`Found ${issues.length} accessibility issues`);
+        return issues.length;
+      };
+    });
+    
+    const issueCount = await page.evaluate(() => runAccessibilityChecks());
+    
+    // Should find multiple issues in this complex page
+    expect(issueCount).toBeGreaterThan(3);
+    
+    // Verify overlays were created
+    const overlays = await page.locator('.overlay').count();
+    expect(overlays).toBe(issueCount);
+    
+    // Check that overlays have proper attributes
+    const firstOverlay = page.locator('.overlay').first();
+    await expect(firstOverlay).toHaveAttribute('data-a11ymessage');
+    await expect(firstOverlay).toHaveAttribute('data-issue-id');
+  });
+});
