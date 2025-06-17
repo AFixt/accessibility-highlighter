@@ -1,8 +1,95 @@
 console.log("Content script loaded");
+
+/**
+ * Array to store accessibility check results for logging.
+ * @type {LogEntry[]}
+ */
 const logs = [];
 
 /**
+ * @typedef {Object} PerformanceConfig
+ * @property {number} THROTTLE_DELAY - Throttle delay in milliseconds
+ * @property {number} FONT_SIZE_THRESHOLD - Minimum font size threshold in pixels
+ * @property {number} MAX_LOG_ELEMENT_LENGTH - Maximum length for element HTML in logs
+ * @property {number} Z_INDEX_OVERLAY - Z-index value for overlays
+ */
+
+/**
+ * @typedef {Object} VisualConfig
+ * @property {string} ERROR_COLOR - Hex color for error overlays
+ * @property {string} WARNING_COLOR - Hex color for warning overlays
+ * @property {number} OVERLAY_OPACITY - Opacity value for overlays (0-1)
+ * @property {string} BORDER_RADIUS - CSS border-radius value
+ * @property {string} BORDER_WIDTH - CSS border-width value
+ * @property {string} STRIPE_GRADIENT - CSS gradient for overlay pattern
+ */
+
+/**
+ * @typedef {Object} Selectors
+ * @property {string} ALL_CHECKABLE_ELEMENTS - CSS selector for all checkable elements
+ * @property {string} LANDMARK_ELEMENTS - CSS selector for landmark elements
+ * @property {string[]} TEXT_ELEMENTS - Array of text element tag names
+ * @property {string[]} INTERACTIVE_ELEMENTS - Array of interactive element tag names
+ * @property {string} OVERLAY_ELEMENTS - CSS selector for overlay elements
+ */
+
+/**
+ * @typedef {Object} Messages
+ * @property {string} MISSING_ALT - Message for missing alt attribute
+ * @property {string} UNINFORMATIVE_ALT - Message for uninformative alt text
+ * @property {string} EMPTY_ALT_WITH_TITLE - Message for empty alt with title
+ * @property {string} DIFFERENT_ALT_TITLE - Message for different alt and title
+ * @property {string} BUTTON_NO_LABEL - Message for button without label
+ * @property {string} LINK_NO_CONTENT - Message for link without content
+ * @property {string} INVALID_HREF - Message for invalid href
+ * @property {string} GENERIC_LINK_TEXT - Message for generic link text
+ * @property {string} MATCHING_TITLE_TEXT - Message for matching title and text
+ * @property {string} FIELDSET_NO_LEGEND - Message for fieldset without legend
+ * @property {string} INPUT_IMAGE_NO_ALT - Message for input image without alt
+ * @property {string} FORM_FIELD_NO_LABEL - Message for form field without label
+ * @property {string} TABLE_NO_HEADERS - Message for table without headers
+ * @property {string} NESTED_TABLE - Message for nested table
+ * @property {string} UNINFORMATIVE_SUMMARY - Message for uninformative summary
+ * @property {string} IFRAME_NO_TITLE - Message for iframe without title
+ * @property {string} MEDIA_AUTOPLAY - Message for media with autoplay
+ * @property {string} MEDIA_NO_CAPTIONS - Message for media without captions
+ * @property {string} ROLE_IMG_NO_LABEL - Message for role=img without label
+ * @property {string} NON_ACTIONABLE_TABINDEX - Message for non-actionable tabindex
+ * @property {string} SMALL_FONT_SIZE - Message for small font size
+ * @property {string} NO_LANDMARKS - Message for no landmarks
+ * @property {string} THROTTLED - Message for throttled execution
+ * @property {string} NO_ISSUES - Message for no issues found
+ */
+
+/**
+ * @typedef {Object} CSSClasses
+ * @property {string} ERROR_OVERLAY - CSS class for error overlays
+ * @property {string} WARNING_OVERLAY - CSS class for warning overlays
+ * @property {string} GENERIC_OVERLAY - CSS class for generic overlays
+ */
+
+/**
+ * @typedef {Object} A11yConfig
+ * @property {PerformanceConfig} PERFORMANCE - Performance-related configuration
+ * @property {VisualConfig} VISUAL - Visual styling configuration
+ * @property {string[]} PROHIBITED_TABLE_SUMMARIES - Array of prohibited table summary values
+ * @property {string[]} PROHIBITED_ALT_VALUES - Array of prohibited alt text values
+ * @property {string[]} PROHIBITED_LINK_TEXT - Array of prohibited link text values
+ * @property {Selectors} SELECTORS - CSS selectors and element arrays
+ * @property {Messages} MESSAGES - Error and warning messages
+ * @property {CSSClasses} CSS_CLASSES - CSS class names
+ */
+
+/**
+ * @typedef {Object} LogEntry
+ * @property {string} Level - Log level (error/warning)
+ * @property {string} Message - Error message
+ * @property {string} Element - Element HTML snippet
+ */
+
+/**
  * Centralized configuration object for the Accessibility Highlighter
+ * @type {A11yConfig}
  */
 const A11Y_CONFIG = {
   PERFORMANCE: {
@@ -94,8 +181,10 @@ const A11Y_CONFIG = {
 /**
  * Provides the ability to overlay an element with a visual indicator of an accessibility issue.
  * @param {string} overlayClass - CSS class for the overlay
- * @param {string} level - Error level (error/warning)
+ * @param {'error'|'warning'} level - Error level (error/warning)
  * @param {string} msg - Error message
+ * @this {Element} The DOM element to overlay
+ * @returns {void}
  */
 function overlay(overlayClass, level, msg) {
   const elementInError = this;
@@ -161,6 +250,7 @@ function overlay(overlayClass, level, msg) {
 
 /**
  * Removes all highlighting overlays from the page.
+ * @returns {void}
  */
 function removeAccessibilityOverlays() {
   try {
@@ -177,13 +267,22 @@ function removeAccessibilityOverlays() {
   }
 }
 
-// Throttling mechanism to prevent performance issues
+/**
+ * Flag to prevent concurrent execution of accessibility checks.
+ * @type {boolean}
+ */
 let isRunning = false;
+
+/**
+ * Timestamp of the last accessibility check execution.
+ * @type {number}
+ */
 let lastRunTime = 0;
 
 /**
  * Efficiently runs accessibility checks using optimized DOM traversal.
  * Uses single-pass traversal and targeted queries to improve performance.
+ * @returns {void}
  */
 function runAccessibilityChecks() {
   // Throttling to prevent performance issues
@@ -230,6 +329,7 @@ function runAccessibilityChecks() {
 /**
  * Checks a single element for multiple accessibility issues in one pass.
  * @param {Element} element - The element to check
+ * @returns {void}
  */
 function checkElement(element) {
   if (!element) return;
@@ -282,7 +382,8 @@ function checkElement(element) {
 
 /**
  * Checks image elements for accessibility issues.
- * @param {Element} element - The image element to check
+ * @param {HTMLImageElement} element - The image element to check
+ * @returns {void}
  */
 function checkImageElement(element) {
   // Check for missing alt attribute
@@ -317,7 +418,8 @@ function checkImageElement(element) {
 
 /**
  * Checks button elements for accessibility issues.
- * @param {Element} element - The button element to check
+ * @param {HTMLButtonElement|Element} element - The button element to check
+ * @returns {void}
  */
 function checkButtonElement(element) {
   const hasAriaLabel = element.hasAttribute('aria-label');
@@ -332,7 +434,8 @@ function checkButtonElement(element) {
 
 /**
  * Checks link elements for accessibility issues.
- * @param {Element} element - The link element to check
+ * @param {HTMLAnchorElement} element - The link element to check
+ * @returns {void}
  */
 function checkLinkElement(element) {
   const href = element.getAttribute('href');
@@ -373,7 +476,8 @@ function checkLinkElement(element) {
 
 /**
  * Checks fieldset elements for accessibility issues.
- * @param {Element} element - The fieldset element to check
+ * @param {HTMLFieldSetElement} element - The fieldset element to check
+ * @returns {void}
  */
 function checkFieldsetElement(element) {
   if (!element.querySelector('legend')) {
@@ -384,7 +488,8 @@ function checkFieldsetElement(element) {
 
 /**
  * Checks input elements for accessibility issues.
- * @param {Element} element - The input element to check
+ * @param {HTMLInputElement} element - The input element to check
+ * @returns {void}
  */
 function checkInputElement(element) {
   const type = element.getAttribute('type');
@@ -409,7 +514,8 @@ function checkInputElement(element) {
 
 /**
  * Checks table elements for accessibility issues.
- * @param {Element} element - The table element to check
+ * @param {HTMLTableElement} element - The table element to check
+ * @returns {void}
  */
 function checkTableElement(element) {
   // Check for tables without TH elements
@@ -438,7 +544,8 @@ function checkTableElement(element) {
 
 /**
  * Checks iframe elements for accessibility issues.
- * @param {Element} element - The iframe element to check
+ * @param {HTMLIFrameElement} element - The iframe element to check
+ * @returns {void}
  */
 function checkIframeElement(element) {
   if (!element.hasAttribute('title')) {
@@ -449,7 +556,8 @@ function checkIframeElement(element) {
 
 /**
  * Checks media elements for accessibility issues.
- * @param {Element} element - The media element to check
+ * @param {HTMLMediaElement} element - The media element to check
+ * @returns {void}
  */
 function checkMediaElement(element) {
   // Check for autoplay
@@ -469,6 +577,7 @@ function checkMediaElement(element) {
  * Checks role-based elements for accessibility issues.
  * @param {Element} element - The element to check
  * @param {string} role - The role attribute value
+ * @returns {void}
  */
 function checkRoleBasedElement(element, role) {
   const hasAriaLabel = element.hasAttribute('aria-label');
@@ -501,6 +610,7 @@ function checkRoleBasedElement(element, role) {
 /**
  * Checks elements with tabindex for accessibility issues.
  * @param {Element} element - The element to check
+ * @returns {void}
  */
 function checkTabIndexElement(element) {
   const tagName = element.tagName.toLowerCase();
@@ -521,6 +631,7 @@ function checkTabIndexElement(element) {
 
 /**
  * Optimized font size check - only checks text-containing elements.
+ * @returns {void}
  */
 function checkFontSizes() {
   // Use TreeWalker for efficient text node traversal
@@ -559,6 +670,7 @@ function checkFontSizes() {
 
 /**
  * Checks for landmark elements on the page.
+ * @returns {void}
  */
 function checkForLandmarks() {
   const landmarks = document.querySelectorAll(A11Y_CONFIG.SELECTORS.LANDMARK_ELEMENTS);
@@ -572,6 +684,7 @@ function checkForLandmarks() {
 /**
  * Evaluate and apply the correct set of actions based on isEnabled state.
  * @param {boolean} isEnabled - Whether accessibility highlighting is enabled
+ * @returns {void}
  */
 function toggleAccessibilityHighlight(isEnabled) {
   console.log(`Toggling accessibility highlights: ${isEnabled}`);
@@ -589,6 +702,7 @@ function toggleAccessibilityHighlight(isEnabled) {
 
 /**
  * Initial check for isEnabled state from storage.
+ * @returns {void}
  */
 chrome.storage.local.get(["isEnabled"], (result) => {
   try {
@@ -601,6 +715,10 @@ chrome.storage.local.get(["isEnabled"], (result) => {
 
 /**
  * Listen for messages from the background or popup script to dynamically toggle features.
+ * @param {Object} message - The message object from the sender
+ * @param {chrome.runtime.MessageSender} _sender - The sender information (unused)
+ * @param {Function} sendResponse - Function to send response back to sender
+ * @returns {boolean} - True if response will be sent asynchronously, false otherwise
  */
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   try {
