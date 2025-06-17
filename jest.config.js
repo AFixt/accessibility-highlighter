@@ -11,6 +11,6 @@ module.exports = {
   transform: {
     '\\.html$': 'jest-html-loader',
   },
-  testPathIgnorePatterns: ['/node_modules/', '/tests/fixtures/'],
+  testPathIgnorePatterns: ['/node_modules/', '/tests/fixtures/', '/tests/e2e/'],
   moduleDirectories: ['node_modules', 'tests'],
 };
