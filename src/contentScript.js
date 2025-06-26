@@ -1381,6 +1381,9 @@ function formatRuleLabel(key) {
  */
 function removeAccessibilityOverlays() {
   try {
+    // Cancel any running incremental scan
+    cancelIncrementalScan();
+    
     const errorOverlays = document.querySelectorAll(A11Y_CONFIG.SELECTORS.OVERLAY_ELEMENTS);
     errorOverlays.forEach((overlay) => {
       if (overlay.parentNode) {
@@ -1433,11 +1436,268 @@ let isRunning = false;
 let lastRunTime = 0;
 
 /**
- * Efficiently runs accessibility checks using optimized DOM traversal.
- * Uses single-pass traversal and targeted queries to improve performance.
+ * Configuration for incremental scanning.
+ * @type {Object}
+ */
+const INCREMENTAL_CONFIG = {
+  CHUNK_SIZE: 25, // Number of elements to process per chunk
+  CHUNK_DELAY: 16, // Delay between chunks in milliseconds (approximately 60fps)
+  MAX_SCAN_TIME: 5000, // Maximum time for a scan in milliseconds
+  YIELD_EVERY: 50 // Yield after processing this many elements
+};
+
+/**
+ * State for incremental scanning.
+ * @type {Object|null}
+ */
+let incrementalState = null;
+
+/**
+ * Starts incremental accessibility scanning.
  * @returns {void}
  */
-function runAccessibilityChecks() {
+function startIncrementalScan() {
+  try {
+    // Clear previous logs and state
+    logs.length = 0;
+    
+    // Show progress indicator
+    showProgressIndicator('Initializing incremental scan...', 0);
+    
+    // Initialize incremental state
+    incrementalState = {
+      walker: null,
+      totalElements: 0,
+      processedCount: 0,
+      processedElements: new Set(),
+      startTime: Date.now(),
+      chunkStartTime: Date.now(),
+      elementsInCurrentChunk: 0,
+      isComplete: false,
+      cancelled: false
+    };
+    
+    // Check for landmarks first (quick check)
+    updateProgressIndicator('Checking page structure...', 5);
+    checkForLandmarks();
+    
+    // Count total elements for progress tracking
+    const allElements = document.querySelectorAll('*');
+    incrementalState.totalElements = allElements.length;
+    
+    // Create TreeWalker for efficient traversal
+    incrementalState.walker = document.createTreeWalker(
+      document.body,
+      NodeFilter.SHOW_ELEMENT,
+      {
+        acceptNode: function(node) {
+          // Skip hidden elements
+          const style = window.getComputedStyle(node);
+          if (style.display === 'none' || style.visibility === 'hidden') {
+            return NodeFilter.FILTER_REJECT;
+          }
+          return NodeFilter.FILTER_ACCEPT;
+        }
+      },
+      false
+    );
+    
+    updateProgressIndicator(`Starting scan of ${incrementalState.totalElements} elements...`, 10);
+    
+    // Start processing chunks
+    processNextChunk();
+    
+  } catch (error) {
+    console.error('Error starting incremental scan:', error);
+    finishIncrementalScan();
+  }
+}
+
+/**
+ * Processes the next chunk of elements in incremental scan.
+ * @returns {void}
+ */
+function processNextChunk() {
+  if (!incrementalState || incrementalState.cancelled || incrementalState.isComplete) {
+    finishIncrementalScan();
+    return;
+  }
+  
+  const chunkStartTime = performance.now();
+  incrementalState.elementsInCurrentChunk = 0;
+  
+  try {
+    // Process elements in this chunk
+    while (incrementalState.elementsInCurrentChunk < INCREMENTAL_CONFIG.CHUNK_SIZE) {
+      const node = incrementalState.walker.nextNode();
+      
+      // Check if we've reached the end
+      if (!node) {
+        incrementalState.isComplete = true;
+        break;
+      }
+      
+      // Skip if already processed
+      if (incrementalState.processedElements.has(node)) continue;
+      incrementalState.processedElements.add(node);
+      
+      // Process the element
+      processElement(node);
+      
+      incrementalState.processedCount++;
+      incrementalState.elementsInCurrentChunk++;
+      
+      // Check if we've exceeded max scan time
+      if (Date.now() - incrementalState.startTime > INCREMENTAL_CONFIG.MAX_SCAN_TIME) {
+        console.warn('Incremental scan timeout reached, stopping early');
+        incrementalState.isComplete = true;
+        break;
+      }
+      
+      // Yield if we've been processing for too long in this chunk
+      if (performance.now() - chunkStartTime > INCREMENTAL_CONFIG.CHUNK_DELAY) {
+        break;
+      }
+    }
+    
+    // Update progress
+    const progress = 10 + Math.min(80, (incrementalState.processedCount / incrementalState.totalElements) * 80);
+    updateProgressIndicator(
+      `Processed ${incrementalState.processedCount} of ${incrementalState.totalElements} elements...`, 
+      progress
+    );
+    
+    // Schedule next chunk or finish
+    if (incrementalState.isComplete) {
+      finishIncrementalScan();
+    } else {
+      // Use requestAnimationFrame for smooth UI updates, fallback to setTimeout
+      if (typeof requestAnimationFrame !== 'undefined') {
+        requestAnimationFrame(processNextChunk);
+      } else {
+        setTimeout(processNextChunk, INCREMENTAL_CONFIG.CHUNK_DELAY);
+      }
+    }
+    
+  } catch (error) {
+    console.error('Error processing chunk:', error);
+    finishIncrementalScan();
+  }
+}
+
+/**
+ * Processes a single element for accessibility issues.
+ * @param {Element} node - The element to process
+ * @returns {void}
+ */
+function processElement(node) {
+  try {
+    const tagName = node.tagName.toLowerCase();
+    const role = node.getAttribute('role');
+    const tabindex = node.getAttribute('tabindex');
+    
+    // Check element based on tag or role
+    switch (tagName) {
+      case 'img':
+        checkImageElement(node);
+        break;
+      case 'button':
+        checkButtonElement(node);
+        break;
+      case 'a':
+        checkLinkElement(node);
+        break;
+      case 'fieldset':
+        checkFieldsetElement(node);
+        break;
+      case 'input':
+        checkInputElement(node);
+        break;
+      case 'table':
+        checkTableElement(node);
+        break;
+      case 'iframe':
+        checkIframeElement(node);
+        break;
+      case 'audio':
+      case 'video':
+        checkMediaElement(node);
+        break;
+      default:
+        // Check role-based elements
+        if (role) {
+          checkRoleBasedElement(node, role);
+        }
+        // Check tabindex on non-interactive elements
+        if (tabindex !== null) {
+          checkTabIndexElement(node);
+        }
+        break;
+    }
+    
+    // Check font size if enabled
+    if (customRules.typography.enabled && customRules.typography.checkFontSize) {
+      checkFontSize(node);
+    }
+  } catch (error) {
+    console.warn('Error processing element:', node, error);
+  }
+}
+
+/**
+ * Finishes incremental scanning and cleans up.
+ * @returns {void}
+ */
+function finishIncrementalScan() {
+  try {
+    if (incrementalState && !incrementalState.cancelled) {
+      const scanTime = Date.now() - incrementalState.startTime;
+      updateProgressIndicator('Finalizing scan results...', 95);
+      
+      // Log completion stats
+      console.log(`Incremental scan completed: ${incrementalState.processedCount} elements in ${scanTime}ms`);
+      console.table(logs);
+      
+      // Final progress update
+      hideProgressIndicator();
+      
+      // Show completion message if there are issues
+      if (logs.length > 0) {
+        updateProgressIndicator(`Found ${logs.length} accessibility issues`, 100);
+        setTimeout(() => hideProgressIndicator(), 2000);
+      }
+    }
+    
+  } catch (error) {
+    console.error('Error finishing incremental scan:', error);
+  } finally {
+    // Clean up state
+    incrementalState = null;
+    isRunning = false;
+  }
+}
+
+/**
+ * Cancels the current incremental scan.
+ * @returns {void}
+ */
+function cancelIncrementalScan() {
+  if (incrementalState) {
+    incrementalState.cancelled = true;
+    incrementalState = null;
+    isRunning = false;
+    hideProgressIndicator();
+    console.log('Incremental scan cancelled');
+  }
+}
+
+/**
+ * Efficiently runs accessibility checks using incremental scanning.
+ * Uses chunked processing to prevent UI blocking on large pages.
+ * @param {boolean} useIncremental - Whether to use incremental scanning (default: true)
+ * @returns {void}
+ */
+function runAccessibilityChecks(useIncremental = true) {
   // Throttling to prevent performance issues
   const now = Date.now();
   if (isRunning || (now - lastRunTime) < A11Y_CONFIG.PERFORMANCE.THROTTLE_DELAY) {
@@ -1447,6 +1707,12 @@ function runAccessibilityChecks() {
   
   isRunning = true;
   lastRunTime = now;
+  
+  // Use incremental scanning for better performance
+  if (useIncremental) {
+    startIncrementalScan();
+    return;
+  }
   
   try {
     // Clear previous logs
