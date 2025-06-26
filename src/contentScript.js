@@ -61,6 +61,88 @@ let currentFilters = {
 };
 
 /**
+ * Customizable rules configuration for accessibility checks.
+ * @type {Object}
+ */
+let customRules = {
+  // Image accessibility rules
+  images: {
+    enabled: true,
+    checkMissingAlt: true,
+    checkUninformativeAlt: true,
+    checkEmptyAltWithTitle: true,
+    checkDifferentAltTitle: true,
+    allowDecorativeImages: true // If false, all images must have descriptive alt
+  },
+  
+  // Form accessibility rules
+  forms: {
+    enabled: true,
+    checkMissingLabels: true,
+    checkInputImageAlt: true,
+    checkFieldsetLegend: true,
+    requireExplicitLabels: false // If true, only explicit labels count (not aria-label)
+  },
+  
+  // Link accessibility rules
+  links: {
+    enabled: true,
+    checkEmptyLinks: true,
+    checkGenericLinkText: true,
+    checkInvalidHref: true,
+    checkMatchingTitleText: true,
+    allowJavaScriptLinks: false // If true, javascript: links are allowed
+  },
+  
+  // Structure accessibility rules
+  structure: {
+    enabled: true,
+    checkMissingLandmarks: true,
+    checkTableHeaders: true,
+    checkNestedTables: true,
+    checkUninformativeSummary: true,
+    requireMainLandmark: true,
+    requireHeadingStructure: false // If true, enforces proper heading hierarchy
+  },
+  
+  // Multimedia accessibility rules
+  multimedia: {
+    enabled: true,
+    checkAutoplay: true,
+    checkIframeTitles: true,
+    checkMediaCaptions: false, // Future: check for captions
+    allowAutoplayWithControls: false // If true, autoplay is allowed if controls are present
+  },
+  
+  // Navigation and interaction rules
+  navigation: {
+    enabled: true,
+    checkTabIndex: true,
+    checkKeyboardTraps: false, // Future: detect keyboard traps
+    checkFocusIndicators: false, // Future: check focus visibility
+    allowPositiveTabIndex: false // If true, positive tabindex values are allowed
+  },
+  
+  // Text and typography rules
+  typography: {
+    enabled: true,
+    checkFontSize: true,
+    minimumFontSize: 12, // Minimum font size in pixels
+    checkColorContrast: false, // Future: color contrast checking
+    checkLineHeight: false // Future: line height checking
+  },
+  
+  // ARIA and semantic rules
+  aria: {
+    enabled: true,
+    checkRoleBasedElements: true,
+    requireAriaLabels: false, // If true, requires aria-labels on all interactive elements
+    checkAriaReferences: false, // Future: validate aria-labelledby/describedby references
+    allowRedundantRoles: true // If false, flags redundant ARIA roles
+  }
+};
+
+/**
  * @typedef {Object} PerformanceConfig
  * @property {number} THROTTLE_DELAY - Throttle delay in milliseconds
  * @property {number} FONT_SIZE_THRESHOLD - Minimum font size threshold in pixels
@@ -808,6 +890,29 @@ function createSummaryPanel() {
     });
     buttonGroup.appendChild(filterButton);
     
+    // Config button
+    const configButton = document.createElement('button');
+    configButton.textContent = 'Configure Rules';
+    configButton.style.cssText = `
+      flex: 1;
+      padding: 8px 12px;
+      background: #17a2b8;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    `;
+    configButton.addEventListener('click', () => {
+      const existingConfig = document.querySelector('.a11y-config-panel');
+      if (existingConfig) {
+        existingConfig.remove();
+      } else {
+        createConfigPanel();
+      }
+    });
+    buttonGroup.appendChild(configButton);
+    
     // Export button (placeholder for future implementation)
     const exportButton = document.createElement('button');
     exportButton.textContent = 'Export Report';
@@ -896,6 +1001,381 @@ function analyzeLogs() {
 }
 
 /**
+ * Loads custom rules from Chrome storage.
+ * @async
+ * @returns {Promise<void>}
+ */
+async function loadCustomRules() {
+  try {
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+      const result = await chrome.storage.local.get(['customRules']);
+      if (result.customRules && typeof result.customRules === 'object') {
+        // Merge loaded rules with defaults to ensure all properties exist
+        customRules = { ...customRules, ...result.customRules };
+        console.log('Custom rules loaded from storage');
+      }
+    }
+  } catch (error) {
+    console.warn('Failed to load custom rules:', error);
+  }
+}
+
+/**
+ * Saves custom rules to Chrome storage.
+ * @async
+ * @returns {Promise<void>}
+ */
+async function saveCustomRules() {
+  try {
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+      await chrome.storage.local.set({ customRules });
+      console.log('Custom rules saved to storage');
+    }
+  } catch (error) {
+    console.warn('Failed to save custom rules:', error);
+  }
+}
+
+/**
+ * Resets custom rules to default values.
+ * @returns {void}
+ */
+function resetCustomRules() {
+  customRules = {
+    images: {
+      enabled: true,
+      checkMissingAlt: true,
+      checkUninformativeAlt: true,
+      checkEmptyAltWithTitle: true,
+      checkDifferentAltTitle: true,
+      allowDecorativeImages: true
+    },
+    forms: {
+      enabled: true,
+      checkMissingLabels: true,
+      checkInputImageAlt: true,
+      checkFieldsetLegend: true,
+      requireExplicitLabels: false
+    },
+    links: {
+      enabled: true,
+      checkEmptyLinks: true,
+      checkGenericLinkText: true,
+      checkInvalidHref: true,
+      checkMatchingTitleText: true,
+      allowJavaScriptLinks: false
+    },
+    structure: {
+      enabled: true,
+      checkMissingLandmarks: true,
+      checkTableHeaders: true,
+      checkNestedTables: true,
+      checkUninformativeSummary: true,
+      requireMainLandmark: true,
+      requireHeadingStructure: false
+    },
+    multimedia: {
+      enabled: true,
+      checkAutoplay: true,
+      checkIframeTitles: true,
+      checkMediaCaptions: false,
+      allowAutoplayWithControls: false
+    },
+    navigation: {
+      enabled: true,
+      checkTabIndex: true,
+      checkKeyboardTraps: false,
+      checkFocusIndicators: false,
+      allowPositiveTabIndex: false
+    },
+    typography: {
+      enabled: true,
+      checkFontSize: true,
+      minimumFontSize: 12,
+      checkColorContrast: false,
+      checkLineHeight: false
+    },
+    aria: {
+      enabled: true,
+      checkRoleBasedElements: true,
+      requireAriaLabels: false,
+      checkAriaReferences: false,
+      allowRedundantRoles: true
+    }
+  };
+}
+
+/**
+ * Creates a configuration panel for customizing accessibility rules.
+ * @returns {void}
+ */
+function createConfigPanel() {
+  try {
+    // Remove existing config panel
+    const existing = document.querySelector('.a11y-config-panel');
+    if (existing) {
+      existing.remove();
+    }
+    
+    const configPanel = document.createElement('div');
+    configPanel.className = 'a11y-config-panel';
+    configPanel.setAttribute('aria-label', 'Accessibility rules configuration panel');
+    
+    configPanel.style.cssText = `
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: ${A11Y_CONFIG.PERFORMANCE.Z_INDEX_OVERLAY + 2};
+      background: white;
+      border: 2px solid #007cba;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 14px;
+      width: 600px;
+      max-width: 90vw;
+      max-height: 80vh;
+      overflow-y: auto;
+    `;
+    
+    // Title
+    const title = document.createElement('h3');
+    title.textContent = 'Accessibility Rules Configuration';
+    title.style.cssText = 'margin: 0 0 20px 0; color: #007cba; font-size: 18px; text-align: center;';
+    configPanel.appendChild(title);
+    
+    // Create sections for each rule category
+    const categories = [
+      { key: 'images', label: 'Image Accessibility' },
+      { key: 'forms', label: 'Form Accessibility' },
+      { key: 'links', label: 'Link Accessibility' },
+      { key: 'structure', label: 'Document Structure' },
+      { key: 'multimedia', label: 'Multimedia Content' },
+      { key: 'navigation', label: 'Navigation & Interaction' },
+      { key: 'typography', label: 'Text & Typography' },
+      { key: 'aria', label: 'ARIA & Semantics' }
+    ];
+    
+    categories.forEach(({ key, label }) => {
+      const section = createConfigSection(key, label, customRules[key]);
+      configPanel.appendChild(section);
+    });
+    
+    // Action buttons
+    const actionButtons = document.createElement('div');
+    actionButtons.style.cssText = 'margin-top: 20px; display: flex; gap: 10px; justify-content: center; border-top: 1px solid #eee; padding-top: 20px;';
+    
+    // Save button
+    const saveButton = document.createElement('button');
+    saveButton.textContent = 'Save Configuration';
+    saveButton.style.cssText = `
+      padding: 10px 20px;
+      background: #007cba;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    `;
+    saveButton.addEventListener('click', async () => {
+      await saveCustomRules();
+      configPanel.remove();
+      // Optionally re-run checks with new rules
+      if (logs.length > 0) {
+        removeAccessibilityOverlays();
+        setTimeout(() => runAccessibilityChecks(), 100);
+      }
+    });
+    actionButtons.appendChild(saveButton);
+    
+    // Reset button
+    const resetButton = document.createElement('button');
+    resetButton.textContent = 'Reset to Defaults';
+    resetButton.style.cssText = `
+      padding: 10px 20px;
+      background: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    `;
+    resetButton.addEventListener('click', () => {
+      if (confirm('Reset all rules to default values? This will overwrite your current configuration.')) {
+        resetCustomRules();
+        configPanel.remove();
+        createConfigPanel(); // Recreate with default values
+      }
+    });
+    actionButtons.appendChild(resetButton);
+    
+    // Cancel button
+    const cancelButton = document.createElement('button');
+    cancelButton.textContent = 'Cancel';
+    cancelButton.style.cssText = `
+      padding: 10px 20px;
+      background: #6c757d;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    `;
+    cancelButton.addEventListener('click', () => {
+      configPanel.remove();
+    });
+    actionButtons.appendChild(cancelButton);
+    
+    configPanel.appendChild(actionButtons);
+    
+    document.body.appendChild(configPanel);
+    
+  } catch (error) {
+    console.error('Error creating config panel:', error);
+  }
+}
+
+/**
+ * Creates a configuration section for a specific rule category.
+ * @param {string} categoryKey - The category key
+ * @param {string} categoryLabel - The display label for the category
+ * @param {Object} rules - The rules object for this category
+ * @returns {HTMLElement} The section element
+ */
+function createConfigSection(categoryKey, categoryLabel, rules) {
+  const section = document.createElement('div');
+  section.style.cssText = 'margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 4px;';
+  
+  // Section header with enable/disable toggle
+  const header = document.createElement('div');
+  header.style.cssText = 'display: flex; align-items: center; margin-bottom: 10px;';
+  
+  const enableCheckbox = document.createElement('input');
+  enableCheckbox.type = 'checkbox';
+  enableCheckbox.checked = rules.enabled;
+  enableCheckbox.style.marginRight = '10px';
+  enableCheckbox.addEventListener('change', (e) => {
+    rules.enabled = e.target.checked;
+    // Enable/disable all other checkboxes in this section
+    const otherCheckboxes = section.querySelectorAll('input[type="checkbox"]:not(:first-child)');
+    otherCheckboxes.forEach(cb => cb.disabled = !e.target.checked);
+  });
+  
+  const headerLabel = document.createElement('h4');
+  headerLabel.textContent = categoryLabel;
+  headerLabel.style.cssText = 'margin: 0; font-size: 16px; color: #333;';
+  
+  header.appendChild(enableCheckbox);
+  header.appendChild(headerLabel);
+  section.appendChild(header);
+  
+  // Create checkboxes for each rule
+  Object.entries(rules).forEach(([key, value]) => {
+    if (key === 'enabled') return; // Skip the enabled flag
+    
+    if (typeof value === 'boolean') {
+      const checkbox = createConfigCheckbox(key, formatRuleLabel(key), value, (checked) => {
+        rules[key] = checked;
+      });
+      checkbox.style.marginLeft = '20px';
+      if (!rules.enabled) {
+        checkbox.querySelector('input').disabled = true;
+      }
+      section.appendChild(checkbox);
+    } else if (typeof value === 'number') {
+      const numberInput = createConfigNumberInput(key, formatRuleLabel(key), value, (newValue) => {
+        rules[key] = newValue;
+      });
+      numberInput.style.marginLeft = '20px';
+      if (!rules.enabled) {
+        numberInput.querySelector('input').disabled = true;
+      }
+      section.appendChild(numberInput);
+    }
+  });
+  
+  return section;
+}
+
+/**
+ * Creates a checkbox input for configuration.
+ * @param {string} key - The rule key
+ * @param {string} label - The display label
+ * @param {boolean} checked - Initial checked state
+ * @param {Function} onChange - Change handler
+ * @returns {HTMLElement} Checkbox container
+ */
+function createConfigCheckbox(key, label, checked, onChange) {
+  const container = document.createElement('div');
+  container.style.cssText = 'margin: 8px 0; display: flex; align-items: center;';
+  
+  const checkbox = document.createElement('input');
+  checkbox.type = 'checkbox';
+  checkbox.id = `config-${key}`;
+  checkbox.checked = checked;
+  checkbox.style.marginRight = '8px';
+  checkbox.addEventListener('change', (e) => onChange(e.target.checked));
+  
+  const labelElement = document.createElement('label');
+  labelElement.setAttribute('for', `config-${key}`);
+  labelElement.textContent = label;
+  labelElement.style.cssText = 'cursor: pointer; font-size: 13px;';
+  
+  container.appendChild(checkbox);
+  container.appendChild(labelElement);
+  
+  return container;
+}
+
+/**
+ * Creates a number input for configuration.
+ * @param {string} key - The rule key
+ * @param {string} label - The display label
+ * @param {number} value - Initial value
+ * @param {Function} onChange - Change handler
+ * @returns {HTMLElement} Number input container
+ */
+function createConfigNumberInput(key, label, value, onChange) {
+  const container = document.createElement('div');
+  container.style.cssText = 'margin: 8px 0; display: flex; align-items: center;';
+  
+  const labelElement = document.createElement('label');
+  labelElement.setAttribute('for', `config-${key}`);
+  labelElement.textContent = label;
+  labelElement.style.cssText = 'margin-right: 10px; font-size: 13px; min-width: 150px;';
+  
+  const input = document.createElement('input');
+  input.type = 'number';
+  input.id = `config-${key}`;
+  input.value = value;
+  input.min = key === 'minimumFontSize' ? '8' : '0';
+  input.max = key === 'minimumFontSize' ? '24' : '100';
+  input.style.cssText = 'width: 60px; padding: 4px; border: 1px solid #ccc; border-radius: 3px;';
+  input.addEventListener('change', (e) => onChange(parseInt(e.target.value) || value));
+  
+  container.appendChild(labelElement);
+  container.appendChild(input);
+  
+  return container;
+}
+
+/**
+ * Formats a rule key into a readable label.
+ * @param {string} key - The rule key
+ * @returns {string} Formatted label
+ */
+function formatRuleLabel(key) {
+  return key
+    .replace(/([A-Z])/g, ' $1')
+    .replace(/^./, str => str.toUpperCase())
+    .replace(/Alt/g, 'Alt Text')
+    .replace(/Href/g, 'Link Target')
+    .replace(/Aria/g, 'ARIA');
+}
+
+/**
  * Removes all highlighting overlays from the page.
  * @returns {void}
  */
@@ -918,6 +1398,12 @@ function removeAccessibilityOverlays() {
     const summaryPanel = document.querySelector('.a11y-summary-panel');
     if (summaryPanel) {
       summaryPanel.remove();
+    }
+    
+    // Remove config panel
+    const configPanel = document.querySelector('.a11y-config-panel');
+    if (configPanel) {
+      configPanel.remove();
     }
     
     // Clear logs array
@@ -1160,8 +1646,11 @@ function checkElement(element) {
  * @returns {void}
  */
 function checkImageElement(element) {
+  // Skip if image checks are disabled
+  if (!customRules.images.enabled) return;
+  
   // Check for missing alt attribute
-  if (!element.hasAttribute('alt')) {
+  if (customRules.images.checkMissingAlt && !element.hasAttribute('alt')) {
     console.log(element);
     overlay.call(element, "overlay", "error", A11Y_CONFIG.MESSAGES.MISSING_ALT);
     return;
@@ -1171,19 +1660,22 @@ function checkImageElement(element) {
   const titleValue = element.getAttribute('title');
   
   // Check for uninformative alt text
-  if (altValue && A11Y_CONFIG.PROHIBITED_ALT_VALUES.includes(altValue.toLowerCase())) {
+  if (customRules.images.checkUninformativeAlt && altValue && 
+      A11Y_CONFIG.PROHIBITED_ALT_VALUES.includes(altValue.toLowerCase())) {
     console.log(element);
     overlay.call(element, "overlay", "error", A11Y_CONFIG.MESSAGES.UNINFORMATIVE_ALT);
   }
   
   // Check for empty alt with non-empty title
-  if (altValue === '' && titleValue && titleValue.trim() !== '') {
+  if (customRules.images.checkEmptyAltWithTitle && altValue === '' && 
+      titleValue && titleValue.trim() !== '') {
     console.log(element);
     overlay.call(element, "overlay", "error", A11Y_CONFIG.MESSAGES.EMPTY_ALT_WITH_TITLE);
   }
   
   // Check for different alt and title attributes
-  if (altValue && titleValue && altValue.trim() !== '' && titleValue.trim() !== '' && 
+  if (customRules.images.checkDifferentAltTitle && altValue && titleValue && 
+      altValue.trim() !== '' && titleValue.trim() !== '' && 
       altValue.toLowerCase() !== titleValue.toLowerCase()) {
     console.log(element);
     overlay.call(element, "overlay", "error", A11Y_CONFIG.MESSAGES.DIFFERENT_ALT_TITLE);
@@ -1582,6 +2074,18 @@ function handleKeyboardNavigation(event) {
     return;
   }
   
+  // Alt + Shift + C: Toggle configuration panel
+  if (event.altKey && event.shiftKey && event.key === 'C') {
+    event.preventDefault();
+    const existingPanel = document.querySelector('.a11y-config-panel');
+    if (existingPanel) {
+      existingPanel.remove();
+    } else {
+      createConfigPanel();
+    }
+    return;
+  }
+  
   // Only handle navigation keys if keyboard navigation is active
   if (!keyboardNavigationActive) return;
   
@@ -1643,6 +2147,16 @@ function handleKeyboardNavigation(event) {
 
 // Add keyboard event listener
 document.addEventListener('keydown', handleKeyboardNavigation, true);
+
+// Initialize custom rules from storage when content script loads
+(async function initializeCustomRules() {
+  try {
+    await loadCustomRules();
+    console.log('Accessibility Highlighter: Custom rules initialized');
+  } catch (error) {
+    console.warn('Accessibility Highlighter: Failed to initialize custom rules:', error);
+  }
+})();
 
 // Export functions for testing (when in test environment)
 if (typeof global !== 'undefined' && global.process && global.process.env && global.process.env.NODE_ENV === 'test') {
