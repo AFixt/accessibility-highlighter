@@ -299,19 +299,92 @@ function runAccessibilityChecks() {
     // Clear previous logs
     logs.length = 0;
     
-    // Performance optimization: Use a single comprehensive query
-    const elementsToCheck = document.querySelectorAll(A11Y_CONFIG.SELECTORS.ALL_CHECKABLE_ELEMENTS);
-    
     // Check for landmarks first (simple check)
     checkForLandmarks();
     
-    // Process elements in a single pass
-    for (const element of elementsToCheck) {
-      checkElement(element);
-    }
+    // Use TreeWalker for efficient single-pass DOM traversal
+    const walker = document.createTreeWalker(
+      document.body,
+      NodeFilter.SHOW_ELEMENT,
+      {
+        acceptNode: function(node) {
+          // Skip hidden elements
+          const style = window.getComputedStyle(node);
+          if (style.display === 'none' || style.visibility === 'hidden') {
+            return NodeFilter.FILTER_REJECT;
+          }
+          return NodeFilter.FILTER_ACCEPT;
+        }
+      },
+      false
+    );
     
-    // Separate optimized font size check (only text-containing elements)
-    checkFontSizes();
+    // Single pass through all elements
+    let node;
+    const processedElements = new Set();
+    
+    while (node = walker.nextNode()) {
+      // Skip if already processed
+      if (processedElements.has(node)) continue;
+      processedElements.add(node);
+      
+      const tagName = node.tagName.toLowerCase();
+      const role = node.getAttribute('role');
+      const tabindex = node.getAttribute('tabindex');
+      
+      // Check element based on tag or role
+      switch (tagName) {
+        case 'img':
+          checkImageElement(node);
+          break;
+        case 'button':
+          checkButtonElement(node);
+          break;
+        case 'a':
+          checkLinkElement(node);
+          break;
+        case 'fieldset':
+          checkFieldsetElement(node);
+          break;
+        case 'input':
+          checkInputElement(node);
+          break;
+        case 'table':
+          checkTableElement(node);
+          break;
+        case 'iframe':
+          checkIframeElement(node);
+          break;
+        case 'audio':
+        case 'video':
+          checkMediaElement(node);
+          break;
+        default:
+          // Check role-based elements
+          if (role) {
+            checkRoleBasedElement(node, role);
+          }
+          // Check tabindex on non-interactive elements
+          if (tabindex !== null) {
+            checkTabIndexElement(node);
+          }
+          break;
+      }
+      
+      // Check font size for text-containing elements
+      if (A11Y_CONFIG.SELECTORS.TEXT_ELEMENTS.includes(tagName) && 
+          node.textContent && node.textContent.trim().length > 0) {
+        try {
+          const fontSize = parseFloat(style.fontSize || window.getComputedStyle(node).fontSize);
+          if (fontSize < A11Y_CONFIG.PERFORMANCE.FONT_SIZE_THRESHOLD) {
+            console.log(node);
+            overlay.call(node, "overlay", "error", A11Y_CONFIG.MESSAGES.SMALL_FONT_SIZE);
+          }
+        } catch (error) {
+          // Skip elements that can't be styled
+        }
+      }
+    }
     
     // Log results
     if (logs.length > 0) {
@@ -631,41 +704,14 @@ function checkTabIndexElement(element) {
 
 /**
  * Optimized font size check - only checks text-containing elements.
+ * Note: This function is now integrated into the main traversal for better performance.
+ * Kept for backward compatibility and testing.
  * @returns {void}
  */
 function checkFontSizes() {
-  // Use TreeWalker for efficient text node traversal
-  const walker = document.createTreeWalker(
-    document.body,
-    NodeFilter.SHOW_ELEMENT,
-    {
-      acceptNode: function(node) {
-        // Only check elements that likely contain text
-        const tagName = node.tagName.toLowerCase();
-        const hasTextContent = node.textContent && node.textContent.trim().length > 0;
-        const isTextElement = A11Y_CONFIG.SELECTORS.TEXT_ELEMENTS.includes(tagName);
-        
-        return (hasTextContent && isTextElement) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
-      }
-    },
-    false
-  );
-  
-  let node;
-  while (node = walker.nextNode()) {
-    try {
-      const computedStyle = getComputedStyle(node);
-      const fontSize = parseFloat(computedStyle.fontSize);
-      
-      if (fontSize < A11Y_CONFIG.PERFORMANCE.FONT_SIZE_THRESHOLD) {
-        console.log(node);
-        overlay.call(node, "overlay", "error", A11Y_CONFIG.MESSAGES.SMALL_FONT_SIZE);
-      }
-    } catch (error) {
-      // Skip elements that can't be styled
-      continue;
-    }
-  }
+  // This functionality is now integrated into runAccessibilityChecks
+  // to avoid multiple DOM traversals
+  // Silently do nothing - functionality integrated into main traversal
 }
 
 /**
@@ -748,3 +794,63 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     return false;
   }
 });
+
+// Export functions for testing (when in test environment)
+if (typeof global !== 'undefined' && global.process && global.process.env && global.process.env.NODE_ENV === 'test') {
+  global.runAccessibilityChecks = runAccessibilityChecks;
+  global.removeAccessibilityOverlays = removeAccessibilityOverlays;
+  global.removeOverlays = removeAccessibilityOverlays; // Alias for tests
+  global.toggleAccessibilityHighlight = toggleAccessibilityHighlight;
+  global.overlay = overlay;
+  global.logs = logs;
+  
+  // Export individual check functions
+  global.checkElement = checkElement;
+  global.checkImageElement = checkImageElement;
+  global.checkButtonElement = checkButtonElement;
+  global.checkLinkElement = checkLinkElement;
+  global.checkFieldsetElement = checkFieldsetElement;
+  global.checkInputElement = checkInputElement;
+  global.checkTableElement = checkTableElement;
+  global.checkIframeElement = checkIframeElement;
+  global.checkMediaElement = checkMediaElement;
+  global.checkRoleBasedElement = checkRoleBasedElement;
+  global.checkTabIndexElement = checkTabIndexElement;
+  global.checkFontSizes = checkFontSizes;
+  global.checkForLandmarks = checkForLandmarks;
+  
+  // Export throttling variables for test control
+  global.resetThrottle = () => {
+    isRunning = false;
+    lastRunTime = 0;
+  };
+  
+  // Create config object from constants
+  global.A11Y_CONFIG = {
+    PERFORMANCE: {
+      THROTTLE_DELAY: 1000,
+      FONT_SIZE_THRESHOLD: 12,
+      MAX_LOG_ELEMENT_LENGTH: 100,
+      Z_INDEX_OVERLAY: 2147483647
+    },
+    VISUAL: {
+      ERROR_COLOR: '#FF0000',
+      WARNING_COLOR: '#FFA500',
+      OVERLAY_OPACITY: 0.4,
+      BORDER_RADIUS: '5px',
+      BORDER_WIDTH: '2px',
+      STRIPE_GRADIENT: 'repeating-linear-gradient(45deg, transparent, transparent 15px, rgba(255,255,255,.5) 15px, rgba(255,255,255,.5) 30px)'
+    },
+    MESSAGES: {
+      MISSING_ALT: 'img does not have an alt attribute',
+      UNINFORMATIVE_ALT: 'Uninformative alt attribute value found',
+      FORM_FIELD_NO_LABEL: 'Form field without a corresponding label',
+      BUTTON_NO_LABEL: 'Button without aria-label or aria-labelledby or empty text content',
+      GENERIC_LINK_TEXT: 'Link element with matching text content found',
+      TABLE_NO_HEADERS: 'table without any th elements',
+      IFRAME_NO_TITLE: 'iframe element without a title attribute',
+      SMALL_FONT_SIZE: 'Text element with font size smaller than 12px',
+      NO_LANDMARKS: 'No landmark elements found'
+    }
+  };
+}
