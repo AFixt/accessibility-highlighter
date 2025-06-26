@@ -659,6 +659,243 @@ function createFilterCheckbox(id, label, checked, onChange) {
 }
 
 /**
+ * Creates a summary panel showing accessibility results overview.
+ * @returns {void}
+ */
+function createSummaryPanel() {
+  try {
+    // Remove existing summary panel
+    const existing = document.querySelector('.a11y-summary-panel');
+    if (existing) {
+      existing.remove();
+    }
+    
+    // Analyze logs to create summary
+    const summary = analyzeLogs();
+    
+    const summaryPanel = document.createElement('div');
+    summaryPanel.className = 'a11y-summary-panel';
+    summaryPanel.setAttribute('aria-label', 'Accessibility results summary');
+    
+    summaryPanel.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: ${A11Y_CONFIG.PERFORMANCE.Z_INDEX_OVERLAY + 1};
+      background: white;
+      border: 2px solid #007cba;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 14px;
+      min-width: 280px;
+      max-width: 400px;
+      max-height: 70vh;
+      overflow-y: auto;
+    `;
+    
+    // Title
+    const title = document.createElement('h3');
+    title.textContent = 'Accessibility Summary';
+    title.style.cssText = 'margin: 0 0 15px 0; color: #007cba; font-size: 18px; text-align: center;';
+    summaryPanel.appendChild(title);
+    
+    // Overall stats
+    const overallStats = document.createElement('div');
+    overallStats.style.cssText = 'margin-bottom: 20px; padding: 10px; background: #f8f9fa; border-radius: 4px;';
+    
+    const totalIssues = document.createElement('div');
+    totalIssues.innerHTML = `<strong>Total Issues: ${summary.total}</strong>`;
+    totalIssues.style.fontSize = '16px';
+    overallStats.appendChild(totalIssues);
+    
+    const severityBreakdown = document.createElement('div');
+    severityBreakdown.innerHTML = `
+      <div style="margin-top: 8px;">
+        <span style="color: #dc3545;">● Errors: ${summary.errors}</span>
+        <span style="margin-left: 15px; color: #ffc107;">● Warnings: ${summary.warnings}</span>
+      </div>
+    `;
+    overallStats.appendChild(severityBreakdown);
+    
+    summaryPanel.appendChild(overallStats);
+    
+    // Category breakdown
+    if (Object.keys(summary.categories).length > 0) {
+      const categoryTitle = document.createElement('h4');
+      categoryTitle.textContent = 'Issues by Category';
+      categoryTitle.style.cssText = 'margin: 0 0 10px 0; font-size: 14px; color: #333;';
+      summaryPanel.appendChild(categoryTitle);
+      
+      const categoryList = document.createElement('div');
+      Object.entries(summary.categories)
+        .sort(([,a], [,b]) => b - a) // Sort by count descending
+        .forEach(([category, count]) => {
+          const categoryItem = document.createElement('div');
+          categoryItem.style.cssText = 'display: flex; justify-content: space-between; margin: 5px 0; padding: 5px 0; border-bottom: 1px solid #eee;';
+          
+          const categoryName = document.createElement('span');
+          categoryName.textContent = category.charAt(0).toUpperCase() + category.slice(1);
+          
+          const categoryCount = document.createElement('span');
+          categoryCount.textContent = count;
+          categoryCount.style.cssText = 'font-weight: bold; color: #007cba;';
+          
+          categoryItem.appendChild(categoryName);
+          categoryItem.appendChild(categoryCount);
+          categoryList.appendChild(categoryItem);
+        });
+      
+      summaryPanel.appendChild(categoryList);
+    }
+    
+    // Top issues
+    if (summary.topIssues.length > 0) {
+      const topIssuesTitle = document.createElement('h4');
+      topIssuesTitle.textContent = 'Most Common Issues';
+      topIssuesTitle.style.cssText = 'margin: 20px 0 10px 0; font-size: 14px; color: #333;';
+      summaryPanel.appendChild(topIssuesTitle);
+      
+      const topIssuesList = document.createElement('div');
+      summary.topIssues.slice(0, 5).forEach(({ message, count }) => {
+        const issueItem = document.createElement('div');
+        issueItem.style.cssText = 'margin: 8px 0; padding: 8px; background: #f8f9fa; border-radius: 4px; font-size: 12px;';
+        
+        const issueText = document.createElement('div');
+        issueText.textContent = message;
+        issueText.style.cssText = 'margin-bottom: 4px;';
+        
+        const issueCount = document.createElement('div');
+        issueCount.textContent = `Occurrences: ${count}`;
+        issueCount.style.cssText = 'font-weight: bold; color: #666; font-size: 11px;';
+        
+        issueItem.appendChild(issueText);
+        issueItem.appendChild(issueCount);
+        topIssuesList.appendChild(issueItem);
+      });
+      
+      summaryPanel.appendChild(topIssuesList);
+    }
+    
+    // Actions section
+    const actionsSection = document.createElement('div');
+    actionsSection.style.cssText = 'margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;';
+    
+    const buttonGroup = document.createElement('div');
+    buttonGroup.style.cssText = 'display: flex; gap: 8px; flex-wrap: wrap;';
+    
+    // Filter button
+    const filterButton = document.createElement('button');
+    filterButton.textContent = 'Filter Results';
+    filterButton.style.cssText = `
+      flex: 1;
+      padding: 8px 12px;
+      background: #007cba;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    `;
+    filterButton.addEventListener('click', () => {
+      const existingFilter = document.querySelector('.a11y-filter-panel');
+      if (existingFilter) {
+        existingFilter.remove();
+      } else {
+        createFilterPanel();
+      }
+    });
+    buttonGroup.appendChild(filterButton);
+    
+    // Export button (placeholder for future implementation)
+    const exportButton = document.createElement('button');
+    exportButton.textContent = 'Export Report';
+    exportButton.style.cssText = `
+      flex: 1;
+      padding: 8px 12px;
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    `;
+    exportButton.addEventListener('click', () => {
+      alert('Export functionality coming soon!');
+    });
+    buttonGroup.appendChild(exportButton);
+    
+    actionsSection.appendChild(buttonGroup);
+    
+    // Close button
+    const closeButton = document.createElement('button');
+    closeButton.textContent = 'Close Summary';
+    closeButton.style.cssText = `
+      width: 100%;
+      margin-top: 10px;
+      padding: 8px;
+      background: #6c757d;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    `;
+    closeButton.addEventListener('click', () => {
+      summaryPanel.remove();
+    });
+    actionsSection.appendChild(closeButton);
+    
+    summaryPanel.appendChild(actionsSection);
+    
+    document.body.appendChild(summaryPanel);
+    
+  } catch (error) {
+    console.error('Error creating summary panel:', error);
+  }
+}
+
+/**
+ * Analyzes the logs array to create summary statistics.
+ * @returns {Object} Summary object with statistics
+ */
+function analyzeLogs() {
+  const summary = {
+    total: logs.length,
+    errors: 0,
+    warnings: 0,
+    categories: {},
+    topIssues: []
+  };
+  
+  const messageCount = {};
+  
+  logs.forEach(log => {
+    // Count by severity
+    if (log.level === 'error') {
+      summary.errors++;
+    } else if (log.level === 'warning') {
+      summary.warnings++;
+    }
+    
+    // Count by category
+    const category = categorizeIssue(log.message, log.element);
+    summary.categories[category] = (summary.categories[category] || 0) + 1;
+    
+    // Count message occurrences
+    messageCount[log.message] = (messageCount[log.message] || 0) + 1;
+  });
+  
+  // Create top issues list
+  summary.topIssues = Object.entries(messageCount)
+    .map(([message, count]) => ({ message, count }))
+    .sort((a, b) => b.count - a.count);
+  
+  return summary;
+}
+
+/**
  * Removes all highlighting overlays from the page.
  * @returns {void}
  */
@@ -675,6 +912,12 @@ function removeAccessibilityOverlays() {
     const filterPanel = document.querySelector('.a11y-filter-panel');
     if (filterPanel) {
       filterPanel.remove();
+    }
+    
+    // Remove summary panel
+    const summaryPanel = document.querySelector('.a11y-summary-panel');
+    if (summaryPanel) {
+      summaryPanel.remove();
     }
     
     // Clear logs array
@@ -1323,6 +1566,18 @@ function handleKeyboardNavigation(event) {
       existingPanel.remove();
     } else {
       createFilterPanel();
+    }
+    return;
+  }
+  
+  // Alt + Shift + S: Toggle summary panel
+  if (event.altKey && event.shiftKey && event.key === 'S') {
+    event.preventDefault();
+    const existingPanel = document.querySelector('.a11y-summary-panel');
+    if (existingPanel) {
+      existingPanel.remove();
+    } else {
+      createSummaryPanel();
     }
     return;
   }
