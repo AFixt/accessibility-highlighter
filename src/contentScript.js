@@ -38,6 +38,12 @@ let currentOverlayIndex = -1;
 let keyboardNavigationActive = false;
 
 /**
+ * Progress indicator element for showing scan progress.
+ * @type {HTMLElement|null}
+ */
+let progressIndicator = null;
+
+/**
  * @typedef {Object} PerformanceConfig
  * @property {number} THROTTLE_DELAY - Throttle delay in milliseconds
  * @property {number} FONT_SIZE_THRESHOLD - Minimum font size threshold in pixels
@@ -173,6 +179,7 @@ const A11Y_CONFIG = {
     TEXT_ELEMENTS: ['p', 'span', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'td', 'th', 'label', 'a', 'button'],
     INTERACTIVE_ELEMENTS: ['a', 'area', 'button', 'input', 'select', 'textarea'],
     OVERLAY_ELEMENTS: '.a11y-error, .a11y-warning, .overlay',
+    PROGRESS_INDICATOR: '.a11y-progress-indicator',
   },
   
   MESSAGES: {
@@ -309,6 +316,109 @@ function overlay(overlayClass, level, msg) {
 }
 
 /**
+ * Creates and shows a progress indicator for accessibility scanning.
+ * @param {string} message - Progress message to display
+ * @param {number} [percentage] - Progress percentage (0-100)
+ * @returns {void}
+ */
+function showProgressIndicator(message, percentage = 0) {
+  try {
+    // Remove existing progress indicator
+    hideProgressIndicator();
+    
+    // Create progress container
+    progressIndicator = document.createElement('div');
+    progressIndicator.className = 'a11y-progress-indicator';
+    progressIndicator.setAttribute('aria-live', 'polite');
+    progressIndicator.setAttribute('aria-label', 'Accessibility scan progress');
+    
+    // Style the progress indicator
+    progressIndicator.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: ${A11Y_CONFIG.PERFORMANCE.Z_INDEX_OVERLAY + 1};
+      background: #007cba;
+      color: white;
+      padding: 15px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 14px;
+      line-height: 1.4;
+      min-width: 250px;
+      max-width: 350px;
+    `;
+    
+    // Create content
+    const messageDiv = document.createElement('div');
+    messageDiv.textContent = message;
+    messageDiv.style.marginBottom = '8px';
+    
+    const progressBar = document.createElement('div');
+    progressBar.style.cssText = `
+      width: 100%;
+      height: 6px;
+      background: rgba(255,255,255,0.3);
+      border-radius: 3px;
+      overflow: hidden;
+    `;
+    
+    const progressFill = document.createElement('div');
+    progressFill.style.cssText = `
+      height: 100%;
+      background: white;
+      width: ${Math.max(0, Math.min(100, percentage))}%;
+      transition: width 0.3s ease;
+    `;
+    
+    progressBar.appendChild(progressFill);
+    progressIndicator.appendChild(messageDiv);
+    progressIndicator.appendChild(progressBar);
+    
+    // Store references for updates
+    progressIndicator._messageDiv = messageDiv;
+    progressIndicator._progressFill = progressFill;
+    
+    document.body.appendChild(progressIndicator);
+  } catch (error) {
+    console.error('Error showing progress indicator:', error);
+  }
+}
+
+/**
+ * Updates the progress indicator with new message and percentage.
+ * @param {string} message - Updated progress message
+ * @param {number} percentage - Progress percentage (0-100)
+ * @returns {void}
+ */
+function updateProgressIndicator(message, percentage) {
+  try {
+    if (progressIndicator && progressIndicator._messageDiv && progressIndicator._progressFill) {
+      progressIndicator._messageDiv.textContent = message;
+      progressIndicator._progressFill.style.width = `${Math.max(0, Math.min(100, percentage))}%`;
+    }
+  } catch (error) {
+    console.error('Error updating progress indicator:', error);
+  }
+}
+
+/**
+ * Hides and removes the progress indicator.
+ * @returns {void}
+ */
+function hideProgressIndicator() {
+  try {
+    if (progressIndicator && progressIndicator.parentNode) {
+      progressIndicator.parentNode.removeChild(progressIndicator);
+    }
+    progressIndicator = null;
+  } catch (error) {
+    console.error('Error hiding progress indicator:', error);
+  }
+}
+
+/**
  * Removes all highlighting overlays from the page.
  * @returns {void}
  */
@@ -326,6 +436,9 @@ function removeAccessibilityOverlays() {
     // Reset keyboard navigation
     keyboardNavigationActive = false;
     currentOverlayIndex = -1;
+    
+    // Hide progress indicator
+    hideProgressIndicator();
   } catch (error) {
     console.error('Error removing overlays:', error);
   }
@@ -363,8 +476,18 @@ function runAccessibilityChecks() {
     // Clear previous logs
     logs.length = 0;
     
+    // Show progress indicator
+    showProgressIndicator('Starting accessibility scan...', 0);
+    
     // Check for landmarks first (simple check)
+    updateProgressIndicator('Checking page structure...', 10);
     checkForLandmarks();
+    
+    // Count total elements for progress tracking
+    const allElements = document.querySelectorAll('*');
+    const totalElements = allElements.length;
+    
+    updateProgressIndicator(`Scanning ${totalElements} elements...`, 20);
     
     // Use TreeWalker for efficient single-pass DOM traversal
     const walker = document.createTreeWalker(
@@ -385,12 +508,20 @@ function runAccessibilityChecks() {
     
     // Single pass through all elements
     let node;
+    let processedCount = 0;
     const processedElements = new Set();
     
     while (node = walker.nextNode()) {
       // Skip if already processed
       if (processedElements.has(node)) continue;
       processedElements.add(node);
+      processedCount++;
+      
+      // Update progress every 50 elements
+      if (processedCount % 50 === 0) {
+        const progress = 20 + Math.min(70, (processedCount / totalElements) * 70);
+        updateProgressIndicator(`Processed ${processedCount} of ${totalElements} elements...`, progress);
+      }
       
       const tagName = node.tagName.toLowerCase();
       const role = node.getAttribute('role');
@@ -450,14 +581,29 @@ function runAccessibilityChecks() {
       }
     }
     
+    // Finalize progress
+    updateProgressIndicator('Completing scan...', 95);
+    
     // Log results
     if (logs.length > 0) {
+      updateProgressIndicator(`Found ${logs.length} accessibility issues`, 100);
       console.table(logs);
     } else {
+      updateProgressIndicator('No accessibility issues found!', 100);
       console.log(A11Y_CONFIG.MESSAGES.NO_ISSUES);
     }
+    
+    // Hide progress indicator after a brief delay
+    setTimeout(() => {
+      hideProgressIndicator();
+    }, 2000);
+    
   } catch (error) {
     console.error('Error during accessibility checks:', error);
+    updateProgressIndicator('Error during scan', 100);
+    setTimeout(() => {
+      hideProgressIndicator();
+    }, 3000);
   } finally {
     isRunning = false;
   }
