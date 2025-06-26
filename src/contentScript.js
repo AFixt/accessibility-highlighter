@@ -26,6 +26,18 @@ console.log("Content script loaded");
 const logs = [];
 
 /**
+ * Current overlay index for keyboard navigation.
+ * @type {number}
+ */
+let currentOverlayIndex = -1;
+
+/**
+ * Flag to track if keyboard navigation is active.
+ * @type {boolean}
+ */
+let keyboardNavigationActive = false;
+
+/**
  * @typedef {Object} PerformanceConfig
  * @property {number} THROTTLE_DELAY - Throttle delay in milliseconds
  * @property {number} FONT_SIZE_THRESHOLD - Minimum font size threshold in pixels
@@ -310,6 +322,10 @@ function removeAccessibilityOverlays() {
     });
     // Clear logs array
     logs.length = 0;
+    
+    // Reset keyboard navigation
+    keyboardNavigationActive = false;
+    currentOverlayIndex = -1;
   } catch (error) {
     console.error('Error removing overlays:', error);
   }
@@ -850,6 +866,122 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     return false;
   }
 });
+
+/**
+ * Highlights the current overlay in keyboard navigation.
+ * @param {number} index - Index of overlay to highlight
+ * @returns {void}
+ */
+function highlightCurrentOverlay(index) {
+  const overlays = document.querySelectorAll(A11Y_CONFIG.SELECTORS.OVERLAY_ELEMENTS);
+  
+  // Remove previous highlight
+  overlays.forEach(overlay => {
+    overlay.style.outline = '';
+    overlay.style.outlineOffset = '';
+  });
+  
+  if (index >= 0 && index < overlays.length) {
+    const currentOverlay = overlays[index];
+    currentOverlay.style.outline = '3px solid #007cba';
+    currentOverlay.style.outlineOffset = '2px';
+    
+    // Scroll into view
+    currentOverlay.scrollIntoView({ 
+      behavior: 'smooth', 
+      block: 'center' 
+    });
+    
+    // Announce to screen readers
+    const message = currentOverlay.dataset.a11ymessage || 'Accessibility issue';
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(`Issue ${index + 1} of ${overlays.length}: ${message}`);
+      utterance.volume = 0.1; // Keep it quiet
+      speechSynthesis.speak(utterance);
+    }
+  }
+}
+
+/**
+ * Handles keyboard navigation through accessibility overlays.
+ * @param {KeyboardEvent} event - The keyboard event
+ * @returns {void}
+ */
+function handleKeyboardNavigation(event) {
+  const overlays = document.querySelectorAll(A11Y_CONFIG.SELECTORS.OVERLAY_ELEMENTS);
+  
+  if (overlays.length === 0) return;
+  
+  // Alt + Shift + N: Start/activate keyboard navigation
+  if (event.altKey && event.shiftKey && event.key === 'N') {
+    event.preventDefault();
+    keyboardNavigationActive = true;
+    currentOverlayIndex = 0;
+    highlightCurrentOverlay(currentOverlayIndex);
+    return;
+  }
+  
+  // Only handle navigation keys if keyboard navigation is active
+  if (!keyboardNavigationActive) return;
+  
+  switch (event.key) {
+    case 'ArrowDown':
+    case 'ArrowRight':
+      event.preventDefault();
+      currentOverlayIndex = (currentOverlayIndex + 1) % overlays.length;
+      highlightCurrentOverlay(currentOverlayIndex);
+      break;
+      
+    case 'ArrowUp':
+    case 'ArrowLeft':
+      event.preventDefault();
+      currentOverlayIndex = currentOverlayIndex > 0 ? currentOverlayIndex - 1 : overlays.length - 1;
+      highlightCurrentOverlay(currentOverlayIndex);
+      break;
+      
+    case 'Home':
+      event.preventDefault();
+      currentOverlayIndex = 0;
+      highlightCurrentOverlay(currentOverlayIndex);
+      break;
+      
+    case 'End':
+      event.preventDefault();
+      currentOverlayIndex = overlays.length - 1;
+      highlightCurrentOverlay(currentOverlayIndex);
+      break;
+      
+    case 'Escape':
+      event.preventDefault();
+      keyboardNavigationActive = false;
+      currentOverlayIndex = -1;
+      // Remove all highlights
+      overlays.forEach(overlay => {
+        overlay.style.outline = '';
+        overlay.style.outlineOffset = '';
+      });
+      break;
+      
+    case 'Enter':
+    case ' ':
+      event.preventDefault();
+      if (currentOverlayIndex >= 0 && currentOverlayIndex < overlays.length) {
+        const currentOverlay = overlays[currentOverlayIndex];
+        const message = currentOverlay.dataset.a11ymessage || 'Accessibility issue';
+        console.log('Selected accessibility issue:', message);
+        
+        // Show more detailed information
+        if ('speechSynthesis' in window) {
+          const utterance = new SpeechSynthesisUtterance(message);
+          speechSynthesis.speak(utterance);
+        }
+      }
+      break;
+  }
+}
+
+// Add keyboard event listener
+document.addEventListener('keydown', handleKeyboardNavigation, true);
 
 // Export functions for testing (when in test environment)
 if (typeof global !== 'undefined' && global.process && global.process.env && global.process.env.NODE_ENV === 'test') {

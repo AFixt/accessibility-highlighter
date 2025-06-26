@@ -74,12 +74,13 @@ async function getCurrentTab() {
 }
 
 /**
- * Handles browser action click events to toggle accessibility highlighting.
- * Updates extension state, icon, and sends message to active tab.
- * @function
+ * Toggles the accessibility highlighter state.
+ * Shared function used by both click and keyboard shortcut handlers.
+ * @async
+ * @function toggleAccessibilityState
  * @returns {void}
  */
-chrome.action.onClicked.addListener(() => {
+async function toggleAccessibilityState() {
   chrome.storage.local.get(["isEnabled"]).then((result) => {
     // Validate storage result
     if (!result || typeof result !== 'object') {
@@ -165,6 +166,27 @@ chrome.action.onClicked.addListener(() => {
   }).catch(error => {
     console.error('Error getting storage:', error);
   });
+}
+
+/**
+ * Handles browser action click events to toggle accessibility highlighting.
+ * @function
+ * @returns {void}
+ */
+chrome.action.onClicked.addListener(() => {
+  toggleAccessibilityState();
+});
+
+/**
+ * Handles keyboard command events to toggle accessibility highlighting.
+ * @function
+ * @param {string} command - The command name from manifest
+ * @returns {void}
+ */
+chrome.commands.onCommand.addListener((command) => {
+  if (command === "toggle-accessibility") {
+    toggleAccessibilityState();
+  }
 });
 
 /**

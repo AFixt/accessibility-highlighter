@@ -19,6 +19,15 @@ The project todo list is maintained in todo.md. Always refer to todo.md for the 
 - Install as unpacked extension: chrome://extensions > Developer mode > Load unpacked
 - Manual testing: Open /tests/manual-test-runner.html in browser
 
+## Keyboard Shortcuts
+
+- `Ctrl+Shift+A` (Windows/Linux) or `Cmd+Shift+A` (Mac): Toggle accessibility highlighting
+- `Alt+Shift+N`: Start keyboard navigation through accessibility issues
+- `Arrow Keys`: Navigate between issues (when keyboard navigation is active)
+- `Home/End`: Jump to first/last issue
+- `Enter/Space`: Get detailed information about current issue
+- `Escape`: Exit keyboard navigation mode
+
 ## Code Style Guidelines
 
 - Indentation: 2 spaces
