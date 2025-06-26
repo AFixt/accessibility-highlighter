@@ -6,6 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 The Accessibility Highlighter is a Chrome extension that identifies accessibility issues on webpages and visually highlights them. It uses a content script for DOM manipulation and a background service worker for extension state management.
 
+## Project Todo List
+
+The project todo list is maintained in todo.md. Always refer to todo.md for the current list of tasks and their priorities. Tasks should be completed in priority order (Critical, High, Medium, Low) and marked as complete as they are finished.
+
 ## Build/Development Commands
 
 - No build process required - load as an unpacked extension in Chrome
