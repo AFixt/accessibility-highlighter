@@ -1,0 +1,303 @@
+name: Code Quality
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run weekly code quality checks
+    - cron: '0 8 * * 1'  # Every Monday at 8 AM UTC
+
+jobs:
+  codeql:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
+    
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+      
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'javascript' ]
+        
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: ${{ matrix.language }}
+        
+    - name: Autobuild
+      uses: github/codeql-action/autobuild@v3
+      
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:${{matrix.language}}"
+
+  sonarcloud:
+    name: SonarCloud Analysis
+    runs-on: ubuntu-latest
+    if: false  # Disabled until SonarCloud is configured
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Shallow clones should be disabled for better analysis
+        
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run tests with coverage
+      run: npm test -- --coverage --coverageReporters=lcov
+      
+    - name: SonarCloud Scan
+      uses: SonarSource/sonarcloud-github-action@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  complexity:
+    name: Code Complexity Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Install complexity analysis tools
+      run: |
+        npm install -g complexity-report
+        npm install -g jshint
+        
+    - name: Analyze code complexity
+      run: |
+        echo "## Code Complexity Report" > complexity-report.md
+        echo "" >> complexity-report.md
+        
+        # Run complexity analysis on source files
+        for file in src/*.js; do
+          if [ -f "$file" ]; then
+            echo "### $(basename $file)" >> complexity-report.md
+            echo "" >> complexity-report.md
+            echo '```' >> complexity-report.md
+            cr --format markdown "$file" 2>/dev/null | tail -n +3 >> complexity-report.md || echo "Analysis failed for $file" >> complexity-report.md
+            echo '```' >> complexity-report.md
+            echo "" >> complexity-report.md
+          fi
+        done
+        
+    - name: Check for high complexity functions
+      run: |
+        echo "Checking for functions with high cyclomatic complexity..."
+        
+        # Define complexity threshold
+        COMPLEXITY_THRESHOLD=10
+        
+        # Check each JavaScript file for complexity
+        for file in src/*.js; do
+          if [ -f "$file" ]; then
+            echo "Analyzing $file..."
+            
+            # Use cr (complexity-report) to check complexity
+            COMPLEX_FUNCTIONS=$(cr --format json "$file" 2>/dev/null | jq -r '.reports[]?.functions[]? | select(.complexity.cyclomatic > '$COMPLEXITY_THRESHOLD') | .name' 2>/dev/null || true)
+            
+            if [ ! -z "$COMPLEX_FUNCTIONS" ]; then
+              echo "⚠️  High complexity functions found in $file:"
+              echo "$COMPLEX_FUNCTIONS"
+              echo "Consider refactoring functions with complexity > $COMPLEXITY_THRESHOLD"
+            fi
+          fi
+        done
+        
+    - name: Upload complexity report
+      uses: actions/upload-artifact@v4
+      with:
+        name: complexity-report
+        path: complexity-report.md
+        retention-days: 30
+
+  accessibility:
+    name: Accessibility Audit
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build extension
+      run: npm run build
+      
+    - name: Install accessibility testing tools
+      run: |
+        npm install -g axe-core @axe-core/cli
+        npx playwright install chromium
+        
+    - name: Create test HTML page
+      run: |
+        mkdir -p test-pages
+        cat > test-pages/test.html << 'EOF'
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Accessibility Test Page</title>
+        </head>
+        <body>
+            <h1>Test Page for Accessibility Highlighter</h1>
+            
+            <!-- Intentional accessibility issues for testing -->
+            <img src="test.jpg">  <!-- Missing alt text -->
+            <button></button>  <!-- Empty button -->
+            <input type="text">  <!-- Input without label -->
+            <a href="#">click here</a>  <!-- Generic link text -->
+            
+            <!-- Good accessibility examples -->
+            <img src="good.jpg" alt="A descriptive image">
+            <button>Submit Form</button>
+            <label for="email">Email: <input type="email" id="email"></label>
+            <a href="/contact">Contact Us</a>
+        </body>
+        </html>
+        EOF
+        
+    - name: Test extension functionality
+      run: |
+        echo "Testing extension on sample page..."
+        
+        # Use Playwright to test the extension
+        cat > test-extension.js << 'EOF'
+        const { chromium } = require('playwright');
+        
+        (async () => {
+          const browser = await chromium.launch();
+          const context = await browser.newContext();
+          
+          // Load the extension
+          await context.addInitScript({
+            path: './dist/contentScript.js'
+          });
+          
+          const page = await context.newPage();
+          await page.goto(`file://${process.cwd()}/test-pages/test.html`);
+          
+          // Wait for extension to load
+          await page.waitForTimeout(1000);
+          
+          // Check if the extension detected issues
+          const overlays = await page.locator('.a11y-error, .overlay').count();
+          console.log(`Extension detected ${overlays} accessibility issues`);
+          
+          await browser.close();
+        })();
+        EOF
+        
+        node test-extension.js
+        
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      with:
+        name: accessibility-test-results
+        path: test-pages/
+        retention-days: 30
+
+  performance:
+    name: Performance Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run performance benchmarks
+      run: |
+        echo "Running performance benchmarks..."
+        npm test -- --testNamePattern="Performance" --verbose
+        
+    - name: Analyze bundle size
+      run: |
+        echo "Analyzing extension bundle size..."
+        
+        # Check file sizes
+        echo "## Extension File Sizes" > size-report.md
+        echo "" >> size-report.md
+        
+        if [ -d "src" ]; then
+          echo "### Source Files" >> size-report.md
+          echo '```' >> size-report.md
+          find src -name "*.js" -exec wc -c {} + | sort -n >> size-report.md
+          echo '```' >> size-report.md
+          echo "" >> size-report.md
+        fi
+        
+        # Build and check dist sizes
+        npm run build
+        if [ -d "dist" ]; then
+          echo "### Built Files" >> size-report.md
+          echo '```' >> size-report.md
+          find dist -name "*.js" -exec wc -c {} + | sort -n >> size-report.md
+          echo '```' >> size-report.md
+          echo "" >> size-report.md
+        fi
+        
+        # Check total extension size
+        npm run package
+        if [ -f "a11y-highlighter.zip" ]; then
+          TOTAL_SIZE=$(wc -c < a11y-highlighter.zip)
+          echo "### Total Extension Size" >> size-report.md
+          echo "- **Package size:** ${TOTAL_SIZE} bytes" >> size-report.md
+          echo "- **Package size (KB):** $((TOTAL_SIZE / 1024)) KB" >> size-report.md
+          
+          # Warn if extension is getting large
+          if [ $TOTAL_SIZE -gt 1048576 ]; then  # 1MB
+            echo "⚠️ Extension package is larger than 1MB. Consider optimization."
+          fi
+        fi
+        
+    - name: Upload performance report
+      uses: actions/upload-artifact@v4
+      with:
+        name: performance-report
+        path: size-report.md
+        retention-days: 30
