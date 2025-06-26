@@ -190,6 +190,22 @@ function overlay(overlayClass, level, msg) {
   const elementInError = this;
   
   try {
+    // Validate parameters
+    if (typeof overlayClass !== 'string' || !overlayClass) {
+      console.error('Invalid overlay class:', overlayClass);
+      return;
+    }
+    
+    if (level !== 'error' && level !== 'warning') {
+      console.error('Invalid level:', level);
+      return;
+    }
+    
+    if (typeof msg !== 'string' || !msg) {
+      console.error('Invalid message:', msg);
+      return;
+    }
+    
     // Get accurate element position and dimensions using getBoundingClientRect
     const rect = elementInError.getBoundingClientRect();
     
@@ -199,29 +215,38 @@ function overlay(overlayClass, level, msg) {
       return;
     }
     
-    // Sanitize message content
-    const sanitizedMsg = String(msg).replace(/[<>]/g, '');
+    // Enhanced sanitization - remove all HTML tags and dangerous characters
+    const sanitizedMsg = String(msg)
+      .replace(/[<>"'&]/g, '') // Remove HTML-related characters
+      .replace(/javascript:/gi, '') // Remove javascript: protocol
+      .replace(/on\w+\s*=/gi, '') // Remove event handlers
+      .trim();
     
     // Create overlay element
     const overlayEl = document.createElement("div");
     overlayEl.classList.add(overlayClass);
     
-    // Set positioning styles BEFORE appending to DOM
-    overlayEl.style.cssText = `
-      position: absolute;
-      top: ${rect.top + window.scrollY}px;
-      left: ${rect.left + window.scrollX}px;
-      width: ${rect.width}px;
-      height: ${rect.height}px;
-      display: block;
-      pointer-events: none;
-      z-index: ${A11Y_CONFIG.PERFORMANCE.Z_INDEX_OVERLAY};
-      opacity: ${A11Y_CONFIG.VISUAL.OVERLAY_OPACITY};
-      border-radius: ${A11Y_CONFIG.VISUAL.BORDER_RADIUS};
-      background-image: ${A11Y_CONFIG.VISUAL.STRIPE_GRADIENT};
-    `;
+    // Validate numeric values
+    const topPos = Math.max(0, rect.top + window.scrollY);
+    const leftPos = Math.max(0, rect.left + window.scrollX);
+    const width = Math.max(0, rect.width);
+    const height = Math.max(0, rect.height);
     
-    overlayEl.setAttribute('data-a11ymessage', sanitizedMsg);
+    // Set positioning styles using individual properties (safer than cssText)
+    overlayEl.style.position = 'absolute';
+    overlayEl.style.top = `${topPos}px`;
+    overlayEl.style.left = `${leftPos}px`;
+    overlayEl.style.width = `${width}px`;
+    overlayEl.style.height = `${height}px`;
+    overlayEl.style.display = 'block';
+    overlayEl.style.pointerEvents = 'none';
+    overlayEl.style.zIndex = String(A11Y_CONFIG.PERFORMANCE.Z_INDEX_OVERLAY);
+    overlayEl.style.opacity = String(A11Y_CONFIG.VISUAL.OVERLAY_OPACITY);
+    overlayEl.style.borderRadius = A11Y_CONFIG.VISUAL.BORDER_RADIUS;
+    overlayEl.style.backgroundImage = A11Y_CONFIG.VISUAL.STRIPE_GRADIENT;
+    
+    // Use textContent instead of setAttribute for safer content handling
+    overlayEl.dataset.a11ymessage = sanitizedMsg;
     
     // Set overlay appearance based on level
     if (level === "error") {
@@ -237,11 +262,15 @@ function overlay(overlayClass, level, msg) {
     // Append overlay to document body
     document.body.appendChild(overlayEl);
 
-    // Push the error to the logs array
+    // Push the error to the logs array with sanitized element HTML
+    const sanitizedElementHTML = elementInError.outerHTML
+      .slice(0, A11Y_CONFIG.PERFORMANCE.MAX_LOG_ELEMENT_LENGTH)
+      .replace(/[<>"'&]/g, '') + "...";
+    
     logs.push({
       Level: level,
       Message: sanitizedMsg,
-      Element: elementInError.outerHTML.slice(0, A11Y_CONFIG.PERFORMANCE.MAX_LOG_ELEMENT_LENGTH) + "...",
+      Element: sanitizedElementHTML,
     });
   } catch (error) {
     console.error('Error creating overlay:', error);
