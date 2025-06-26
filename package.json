@@ -10,8 +10,13 @@
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
     "test:all": "npm run test && npm run test:e2e",
+    "lint": "eslint src/ tests/ *.js",
+    "lint:fix": "eslint src/ tests/ *.js --fix",
+    "lint:check": "eslint src/ tests/ *.js --max-warnings 0",
     "build": "mkdir -p dist && cp -r src/* manifest.json dist/",
-    "package": "npm run build && cd dist && zip -r ../a11y-highlighter.zip *"
+    "package": "npm run build && cd dist && zip -r ../a11y-highlighter.zip *",
+    "pretest": "npm run lint:check",
+    "prebuild": "npm run lint:check"
   },
   "keywords": ["accessibility", "a11y", "chrome-extension"],
   "author": "AFixt",
@@ -22,6 +27,7 @@
   },
   "license": "ISC",
   "devDependencies": {
+    "eslint": "^8.57.0",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "@playwright/test": "^1.40.0"

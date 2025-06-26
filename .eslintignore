@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+coverage/
+
+# Test output
+*.log
+*.coverage
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+
+# Icon files (not JavaScript)
+icons/
+
+# Documentation (markdown files)
+*.md
+
+# Configuration files that don't need linting
+manifest.json
+package-lock.json
