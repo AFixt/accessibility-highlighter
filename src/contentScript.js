@@ -44,6 +44,23 @@ let keyboardNavigationActive = false;
 let progressIndicator = null;
 
 /**
+ * Current filter settings for accessibility results.
+ * @type {Object}
+ */
+let currentFilters = {
+  showErrors: true,
+  showWarnings: true,
+  categories: {
+    images: true,
+    forms: true,
+    links: true,
+    structure: true,
+    multimedia: true,
+    navigation: true
+  }
+};
+
+/**
  * @typedef {Object} PerformanceConfig
  * @property {number} THROTTLE_DELAY - Throttle delay in milliseconds
  * @property {number} FONT_SIZE_THRESHOLD - Minimum font size threshold in pixels
@@ -419,6 +436,229 @@ function hideProgressIndicator() {
 }
 
 /**
+ * Categorizes an accessibility issue based on its message and element type.
+ * @param {string} message - The issue message
+ * @param {Element} element - The problematic element
+ * @returns {string} The category name
+ */
+function categorizeIssue(message, element) {
+  const tagName = element ? element.tagName.toLowerCase() : '';
+  const lowerMessage = message.toLowerCase();
+  
+  if (lowerMessage.includes('alt') || lowerMessage.includes('image') || tagName === 'img') {
+    return 'images';
+  } else if (lowerMessage.includes('form') || lowerMessage.includes('label') || 
+             lowerMessage.includes('input') || lowerMessage.includes('fieldset') ||
+             ['input', 'form', 'fieldset', 'label'].includes(tagName)) {
+    return 'forms';
+  } else if (lowerMessage.includes('link') || lowerMessage.includes('href') || tagName === 'a') {
+    return 'links';
+  } else if (lowerMessage.includes('landmark') || lowerMessage.includes('heading') ||
+             lowerMessage.includes('table') || lowerMessage.includes('header') ||
+             ['table', 'th', 'td', 'header', 'main', 'nav', 'aside', 'footer'].includes(tagName)) {
+    return 'structure';
+  } else if (lowerMessage.includes('media') || lowerMessage.includes('video') ||
+             lowerMessage.includes('audio') || lowerMessage.includes('captions') ||
+             ['video', 'audio', 'iframe'].includes(tagName)) {
+    return 'multimedia';
+  } else if (lowerMessage.includes('tabindex') || lowerMessage.includes('navigation') ||
+             lowerMessage.includes('keyboard')) {
+    return 'navigation';
+  }
+  
+  return 'structure'; // Default category
+}
+
+/**
+ * Applies current filters to show/hide overlays based on filter settings.
+ * @returns {void}
+ */
+function applyFilters() {
+  try {
+    const allOverlays = document.querySelectorAll(A11Y_CONFIG.SELECTORS.OVERLAY_ELEMENTS);
+    let visibleCount = 0;
+    
+    allOverlays.forEach(overlay => {
+      const level = overlay.classList.contains('a11y-error') ? 'error' : 'warning';
+      const message = overlay.dataset.a11ymessage || '';
+      const element = overlay.parentElement;
+      const category = categorizeIssue(message, element);
+      
+      // Check if overlay should be visible based on filters
+      const shouldShow = 
+        (level === 'error' && currentFilters.showErrors) ||
+        (level === 'warning' && currentFilters.showWarnings);
+      
+      const categoryEnabled = currentFilters.categories[category];
+      
+      if (shouldShow && categoryEnabled) {
+        overlay.style.display = 'block';
+        visibleCount++;
+      } else {
+        overlay.style.display = 'none';
+      }
+    });
+    
+    console.log(`Showing ${visibleCount} of ${allOverlays.length} accessibility issues`);
+    
+    // Update progress indicator if it exists
+    if (progressIndicator && progressIndicator._messageDiv) {
+      progressIndicator._messageDiv.textContent = 
+        `Showing ${visibleCount} of ${allOverlays.length} issues`;
+    }
+    
+  } catch (error) {
+    console.error('Error applying filters:', error);
+  }
+}
+
+/**
+ * Creates a filter control panel for managing result visibility.
+ * @returns {void}
+ */
+function createFilterPanel() {
+  try {
+    // Remove existing filter panel
+    const existing = document.querySelector('.a11y-filter-panel');
+    if (existing) {
+      existing.remove();
+    }
+    
+    const filterPanel = document.createElement('div');
+    filterPanel.className = 'a11y-filter-panel';
+    filterPanel.setAttribute('aria-label', 'Accessibility results filter panel');
+    
+    filterPanel.style.cssText = `
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: ${A11Y_CONFIG.PERFORMANCE.Z_INDEX_OVERLAY + 1};
+      background: white;
+      border: 2px solid #007cba;
+      border-radius: 8px;
+      padding: 15px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 14px;
+      min-width: 200px;
+      max-width: 300px;
+    `;
+    
+    // Title
+    const title = document.createElement('h3');
+    title.textContent = 'Filter Results';
+    title.style.cssText = 'margin: 0 0 10px 0; color: #007cba; font-size: 16px;';
+    filterPanel.appendChild(title);
+    
+    // Severity filters
+    const severityGroup = document.createElement('div');
+    severityGroup.style.marginBottom = '15px';
+    
+    const severityTitle = document.createElement('h4');
+    severityTitle.textContent = 'Severity';
+    severityTitle.style.cssText = 'margin: 0 0 8px 0; font-size: 14px;';
+    severityGroup.appendChild(severityTitle);
+    
+    // Error checkbox
+    const errorCheckbox = createFilterCheckbox('show-errors', 'Errors', currentFilters.showErrors, (checked) => {
+      currentFilters.showErrors = checked;
+      applyFilters();
+    });
+    severityGroup.appendChild(errorCheckbox);
+    
+    // Warning checkbox
+    const warningCheckbox = createFilterCheckbox('show-warnings', 'Warnings', currentFilters.showWarnings, (checked) => {
+      currentFilters.showWarnings = checked;
+      applyFilters();
+    });
+    severityGroup.appendChild(warningCheckbox);
+    
+    filterPanel.appendChild(severityGroup);
+    
+    // Category filters
+    const categoryGroup = document.createElement('div');
+    categoryGroup.style.marginBottom = '15px';
+    
+    const categoryTitle = document.createElement('h4');
+    categoryTitle.textContent = 'Categories';
+    categoryTitle.style.cssText = 'margin: 0 0 8px 0; font-size: 14px;';
+    categoryGroup.appendChild(categoryTitle);
+    
+    const categories = [
+      { key: 'images', label: 'Images' },
+      { key: 'forms', label: 'Forms' },
+      { key: 'links', label: 'Links' },
+      { key: 'structure', label: 'Structure' },
+      { key: 'multimedia', label: 'Multimedia' },
+      { key: 'navigation', label: 'Navigation' }
+    ];
+    
+    categories.forEach(({ key, label }) => {
+      const checkbox = createFilterCheckbox(`category-${key}`, label, currentFilters.categories[key], (checked) => {
+        currentFilters.categories[key] = checked;
+        applyFilters();
+      });
+      categoryGroup.appendChild(checkbox);
+    });
+    
+    filterPanel.appendChild(categoryGroup);
+    
+    // Close button
+    const closeButton = document.createElement('button');
+    closeButton.textContent = 'Close Filters';
+    closeButton.style.cssText = `
+      width: 100%;
+      padding: 8px;
+      background: #007cba;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    `;
+    closeButton.addEventListener('click', () => {
+      filterPanel.remove();
+    });
+    filterPanel.appendChild(closeButton);
+    
+    document.body.appendChild(filterPanel);
+    
+  } catch (error) {
+    console.error('Error creating filter panel:', error);
+  }
+}
+
+/**
+ * Creates a checkbox input for filter controls.
+ * @param {string} id - Input ID
+ * @param {string} label - Label text
+ * @param {boolean} checked - Initial checked state
+ * @param {Function} onChange - Change handler function
+ * @returns {HTMLElement} Checkbox container element
+ */
+function createFilterCheckbox(id, label, checked, onChange) {
+  const container = document.createElement('div');
+  container.style.cssText = 'margin: 4px 0; display: flex; align-items: center;';
+  
+  const checkbox = document.createElement('input');
+  checkbox.type = 'checkbox';
+  checkbox.id = id;
+  checkbox.checked = checked;
+  checkbox.style.marginRight = '8px';
+  checkbox.addEventListener('change', (e) => onChange(e.target.checked));
+  
+  const labelElement = document.createElement('label');
+  labelElement.setAttribute('for', id);
+  labelElement.textContent = label;
+  labelElement.style.cursor = 'pointer';
+  
+  container.appendChild(checkbox);
+  container.appendChild(labelElement);
+  
+  return container;
+}
+
+/**
  * Removes all highlighting overlays from the page.
  * @returns {void}
  */
@@ -430,6 +670,13 @@ function removeAccessibilityOverlays() {
         overlay.parentNode.removeChild(overlay);
       }
     });
+    
+    // Remove filter panel
+    const filterPanel = document.querySelector('.a11y-filter-panel');
+    if (filterPanel) {
+      filterPanel.remove();
+    }
+    
     // Clear logs array
     logs.length = 0;
     
@@ -586,8 +833,9 @@ function runAccessibilityChecks() {
     
     // Log results
     if (logs.length > 0) {
-      updateProgressIndicator(`Found ${logs.length} accessibility issues`, 100);
+      updateProgressIndicator(`Found ${logs.length} accessibility issues. Press Alt+Shift+F for filters.`, 100);
       console.table(logs);
+      console.log('💡 Tip: Press Alt+Shift+F to open the filter panel and customize which issues are shown.');
     } else {
       updateProgressIndicator('No accessibility issues found!', 100);
       console.log(A11Y_CONFIG.MESSAGES.NO_ISSUES);
@@ -1064,6 +1312,18 @@ function handleKeyboardNavigation(event) {
     keyboardNavigationActive = true;
     currentOverlayIndex = 0;
     highlightCurrentOverlay(currentOverlayIndex);
+    return;
+  }
+  
+  // Alt + Shift + F: Toggle filter panel
+  if (event.altKey && event.shiftKey && event.key === 'F') {
+    event.preventDefault();
+    const existingPanel = document.querySelector('.a11y-filter-panel');
+    if (existingPanel) {
+      existingPanel.remove();
+    } else {
+      createFilterPanel();
+    }
     return;
   }
   
