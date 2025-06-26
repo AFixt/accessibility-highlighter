@@ -2297,26 +2297,208 @@ function cancelIncrementalScan() {
  * @param {boolean} useIncremental - Whether to use incremental scanning (default: true)
  * @returns {void}
  */
+/**
+ * Checks if accessibility scanning should be throttled.
+ * @returns {boolean} True if scanning should be throttled
+ */
+function shouldThrottleScan() {
+  const now = Date.now();
+  return isRunning || (now - lastRunTime) < A11Y_CONFIG.PERFORMANCE.THROTTLE_DELAY;
+}
+
+/**
+ * Initializes accessibility scan state.
+ * @returns {void}
+ */
+function initializeScanState() {
+  isRunning = true;
+  lastRunTime = Date.now();
+  logs.length = 0;
+}
+
+/**
+ * Creates and configures a TreeWalker for DOM traversal.
+ * @returns {TreeWalker} Configured TreeWalker instance
+ */
+function createAccessibilityTreeWalker() {
+  return document.createTreeWalker(
+    document.body,
+    NodeFilter.SHOW_ELEMENT,
+    {
+      acceptNode: function(node) {
+        // Skip hidden elements
+        const style = window.getComputedStyle(node);
+        if (style.display === 'none' || style.visibility === 'hidden') {
+          return NodeFilter.FILTER_REJECT;
+        }
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    },
+    false
+  );
+}
+
+/**
+ * Processes a single DOM element for accessibility issues.
+ * @param {Element} node - The DOM element to process
+ * @returns {void}
+ */
+function processElementForAccessibility(node) {
+  const tagName = node.tagName.toLowerCase();
+  const role = node.getAttribute('role');
+  const tabindex = node.getAttribute('tabindex');
+
+  // Check element based on tag or role
+  switch (tagName) {
+    case 'img':
+      checkImageElement(node);
+      break;
+    case 'button':
+      checkButtonElement(node);
+      break;
+    case 'a':
+      checkLinkElement(node);
+      break;
+    case 'fieldset':
+      checkFieldsetElement(node);
+      break;
+    case 'input':
+      checkInputElement(node);
+      break;
+    case 'table':
+      checkTableElement(node);
+      break;
+    case 'iframe':
+      checkIframeElement(node);
+      break;
+    case 'audio':
+    case 'video':
+      checkMediaElement(node);
+      break;
+    default:
+      // Check role-based elements
+      if (role) {
+        checkRoleBasedElement(node, role);
+      }
+      // Check tabindex on non-interactive elements
+      if (tabindex !== null) {
+        checkTabIndexElement(node);
+      }
+      break;
+  }
+
+  // Check font size for text-containing elements
+  checkElementFontSize(node, tagName);
+}
+
+/**
+ * Checks font size for text-containing elements.
+ * @param {Element} node - The DOM element to check
+ * @param {string} tagName - The element's tag name in lowercase
+ * @returns {void}
+ */
+function checkElementFontSize(node, tagName) {
+  if (A11Y_CONFIG.SELECTORS.TEXT_ELEMENTS.includes(tagName) &&
+      node.textContent && node.textContent.trim().length > 0) {
+    try {
+      const style = window.getComputedStyle(node);
+      const fontSize = parseFloat(style.fontSize);
+      if (fontSize < A11Y_CONFIG.PERFORMANCE.FONT_SIZE_THRESHOLD) {
+        console.log(node);
+        overlay.call(node, 'overlay', 'error', A11Y_CONFIG.MESSAGES.SMALL_FONT_SIZE);
+      }
+    } catch (error) {
+      // Skip elements that can't be styled
+    }
+  }
+}
+
+/**
+ * Traverses DOM and processes all elements for accessibility issues.
+ * @param {TreeWalker} walker - The TreeWalker instance
+ * @param {number} totalElements - Total number of elements for progress tracking
+ * @returns {void}
+ */
+function traverseAndProcessElements(walker, totalElements) {
+  let node;
+  let processedCount = 0;
+  const processedElements = new Set();
+
+  while (node = walker.nextNode()) {
+    // Skip if already processed
+    if (processedElements.has(node)) continue;
+    processedElements.add(node);
+    processedCount++;
+
+    // Update progress every 50 elements
+    if (processedCount % 50 === 0) {
+      const progress = 20 + Math.min(70, (processedCount / totalElements) * 70);
+      updateProgressIndicator(`Processed ${processedCount} of ${totalElements} elements...`, progress);
+    }
+
+    processElementForAccessibility(node);
+  }
+}
+
+/**
+ * Finalizes the accessibility scan and displays results.
+ * @returns {void}
+ */
+function finalizeScanResults() {
+  updateProgressIndicator('Completing scan...', 95);
+
+  // Log results
+  if (logs.length > 0) {
+    updateProgressIndicator(`Found ${logs.length} accessibility issues. Press Alt+Shift+F for filters.`, 100);
+    console.table(logs);
+    console.log('💡 Tip: Press Alt+Shift+F to open the filter panel and customize which issues are shown.');
+  } else {
+    updateProgressIndicator('No accessibility issues found!', 100);
+    console.log(A11Y_CONFIG.MESSAGES.NO_ISSUES);
+  }
+
+  // Hide progress indicator after a brief delay
+  setTimeout(() => {
+    hideProgressIndicator();
+  }, 2000);
+}
+
+/**
+ * Handles errors during accessibility scanning.
+ * @param {Error} error - The error that occurred
+ * @returns {void}
+ */
+function handleScanError(error) {
+  console.error('Error during accessibility checks:', error);
+  updateProgressIndicator('Error during scan', 100);
+  setTimeout(() => {
+    hideProgressIndicator();
+  }, 3000);
+}
+
+/**
+ * Main function to run accessibility checks on the current page.
+ * @param {boolean} useIncremental - Whether to use incremental scanning
+ * @returns {void}
+ */
 function runAccessibilityChecks(useIncremental = true) {
   // Throttling to prevent performance issues
-  const now = Date.now();
-  if (isRunning || (now - lastRunTime) < A11Y_CONFIG.PERFORMANCE.THROTTLE_DELAY) {
+  if (shouldThrottleScan()) {
     console.log(A11Y_CONFIG.MESSAGES.THROTTLED);
     return;
   }
 
-  isRunning = true;
-  lastRunTime = now;
-
   // Use incremental scanning for better performance
   if (useIncremental) {
+    isRunning = true;
+    lastRunTime = Date.now();
     startIncrementalScan();
     return;
   }
 
   try {
-    // Clear previous logs
-    logs.length = 0;
+    // Initialize scan state
+    initializeScanState();
 
     // Show progress indicator
     showProgressIndicator('Starting accessibility scan...', 0);
@@ -2328,125 +2510,19 @@ function runAccessibilityChecks(useIncremental = true) {
     // Count total elements for progress tracking
     const allElements = document.querySelectorAll('*');
     const totalElements = allElements.length;
-
     updateProgressIndicator(`Scanning ${totalElements} elements...`, 20);
 
-    // Use TreeWalker for efficient single-pass DOM traversal
-    const walker = document.createTreeWalker(
-      document.body,
-      NodeFilter.SHOW_ELEMENT,
-      {
-        acceptNode: function(node) {
-          // Skip hidden elements
-          const style = window.getComputedStyle(node);
-          if (style.display === 'none' || style.visibility === 'hidden') {
-            return NodeFilter.FILTER_REJECT;
-          }
-          return NodeFilter.FILTER_ACCEPT;
-        }
-      },
-      false
-    );
+    // Create TreeWalker for efficient DOM traversal
+    const walker = createAccessibilityTreeWalker();
 
-    // Single pass through all elements
-    let node;
-    let processedCount = 0;
-    const processedElements = new Set();
+    // Process all elements
+    traverseAndProcessElements(walker, totalElements);
 
-    while (node = walker.nextNode()) {
-      // Skip if already processed
-      if (processedElements.has(node)) {continue;}
-      processedElements.add(node);
-      processedCount++;
-
-      // Update progress every 50 elements
-      if (processedCount % 50 === 0) {
-        const progress = 20 + Math.min(70, (processedCount / totalElements) * 70);
-        updateProgressIndicator(`Processed ${processedCount} of ${totalElements} elements...`, progress);
-      }
-
-      const tagName = node.tagName.toLowerCase();
-      const role = node.getAttribute('role');
-      const tabindex = node.getAttribute('tabindex');
-
-      // Check element based on tag or role
-      switch (tagName) {
-        case 'img':
-          checkImageElement(node);
-          break;
-        case 'button':
-          checkButtonElement(node);
-          break;
-        case 'a':
-          checkLinkElement(node);
-          break;
-        case 'fieldset':
-          checkFieldsetElement(node);
-          break;
-        case 'input':
-          checkInputElement(node);
-          break;
-        case 'table':
-          checkTableElement(node);
-          break;
-        case 'iframe':
-          checkIframeElement(node);
-          break;
-        case 'audio':
-        case 'video':
-          checkMediaElement(node);
-          break;
-        default:
-          // Check role-based elements
-          if (role) {
-            checkRoleBasedElement(node, role);
-          }
-          // Check tabindex on non-interactive elements
-          if (tabindex !== null) {
-            checkTabIndexElement(node);
-          }
-          break;
-      }
-
-      // Check font size for text-containing elements
-      if (A11Y_CONFIG.SELECTORS.TEXT_ELEMENTS.includes(tagName) &&
-          node.textContent && node.textContent.trim().length > 0) {
-        try {
-          const fontSize = parseFloat(style.fontSize || window.getComputedStyle(node).fontSize);
-          if (fontSize < A11Y_CONFIG.PERFORMANCE.FONT_SIZE_THRESHOLD) {
-            console.log(node);
-            overlay.call(node, 'overlay', 'error', A11Y_CONFIG.MESSAGES.SMALL_FONT_SIZE);
-          }
-        } catch (error) {
-          // Skip elements that can't be styled
-        }
-      }
-    }
-
-    // Finalize progress
-    updateProgressIndicator('Completing scan...', 95);
-
-    // Log results
-    if (logs.length > 0) {
-      updateProgressIndicator(`Found ${logs.length} accessibility issues. Press Alt+Shift+F for filters.`, 100);
-      console.table(logs);
-      console.log('💡 Tip: Press Alt+Shift+F to open the filter panel and customize which issues are shown.');
-    } else {
-      updateProgressIndicator('No accessibility issues found!', 100);
-      console.log(A11Y_CONFIG.MESSAGES.NO_ISSUES);
-    }
-
-    // Hide progress indicator after a brief delay
-    setTimeout(() => {
-      hideProgressIndicator();
-    }, 2000);
+    // Finalize and display results
+    finalizeScanResults();
 
   } catch (error) {
-    console.error('Error during accessibility checks:', error);
-    updateProgressIndicator('Error during scan', 100);
-    setTimeout(() => {
-      hideProgressIndicator();
-    }, 3000);
+    handleScanError(error);
   } finally {
     isRunning = false;
   }
