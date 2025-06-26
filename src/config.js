@@ -1,6 +1,17 @@
 /**
- * Accessibility Highlighter Configuration
- * Centralized configuration and constants for the extension
+ * @fileoverview Accessibility Highlighter Configuration
+ * 
+ * Centralized configuration and constants for the extension. This file contains
+ * all configurable settings including:
+ * - Performance thresholds and timing settings
+ * - Visual styling for overlays and indicators
+ * - Lists of prohibited values for accessibility checks
+ * - CSS selectors for element identification
+ * - Error and warning messages
+ * - Feature flags for enabling/disabling checks
+ * 
+ * @author AFixt
+ * @version 1.0.1
  */
 
 /**

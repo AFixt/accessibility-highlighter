@@ -1,3 +1,22 @@
+/**
+ * @fileoverview Accessibility Highlighter Content Script
+ * 
+ * This content script runs on all web pages and provides functionality to detect
+ * and visually highlight accessibility issues. It performs various checks including:
+ * - Missing or improper alt text on images
+ * - Form fields without labels
+ * - Improper heading structure
+ * - Insufficient color contrast
+ * - Missing ARIA attributes
+ * - And many more accessibility violations
+ * 
+ * The script uses overlays to visually indicate problem areas and logs detailed
+ * information to the console for developers.
+ * 
+ * @author AFixt
+ * @version 1.0.1
+ */
+
 console.log("Content script loaded");
 
 /**

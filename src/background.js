@@ -1,6 +1,18 @@
 /**
- * Accessibility Highlighter - Background Service Worker
- * Handles extension state management and communication with content scripts
+ * @fileoverview Accessibility Highlighter - Background Service Worker
+ * 
+ * This service worker manages the extension's lifecycle and state. It handles:
+ * - Extension icon clicks to toggle accessibility checking on/off
+ * - State persistence using Chrome storage API
+ * - Communication with content scripts via message passing
+ * - Dynamic icon updates to reflect current state
+ * - Extension installation and update events
+ * 
+ * The service worker runs persistently in the background and coordinates
+ * between the browser action and content scripts running on web pages.
+ * 
+ * @author AFixt
+ * @version 1.0.1
  */
 
 /**
