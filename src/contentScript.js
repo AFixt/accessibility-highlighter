@@ -1,6 +1,6 @@
 /**
  * @fileoverview Accessibility Highlighter Content Script
- * 
+ *
  * This content script runs on all web pages and provides functionality to detect
  * and visually highlight accessibility issues. It performs various checks including:
  * - Missing or improper alt text on images
@@ -9,15 +9,15 @@
  * - Insufficient color contrast
  * - Missing ARIA attributes
  * - And many more accessibility violations
- * 
+ *
  * The script uses overlays to visually indicate problem areas and logs detailed
  * information to the console for developers.
- * 
+ *
  * @author AFixt
  * @version 1.0.1
  */
 
-console.log("Content script loaded");
+console.log('Content script loaded');
 
 /**
  * Array to store accessibility check results for logging.
@@ -47,7 +47,7 @@ let progressIndicator = null;
  * Current filter settings for accessibility results.
  * @type {Object}
  */
-let currentFilters = {
+const currentFilters = {
   showErrors: true,
   showWarnings: true,
   categories: {
@@ -74,7 +74,7 @@ let customRules = {
     checkDifferentAltTitle: true,
     allowDecorativeImages: true // If false, all images must have descriptive alt
   },
-  
+
   // Form accessibility rules
   forms: {
     enabled: true,
@@ -83,7 +83,7 @@ let customRules = {
     checkFieldsetLegend: true,
     requireExplicitLabels: false // If true, only explicit labels count (not aria-label)
   },
-  
+
   // Link accessibility rules
   links: {
     enabled: true,
@@ -93,7 +93,7 @@ let customRules = {
     checkMatchingTitleText: true,
     allowJavaScriptLinks: false // If true, javascript: links are allowed
   },
-  
+
   // Structure accessibility rules
   structure: {
     enabled: true,
@@ -104,7 +104,7 @@ let customRules = {
     requireMainLandmark: true,
     requireHeadingStructure: false // If true, enforces proper heading hierarchy
   },
-  
+
   // Multimedia accessibility rules
   multimedia: {
     enabled: true,
@@ -113,7 +113,7 @@ let customRules = {
     checkMediaCaptions: false, // Future: check for captions
     allowAutoplayWithControls: false // If true, autoplay is allowed if controls are present
   },
-  
+
   // Navigation and interaction rules
   navigation: {
     enabled: true,
@@ -122,7 +122,7 @@ let customRules = {
     checkFocusIndicators: false, // Future: check focus visibility
     allowPositiveTabIndex: false // If true, positive tabindex values are allowed
   },
-  
+
   // Text and typography rules
   typography: {
     enabled: true,
@@ -131,7 +131,7 @@ let customRules = {
     checkColorContrast: false, // Future: color contrast checking
     checkLineHeight: false // Future: line height checking
   },
-  
+
   // ARIA and semantic rules
   aria: {
     enabled: true,
@@ -232,55 +232,55 @@ const A11Y_CONFIG = {
     THROTTLE_DELAY: 1000, // 1 second throttle delay
     FONT_SIZE_THRESHOLD: 12, // Minimum font size in pixels
     MAX_LOG_ELEMENT_LENGTH: 100, // Maximum length for element HTML in logs
-    Z_INDEX_OVERLAY: 2147483647, // Highest z-index for overlays
+    Z_INDEX_OVERLAY: 2147483647 // Highest z-index for overlays
   },
-  
+
   VISUAL: {
     ERROR_COLOR: '#FF0000',
     WARNING_COLOR: '#FFA500',
     OVERLAY_OPACITY: 0.4,
     BORDER_RADIUS: '5px',
     BORDER_WIDTH: '2px',
-    STRIPE_GRADIENT: 'repeating-linear-gradient(45deg, transparent, transparent 15px, rgba(255,255,255,.5) 15px, rgba(255,255,255,.5) 30px)',
+    STRIPE_GRADIENT: 'repeating-linear-gradient(45deg, transparent, transparent 15px, rgba(255,255,255,.5) 15px, rgba(255,255,255,.5) 30px)'
   },
-  
+
   PROHIBITED_TABLE_SUMMARIES: [
-    "combobox", "Layout", "for layout", "layout table", "layout",
-    "Table for layout purposes", "Calendar", "Structural table", "footer",
-    "This table is used for page layout", "Text Ad", "Calendar Display",
-    "Links", "Content", "Header", "header", "Navigation elements",
-    "top navbar", "title and navigation", "block", "main heading",
-    "body", "links", "Event Calendar", "Search", "lightbox", "Menu",
-    "all", "HeadBox", "Calendar of Events", "Lightbox", "Contents",
-    "management", "contents", "search form", "This table is used for layout",
-    "Search Input Table", "Content Area", "Fullsize Image", "Layout Structure",
-    "Page title", "Main Table", "left", "category", "Banner Design Table",
-    "Search Form", "Site contents", "pageinfo", "breadcrumb",
-    "table used for layout purposes", "Footer", "main layout", "tooltip", "Logo",
+    'combobox', 'Layout', 'for layout', 'layout table', 'layout',
+    'Table for layout purposes', 'Calendar', 'Structural table', 'footer',
+    'This table is used for page layout', 'Text Ad', 'Calendar Display',
+    'Links', 'Content', 'Header', 'header', 'Navigation elements',
+    'top navbar', 'title and navigation', 'block', 'main heading',
+    'body', 'links', 'Event Calendar', 'Search', 'lightbox', 'Menu',
+    'all', 'HeadBox', 'Calendar of Events', 'Lightbox', 'Contents',
+    'management', 'contents', 'search form', 'This table is used for layout',
+    'Search Input Table', 'Content Area', 'Fullsize Image', 'Layout Structure',
+    'Page title', 'Main Table', 'left', 'category', 'Banner Design Table',
+    'Search Form', 'Site contents', 'pageinfo', 'breadcrumb',
+    'table used for layout purposes', 'Footer', 'main layout', 'tooltip', 'Logo'
   ],
-  
+
   PROHIBITED_ALT_VALUES: [
-    "artwork", "arrow", "painting", "bullet", "graphic", "graph",
-    "spacer", "image", "placeholder", "photo", "picture", "photograph",
-    "logo", "screenshot", "back", "bg", "img", "alt",
+    'artwork', 'arrow', 'painting', 'bullet', 'graphic', 'graph',
+    'spacer', 'image', 'placeholder', 'photo', 'picture', 'photograph',
+    'logo', 'screenshot', 'back', 'bg', 'img', 'alt'
   ],
-  
+
   PROHIBITED_LINK_TEXT: [
-    "link", "more", "here", "click", "click here", "read",
-    "read more", "learn more", "continue", "go", "continue reading",
-    "view", "view more", "less", "see all", "show", "hide",
-    "show more", "show less",
+    'link', 'more', 'here', 'click', 'click here', 'read',
+    'read more', 'learn more', 'continue', 'go', 'continue reading',
+    'view', 'view more', 'less', 'see all', 'show', 'hide',
+    'show more', 'show less'
   ],
-  
+
   SELECTORS: {
     ALL_CHECKABLE_ELEMENTS: 'img, button, [role="button"], a, [role="link"], fieldset, input, table, iframe, audio, video, [tabindex], [role="img"]',
     LANDMARK_ELEMENTS: 'header, aside, footer, main, nav, [role="banner"], [role="complementary"], [role="contentinfo"], [role="main"], [role="navigation"], [role="search"]',
     TEXT_ELEMENTS: ['p', 'span', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'td', 'th', 'label', 'a', 'button'],
     INTERACTIVE_ELEMENTS: ['a', 'area', 'button', 'input', 'select', 'textarea'],
     OVERLAY_ELEMENTS: '.a11y-error, .a11y-warning, .overlay',
-    PROGRESS_INDICATOR: '.a11y-progress-indicator',
+    PROGRESS_INDICATOR: '.a11y-progress-indicator'
   },
-  
+
   MESSAGES: {
     MISSING_ALT: 'img does not have an alt attribute',
     UNINFORMATIVE_ALT: 'Uninformative alt attribute value found',
@@ -305,14 +305,14 @@ const A11Y_CONFIG = {
     SMALL_FONT_SIZE: 'Text element with font size smaller than 12px',
     NO_LANDMARKS: 'No landmark elements found',
     THROTTLED: 'Accessibility checks throttled - please wait',
-    NO_ISSUES: 'No accessibility issues found.',
+    NO_ISSUES: 'No accessibility issues found.'
   },
-  
+
   CSS_CLASSES: {
     ERROR_OVERLAY: 'a11y-error',
     WARNING_OVERLAY: 'a11y-warning',
-    GENERIC_OVERLAY: 'overlay',
-  },
+    GENERIC_OVERLAY: 'overlay'
+  }
 };
 
 /**
@@ -325,50 +325,50 @@ const A11Y_CONFIG = {
  */
 function overlay(overlayClass, level, msg) {
   const elementInError = this;
-  
+
   try {
     // Validate parameters
     if (typeof overlayClass !== 'string' || !overlayClass) {
       console.error('Invalid overlay class:', overlayClass);
       return;
     }
-    
+
     if (level !== 'error' && level !== 'warning') {
       console.error('Invalid level:', level);
       return;
     }
-    
+
     if (typeof msg !== 'string' || !msg) {
       console.error('Invalid message:', msg);
       return;
     }
-    
+
     // Get accurate element position and dimensions using getBoundingClientRect
     const rect = elementInError.getBoundingClientRect();
-    
+
     // Skip if element is not visible
     if (rect.width === 0 || rect.height === 0) {
       console.warn('Skipping overlay for zero-sized element:', elementInError);
       return;
     }
-    
+
     // Enhanced sanitization - remove all HTML tags and dangerous characters
     const sanitizedMsg = String(msg)
       .replace(/[<>"'&]/g, '') // Remove HTML-related characters
       .replace(/javascript:/gi, '') // Remove javascript: protocol
       .replace(/on\w+\s*=/gi, '') // Remove event handlers
       .trim();
-    
+
     // Create overlay element
-    const overlayEl = document.createElement("div");
+    const overlayEl = document.createElement('div');
     overlayEl.classList.add(overlayClass);
-    
+
     // Validate numeric values
     const topPos = Math.max(0, rect.top + window.scrollY);
     const leftPos = Math.max(0, rect.left + window.scrollX);
     const width = Math.max(0, rect.width);
     const height = Math.max(0, rect.height);
-    
+
     // Set positioning styles using individual properties (safer than cssText)
     overlayEl.style.position = 'absolute';
     overlayEl.style.top = `${topPos}px`;
@@ -381,33 +381,33 @@ function overlay(overlayClass, level, msg) {
     overlayEl.style.opacity = String(A11Y_CONFIG.VISUAL.OVERLAY_OPACITY);
     overlayEl.style.borderRadius = A11Y_CONFIG.VISUAL.BORDER_RADIUS;
     overlayEl.style.backgroundImage = A11Y_CONFIG.VISUAL.STRIPE_GRADIENT;
-    
+
     // Use textContent instead of setAttribute for safer content handling
     overlayEl.dataset.a11ymessage = sanitizedMsg;
-    
+
     // Set overlay appearance based on level
-    if (level === "error") {
+    if (level === 'error') {
       overlayEl.style.backgroundColor = A11Y_CONFIG.VISUAL.ERROR_COLOR;
       overlayEl.style.border = `${A11Y_CONFIG.VISUAL.BORDER_WIDTH} solid ${A11Y_CONFIG.VISUAL.ERROR_COLOR}`;
       overlayEl.classList.add(A11Y_CONFIG.CSS_CLASSES.ERROR_OVERLAY);
-    } else if (level === "warning") {
+    } else if (level === 'warning') {
       overlayEl.style.backgroundColor = A11Y_CONFIG.VISUAL.WARNING_COLOR;
       overlayEl.style.border = `${A11Y_CONFIG.VISUAL.BORDER_WIDTH} solid ${A11Y_CONFIG.VISUAL.WARNING_COLOR}`;
       overlayEl.classList.add(A11Y_CONFIG.CSS_CLASSES.WARNING_OVERLAY);
     }
-    
+
     // Append overlay to document body
     document.body.appendChild(overlayEl);
 
     // Push the error to the logs array with sanitized element HTML
     const sanitizedElementHTML = elementInError.outerHTML
       .slice(0, A11Y_CONFIG.PERFORMANCE.MAX_LOG_ELEMENT_LENGTH)
-      .replace(/[<>"'&]/g, '') + "...";
-    
+      .replace(/[<>"'&]/g, '') + '...';
+
     logs.push({
       Level: level,
       Message: sanitizedMsg,
-      Element: sanitizedElementHTML,
+      Element: sanitizedElementHTML
     });
   } catch (error) {
     console.error('Error creating overlay:', error);
@@ -424,13 +424,13 @@ function showProgressIndicator(message, percentage = 0) {
   try {
     // Remove existing progress indicator
     hideProgressIndicator();
-    
+
     // Create progress container
     progressIndicator = document.createElement('div');
     progressIndicator.className = 'a11y-progress-indicator';
     progressIndicator.setAttribute('aria-live', 'polite');
     progressIndicator.setAttribute('aria-label', 'Accessibility scan progress');
-    
+
     // Style the progress indicator
     progressIndicator.style.cssText = `
       position: fixed;
@@ -448,12 +448,12 @@ function showProgressIndicator(message, percentage = 0) {
       min-width: 250px;
       max-width: 350px;
     `;
-    
+
     // Create content
     const messageDiv = document.createElement('div');
     messageDiv.textContent = message;
     messageDiv.style.marginBottom = '8px';
-    
+
     const progressBar = document.createElement('div');
     progressBar.style.cssText = `
       width: 100%;
@@ -462,7 +462,7 @@ function showProgressIndicator(message, percentage = 0) {
       border-radius: 3px;
       overflow: hidden;
     `;
-    
+
     const progressFill = document.createElement('div');
     progressFill.style.cssText = `
       height: 100%;
@@ -470,15 +470,15 @@ function showProgressIndicator(message, percentage = 0) {
       width: ${Math.max(0, Math.min(100, percentage))}%;
       transition: width 0.3s ease;
     `;
-    
+
     progressBar.appendChild(progressFill);
     progressIndicator.appendChild(messageDiv);
     progressIndicator.appendChild(progressBar);
-    
+
     // Store references for updates
     progressIndicator._messageDiv = messageDiv;
     progressIndicator._progressFill = progressFill;
-    
+
     document.body.appendChild(progressIndicator);
   } catch (error) {
     console.error('Error showing progress indicator:', error);
@@ -526,10 +526,10 @@ function hideProgressIndicator() {
 function categorizeIssue(message, element) {
   const tagName = element ? element.tagName.toLowerCase() : '';
   const lowerMessage = message.toLowerCase();
-  
+
   if (lowerMessage.includes('alt') || lowerMessage.includes('image') || tagName === 'img') {
     return 'images';
-  } else if (lowerMessage.includes('form') || lowerMessage.includes('label') || 
+  } else if (lowerMessage.includes('form') || lowerMessage.includes('label') ||
              lowerMessage.includes('input') || lowerMessage.includes('fieldset') ||
              ['input', 'form', 'fieldset', 'label'].includes(tagName)) {
     return 'forms';
@@ -547,7 +547,7 @@ function categorizeIssue(message, element) {
              lowerMessage.includes('keyboard')) {
     return 'navigation';
   }
-  
+
   return 'structure'; // Default category
 }
 
@@ -559,20 +559,20 @@ function applyFilters() {
   try {
     const allOverlays = document.querySelectorAll(A11Y_CONFIG.SELECTORS.OVERLAY_ELEMENTS);
     let visibleCount = 0;
-    
+
     allOverlays.forEach(overlay => {
       const level = overlay.classList.contains('a11y-error') ? 'error' : 'warning';
       const message = overlay.dataset.a11ymessage || '';
       const element = overlay.parentElement;
       const category = categorizeIssue(message, element);
-      
+
       // Check if overlay should be visible based on filters
-      const shouldShow = 
+      const shouldShow =
         (level === 'error' && currentFilters.showErrors) ||
         (level === 'warning' && currentFilters.showWarnings);
-      
+
       const categoryEnabled = currentFilters.categories[category];
-      
+
       if (shouldShow && categoryEnabled) {
         overlay.style.display = 'block';
         visibleCount++;
@@ -580,15 +580,15 @@ function applyFilters() {
         overlay.style.display = 'none';
       }
     });
-    
+
     console.log(`Showing ${visibleCount} of ${allOverlays.length} accessibility issues`);
-    
+
     // Update progress indicator if it exists
     if (progressIndicator && progressIndicator._messageDiv) {
-      progressIndicator._messageDiv.textContent = 
+      progressIndicator._messageDiv.textContent =
         `Showing ${visibleCount} of ${allOverlays.length} issues`;
     }
-    
+
   } catch (error) {
     console.error('Error applying filters:', error);
   }
@@ -605,11 +605,11 @@ function createFilterPanel() {
     if (existing) {
       existing.remove();
     }
-    
+
     const filterPanel = document.createElement('div');
     filterPanel.className = 'a11y-filter-panel';
     filterPanel.setAttribute('aria-label', 'Accessibility results filter panel');
-    
+
     filterPanel.style.cssText = `
       position: fixed;
       top: 20px;
@@ -625,47 +625,47 @@ function createFilterPanel() {
       min-width: 200px;
       max-width: 300px;
     `;
-    
+
     // Title
     const title = document.createElement('h3');
     title.textContent = 'Filter Results';
     title.style.cssText = 'margin: 0 0 10px 0; color: #007cba; font-size: 16px;';
     filterPanel.appendChild(title);
-    
+
     // Severity filters
     const severityGroup = document.createElement('div');
     severityGroup.style.marginBottom = '15px';
-    
+
     const severityTitle = document.createElement('h4');
     severityTitle.textContent = 'Severity';
     severityTitle.style.cssText = 'margin: 0 0 8px 0; font-size: 14px;';
     severityGroup.appendChild(severityTitle);
-    
+
     // Error checkbox
-    const errorCheckbox = createFilterCheckbox('show-errors', 'Errors', currentFilters.showErrors, (checked) => {
+    const errorCheckbox = createFilterCheckbox('show-errors', 'Errors', currentFilters.showErrors, checked => {
       currentFilters.showErrors = checked;
       applyFilters();
     });
     severityGroup.appendChild(errorCheckbox);
-    
+
     // Warning checkbox
-    const warningCheckbox = createFilterCheckbox('show-warnings', 'Warnings', currentFilters.showWarnings, (checked) => {
+    const warningCheckbox = createFilterCheckbox('show-warnings', 'Warnings', currentFilters.showWarnings, checked => {
       currentFilters.showWarnings = checked;
       applyFilters();
     });
     severityGroup.appendChild(warningCheckbox);
-    
+
     filterPanel.appendChild(severityGroup);
-    
+
     // Category filters
     const categoryGroup = document.createElement('div');
     categoryGroup.style.marginBottom = '15px';
-    
+
     const categoryTitle = document.createElement('h4');
     categoryTitle.textContent = 'Categories';
     categoryTitle.style.cssText = 'margin: 0 0 8px 0; font-size: 14px;';
     categoryGroup.appendChild(categoryTitle);
-    
+
     const categories = [
       { key: 'images', label: 'Images' },
       { key: 'forms', label: 'Forms' },
@@ -674,17 +674,17 @@ function createFilterPanel() {
       { key: 'multimedia', label: 'Multimedia' },
       { key: 'navigation', label: 'Navigation' }
     ];
-    
+
     categories.forEach(({ key, label }) => {
-      const checkbox = createFilterCheckbox(`category-${key}`, label, currentFilters.categories[key], (checked) => {
+      const checkbox = createFilterCheckbox(`category-${key}`, label, currentFilters.categories[key], checked => {
         currentFilters.categories[key] = checked;
         applyFilters();
       });
       categoryGroup.appendChild(checkbox);
     });
-    
+
     filterPanel.appendChild(categoryGroup);
-    
+
     // Close button
     const closeButton = document.createElement('button');
     closeButton.textContent = 'Close Filters';
@@ -702,9 +702,9 @@ function createFilterPanel() {
       filterPanel.remove();
     });
     filterPanel.appendChild(closeButton);
-    
+
     document.body.appendChild(filterPanel);
-    
+
   } catch (error) {
     console.error('Error creating filter panel:', error);
   }
@@ -721,22 +721,22 @@ function createFilterPanel() {
 function createFilterCheckbox(id, label, checked, onChange) {
   const container = document.createElement('div');
   container.style.cssText = 'margin: 4px 0; display: flex; align-items: center;';
-  
+
   const checkbox = document.createElement('input');
   checkbox.type = 'checkbox';
   checkbox.id = id;
   checkbox.checked = checked;
   checkbox.style.marginRight = '8px';
-  checkbox.addEventListener('change', (e) => onChange(e.target.checked));
-  
+  checkbox.addEventListener('change', e => onChange(e.target.checked));
+
   const labelElement = document.createElement('label');
   labelElement.setAttribute('for', id);
   labelElement.textContent = label;
   labelElement.style.cursor = 'pointer';
-  
+
   container.appendChild(checkbox);
   container.appendChild(labelElement);
-  
+
   return container;
 }
 
@@ -747,218 +747,328 @@ function createFilterCheckbox(id, label, checked, onChange) {
 function createSummaryPanel() {
   try {
     // Remove existing summary panel
-    const existing = document.querySelector('.a11y-summary-panel');
-    if (existing) {
-      existing.remove();
-    }
-    
+    removePreviousSummaryPanel();
+
     // Analyze logs to create summary
     const summary = analyzeLogs();
-    
-    const summaryPanel = document.createElement('div');
-    summaryPanel.className = 'a11y-summary-panel';
-    summaryPanel.setAttribute('aria-label', 'Accessibility results summary');
-    
-    summaryPanel.style.cssText = `
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: ${A11Y_CONFIG.PERFORMANCE.Z_INDEX_OVERLAY + 1};
-      background: white;
-      border: 2px solid #007cba;
-      border-radius: 8px;
-      padding: 20px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      font-size: 14px;
-      min-width: 280px;
-      max-width: 400px;
-      max-height: 70vh;
-      overflow-y: auto;
-    `;
-    
-    // Title
-    const title = document.createElement('h3');
-    title.textContent = 'Accessibility Summary';
-    title.style.cssText = 'margin: 0 0 15px 0; color: #007cba; font-size: 18px; text-align: center;';
-    summaryPanel.appendChild(title);
-    
-    // Overall stats
-    const overallStats = document.createElement('div');
-    overallStats.style.cssText = 'margin-bottom: 20px; padding: 10px; background: #f8f9fa; border-radius: 4px;';
-    
-    const totalIssues = document.createElement('div');
-    totalIssues.innerHTML = `<strong>Total Issues: ${summary.total}</strong>`;
-    totalIssues.style.fontSize = '16px';
-    overallStats.appendChild(totalIssues);
-    
-    const severityBreakdown = document.createElement('div');
-    severityBreakdown.innerHTML = `
-      <div style="margin-top: 8px;">
-        <span style="color: #dc3545;">● Errors: ${summary.errors}</span>
-        <span style="margin-left: 15px; color: #ffc107;">● Warnings: ${summary.warnings}</span>
-      </div>
-    `;
-    overallStats.appendChild(severityBreakdown);
-    
-    summaryPanel.appendChild(overallStats);
-    
-    // Category breakdown
-    if (Object.keys(summary.categories).length > 0) {
-      const categoryTitle = document.createElement('h4');
-      categoryTitle.textContent = 'Issues by Category';
-      categoryTitle.style.cssText = 'margin: 0 0 10px 0; font-size: 14px; color: #333;';
-      summaryPanel.appendChild(categoryTitle);
-      
-      const categoryList = document.createElement('div');
-      Object.entries(summary.categories)
-        .sort(([,a], [,b]) => b - a) // Sort by count descending
-        .forEach(([category, count]) => {
-          const categoryItem = document.createElement('div');
-          categoryItem.style.cssText = 'display: flex; justify-content: space-between; margin: 5px 0; padding: 5px 0; border-bottom: 1px solid #eee;';
-          
-          const categoryName = document.createElement('span');
-          categoryName.textContent = category.charAt(0).toUpperCase() + category.slice(1);
-          
-          const categoryCount = document.createElement('span');
-          categoryCount.textContent = count;
-          categoryCount.style.cssText = 'font-weight: bold; color: #007cba;';
-          
-          categoryItem.appendChild(categoryName);
-          categoryItem.appendChild(categoryCount);
-          categoryList.appendChild(categoryItem);
-        });
-      
-      summaryPanel.appendChild(categoryList);
-    }
-    
-    // Top issues
-    if (summary.topIssues.length > 0) {
-      const topIssuesTitle = document.createElement('h4');
-      topIssuesTitle.textContent = 'Most Common Issues';
-      topIssuesTitle.style.cssText = 'margin: 20px 0 10px 0; font-size: 14px; color: #333;';
-      summaryPanel.appendChild(topIssuesTitle);
-      
-      const topIssuesList = document.createElement('div');
-      summary.topIssues.slice(0, 5).forEach(({ message, count }) => {
-        const issueItem = document.createElement('div');
-        issueItem.style.cssText = 'margin: 8px 0; padding: 8px; background: #f8f9fa; border-radius: 4px; font-size: 12px;';
-        
-        const issueText = document.createElement('div');
-        issueText.textContent = message;
-        issueText.style.cssText = 'margin-bottom: 4px;';
-        
-        const issueCount = document.createElement('div');
-        issueCount.textContent = `Occurrences: ${count}`;
-        issueCount.style.cssText = 'font-weight: bold; color: #666; font-size: 11px;';
-        
-        issueItem.appendChild(issueText);
-        issueItem.appendChild(issueCount);
-        topIssuesList.appendChild(issueItem);
-      });
-      
-      summaryPanel.appendChild(topIssuesList);
-    }
-    
-    // Actions section
-    const actionsSection = document.createElement('div');
-    actionsSection.style.cssText = 'margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;';
-    
-    const buttonGroup = document.createElement('div');
-    buttonGroup.style.cssText = 'display: flex; gap: 8px; flex-wrap: wrap;';
-    
-    // Filter button
-    const filterButton = document.createElement('button');
-    filterButton.textContent = 'Filter Results';
-    filterButton.style.cssText = `
-      flex: 1;
-      padding: 8px 12px;
-      background: #007cba;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 12px;
-    `;
-    filterButton.addEventListener('click', () => {
-      const existingFilter = document.querySelector('.a11y-filter-panel');
-      if (existingFilter) {
-        existingFilter.remove();
-      } else {
-        createFilterPanel();
-      }
-    });
-    buttonGroup.appendChild(filterButton);
-    
-    // Config button
-    const configButton = document.createElement('button');
-    configButton.textContent = 'Configure Rules';
-    configButton.style.cssText = `
-      flex: 1;
-      padding: 8px 12px;
-      background: #17a2b8;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 12px;
-    `;
-    configButton.addEventListener('click', () => {
-      const existingConfig = document.querySelector('.a11y-config-panel');
-      if (existingConfig) {
-        existingConfig.remove();
-      } else {
-        createConfigPanel();
-      }
-    });
-    buttonGroup.appendChild(configButton);
-    
-    // Export button
-    const exportButton = document.createElement('button');
-    exportButton.textContent = 'Export Report';
-    exportButton.style.cssText = `
-      flex: 1;
-      padding: 8px 12px;
-      background: #28a745;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 12px;
-    `;
-    exportButton.addEventListener('click', () => {
-      createExportPanel();
-    });
-    buttonGroup.appendChild(exportButton);
-    
-    actionsSection.appendChild(buttonGroup);
-    
-    // Close button
-    const closeButton = document.createElement('button');
-    closeButton.textContent = 'Close Summary';
-    closeButton.style.cssText = `
-      width: 100%;
-      margin-top: 10px;
-      padding: 8px;
-      background: #6c757d;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 12px;
-    `;
-    closeButton.addEventListener('click', () => {
-      summaryPanel.remove();
-    });
-    actionsSection.appendChild(closeButton);
-    
-    summaryPanel.appendChild(actionsSection);
-    
+
+    // Create main panel structure
+    const summaryPanel = createBaseSummaryPanel();
+
+    // Add all sections to the panel
+    addSummaryTitle(summaryPanel);
+    addOverallStatsSection(summaryPanel, summary);
+    addCategoryBreakdownSection(summaryPanel, summary);
+    addTopIssuesSection(summaryPanel, summary);
+    addSummaryActionButtons(summaryPanel);
+
+    // Add panel to DOM
     document.body.appendChild(summaryPanel);
-    
+
   } catch (error) {
     console.error('Error creating summary panel:', error);
   }
+}
+
+/**
+ * Removes any existing summary panel from the DOM.
+ * @returns {void}
+ */
+function removePreviousSummaryPanel() {
+  const existing = document.querySelector('.a11y-summary-panel');
+  if (existing) {
+    existing.remove();
+  }
+}
+
+/**
+ * Creates the base structure for the summary panel.
+ * @returns {HTMLElement} The base panel element
+ */
+function createBaseSummaryPanel() {
+  const summaryPanel = document.createElement('div');
+  summaryPanel.className = 'a11y-summary-panel';
+  summaryPanel.setAttribute('aria-label', 'Accessibility results summary');
+
+  summaryPanel.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: ${A11Y_CONFIG.PERFORMANCE.Z_INDEX_OVERLAY + 1};
+    background: white;
+    border: 2px solid #007cba;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 14px;
+    min-width: 280px;
+    max-width: 400px;
+    max-height: 70vh;
+    overflow-y: auto;
+  `;
+
+  return summaryPanel;
+}
+
+/**
+ * Adds the title to the summary panel.
+ * @param {HTMLElement} panel - The panel to add the title to
+ * @returns {void}
+ */
+function addSummaryTitle(panel) {
+  const title = document.createElement('h3');
+  title.textContent = 'Accessibility Summary';
+  title.style.cssText = 'margin: 0 0 15px 0; color: #007cba; font-size: 18px; text-align: center;';
+  panel.appendChild(title);
+}
+
+/**
+ * Adds the overall statistics section to the summary panel.
+ * @param {HTMLElement} panel - The panel to add the stats to
+ * @param {Object} summary - The summary data
+ * @returns {void}
+ */
+function addOverallStatsSection(panel, summary) {
+  const overallStats = document.createElement('div');
+  overallStats.style.cssText = 'margin-bottom: 20px; padding: 10px; background: #f8f9fa; border-radius: 4px;';
+
+  const totalIssues = document.createElement('div');
+  totalIssues.innerHTML = `<strong>Total Issues: ${summary.total}</strong>`;
+  totalIssues.style.fontSize = '16px';
+  overallStats.appendChild(totalIssues);
+
+  const severityBreakdown = document.createElement('div');
+  severityBreakdown.innerHTML = `
+    <div style="margin-top: 8px;">
+      <span style="color: #dc3545;">● Errors: ${summary.errors}</span>
+      <span style="margin-left: 15px; color: #ffc107;">● Warnings: ${summary.warnings}</span>
+    </div>
+  `;
+  overallStats.appendChild(severityBreakdown);
+
+  panel.appendChild(overallStats);
+}
+
+/**
+ * Adds the category breakdown section to the summary panel.
+ * @param {HTMLElement} panel - The panel to add the breakdown to
+ * @param {Object} summary - The summary data
+ * @returns {void}
+ */
+function addCategoryBreakdownSection(panel, summary) {
+  if (Object.keys(summary.categories).length === 0) return;
+
+  const categoryTitle = document.createElement('h4');
+  categoryTitle.textContent = 'Issues by Category';
+  categoryTitle.style.cssText = 'margin: 0 0 10px 0; font-size: 14px; color: #333;';
+  panel.appendChild(categoryTitle);
+
+  const categoryList = createCategoryList(summary.categories);
+  panel.appendChild(categoryList);
+}
+
+/**
+ * Creates a list of categories with their issue counts.
+ * @param {Object} categories - Categories with their counts
+ * @returns {HTMLElement} The category list element
+ */
+function createCategoryList(categories) {
+  const categoryList = document.createElement('div');
+  
+  Object.entries(categories)
+    .sort(([,a], [,b]) => b - a) // Sort by count descending
+    .forEach(([category, count]) => {
+      const categoryItem = createCategoryItem(category, count);
+      categoryList.appendChild(categoryItem);
+    });
+
+  return categoryList;
+}
+
+/**
+ * Creates a single category item with name and count.
+ * @param {string} category - The category name
+ * @param {number} count - The issue count
+ * @returns {HTMLElement} The category item element
+ */
+function createCategoryItem(category, count) {
+  const categoryItem = document.createElement('div');
+  categoryItem.style.cssText = 'display: flex; justify-content: space-between; margin: 5px 0; padding: 5px 0; border-bottom: 1px solid #eee;';
+
+  const categoryName = document.createElement('span');
+  categoryName.textContent = category.charAt(0).toUpperCase() + category.slice(1);
+
+  const categoryCount = document.createElement('span');
+  categoryCount.textContent = count;
+  categoryCount.style.cssText = 'font-weight: bold; color: #007cba;';
+
+  categoryItem.appendChild(categoryName);
+  categoryItem.appendChild(categoryCount);
+
+  return categoryItem;
+}
+
+/**
+ * Adds the top issues section to the summary panel.
+ * @param {HTMLElement} panel - The panel to add the top issues to
+ * @param {Object} summary - The summary data
+ * @returns {void}
+ */
+function addTopIssuesSection(panel, summary) {
+  if (summary.topIssues.length === 0) return;
+
+  const topIssuesTitle = document.createElement('h4');
+  topIssuesTitle.textContent = 'Most Common Issues';
+  topIssuesTitle.style.cssText = 'margin: 20px 0 10px 0; font-size: 14px; color: #333;';
+  panel.appendChild(topIssuesTitle);
+
+  const topIssuesList = createTopIssuesList(summary.topIssues);
+  panel.appendChild(topIssuesList);
+}
+
+/**
+ * Creates a list of the most common issues.
+ * @param {Array} topIssues - Array of top issues with counts
+ * @returns {HTMLElement} The top issues list element
+ */
+function createTopIssuesList(topIssues) {
+  const topIssuesList = document.createElement('div');
+  
+  topIssues.slice(0, 5).forEach(({ message, count }) => {
+    const issueItem = createTopIssueItem(message, count);
+    topIssuesList.appendChild(issueItem);
+  });
+
+  return topIssuesList;
+}
+
+/**
+ * Creates a single top issue item with message and count.
+ * @param {string} message - The issue message
+ * @param {number} count - The occurrence count
+ * @returns {HTMLElement} The issue item element
+ */
+function createTopIssueItem(message, count) {
+  const issueItem = document.createElement('div');
+  issueItem.style.cssText = 'margin: 8px 0; padding: 8px; background: #f8f9fa; border-radius: 4px; font-size: 12px;';
+
+  const issueText = document.createElement('div');
+  issueText.textContent = message;
+  issueText.style.cssText = 'margin-bottom: 4px;';
+
+  const issueCount = document.createElement('div');
+  issueCount.textContent = `Occurrences: ${count}`;
+  issueCount.style.cssText = 'font-weight: bold; color: #666; font-size: 11px;';
+
+  issueItem.appendChild(issueText);
+  issueItem.appendChild(issueCount);
+
+  return issueItem;
+}
+
+/**
+ * Adds action buttons to the summary panel.
+ * @param {HTMLElement} panel - The panel to add buttons to
+ * @returns {void}
+ */
+function addSummaryActionButtons(panel) {
+  const actionsSection = document.createElement('div');
+  actionsSection.style.cssText = 'margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;';
+
+  const buttonGroup = createSummaryButtonGroup();
+  actionsSection.appendChild(buttonGroup);
+
+  const closeButton = createSummaryCloseButton(panel);
+  actionsSection.appendChild(closeButton);
+
+  panel.appendChild(actionsSection);
+}
+
+/**
+ * Creates the button group for summary actions.
+ * @returns {HTMLElement} The button group element
+ */
+function createSummaryButtonGroup() {
+  const buttonGroup = document.createElement('div');
+  buttonGroup.style.cssText = 'display: flex; gap: 8px; flex-wrap: wrap;';
+
+  const filterButton = createSummaryActionButton('Filter Results', '#007cba', () => {
+    const existingFilter = document.querySelector('.a11y-filter-panel');
+    if (existingFilter) {
+      existingFilter.remove();
+    } else {
+      createFilterPanel();
+    }
+  });
+
+  const configButton = createSummaryActionButton('Configure Rules', '#17a2b8', () => {
+    const existingConfig = document.querySelector('.a11y-config-panel');
+    if (existingConfig) {
+      existingConfig.remove();
+    } else {
+      createConfigPanel();
+    }
+  });
+
+  const exportButton = createSummaryActionButton('Export Report', '#28a745', () => {
+    createExportPanel();
+  });
+
+  buttonGroup.appendChild(filterButton);
+  buttonGroup.appendChild(configButton);
+  buttonGroup.appendChild(exportButton);
+
+  return buttonGroup;
+}
+
+/**
+ * Creates a standardized action button for the summary panel.
+ * @param {string} text - Button text
+ * @param {string} backgroundColor - Button background color
+ * @param {Function} clickHandler - Click event handler
+ * @returns {HTMLElement} The button element
+ */
+function createSummaryActionButton(text, backgroundColor, clickHandler) {
+  const button = document.createElement('button');
+  button.textContent = text;
+  button.style.cssText = `
+    flex: 1;
+    padding: 8px 12px;
+    background: ${backgroundColor};
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+  `;
+  button.addEventListener('click', clickHandler);
+  return button;
+}
+
+/**
+ * Creates the close button for the summary panel.
+ * @param {HTMLElement} panel - The panel to close
+ * @returns {HTMLElement} The close button element
+ */
+function createSummaryCloseButton(panel) {
+  const closeButton = document.createElement('button');
+  closeButton.textContent = 'Close Summary';
+  closeButton.style.cssText = `
+    width: 100%;
+    margin-top: 10px;
+    padding: 8px;
+    background: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+  `;
+  closeButton.addEventListener('click', () => {
+    panel.remove();
+  });
+  return closeButton;
 }
 
 /**
@@ -973,9 +1083,9 @@ function analyzeLogs() {
     categories: {},
     topIssues: []
   };
-  
+
   const messageCount = {};
-  
+
   logs.forEach(log => {
     // Count by severity
     if (log.level === 'error') {
@@ -983,20 +1093,20 @@ function analyzeLogs() {
     } else if (log.level === 'warning') {
       summary.warnings++;
     }
-    
+
     // Count by category
     const category = categorizeIssue(log.message, log.element);
     summary.categories[category] = (summary.categories[category] || 0) + 1;
-    
+
     // Count message occurrences
     messageCount[log.message] = (messageCount[log.message] || 0) + 1;
   });
-  
+
   // Create top issues list
   summary.topIssues = Object.entries(messageCount)
     .map(([message, count]) => ({ message, count }))
     .sort((a, b) => b.count - a.count);
-  
+
   return summary;
 }
 
@@ -1116,11 +1226,11 @@ function createConfigPanel() {
     if (existing) {
       existing.remove();
     }
-    
+
     const configPanel = document.createElement('div');
     configPanel.className = 'a11y-config-panel';
     configPanel.setAttribute('aria-label', 'Accessibility rules configuration panel');
-    
+
     configPanel.style.cssText = `
       position: fixed;
       top: 50%;
@@ -1139,13 +1249,13 @@ function createConfigPanel() {
       max-height: 80vh;
       overflow-y: auto;
     `;
-    
+
     // Title
     const title = document.createElement('h3');
     title.textContent = 'Accessibility Rules Configuration';
     title.style.cssText = 'margin: 0 0 20px 0; color: #007cba; font-size: 18px; text-align: center;';
     configPanel.appendChild(title);
-    
+
     // Create sections for each rule category
     const categories = [
       { key: 'images', label: 'Image Accessibility' },
@@ -1157,16 +1267,16 @@ function createConfigPanel() {
       { key: 'typography', label: 'Text & Typography' },
       { key: 'aria', label: 'ARIA & Semantics' }
     ];
-    
+
     categories.forEach(({ key, label }) => {
       const section = createConfigSection(key, label, customRules[key]);
       configPanel.appendChild(section);
     });
-    
+
     // Action buttons
     const actionButtons = document.createElement('div');
     actionButtons.style.cssText = 'margin-top: 20px; display: flex; gap: 10px; justify-content: center; border-top: 1px solid #eee; padding-top: 20px;';
-    
+
     // Save button
     const saveButton = document.createElement('button');
     saveButton.textContent = 'Save Configuration';
@@ -1189,7 +1299,7 @@ function createConfigPanel() {
       }
     });
     actionButtons.appendChild(saveButton);
-    
+
     // Reset button
     const resetButton = document.createElement('button');
     resetButton.textContent = 'Reset to Defaults';
@@ -1210,7 +1320,7 @@ function createConfigPanel() {
       }
     });
     actionButtons.appendChild(resetButton);
-    
+
     // Cancel button
     const cancelButton = document.createElement('button');
     cancelButton.textContent = 'Cancel';
@@ -1227,11 +1337,11 @@ function createConfigPanel() {
       configPanel.remove();
     });
     actionButtons.appendChild(cancelButton);
-    
+
     configPanel.appendChild(actionButtons);
-    
+
     document.body.appendChild(configPanel);
-    
+
   } catch (error) {
     console.error('Error creating config panel:', error);
   }
@@ -1247,36 +1357,36 @@ function createConfigPanel() {
 function createConfigSection(categoryKey, categoryLabel, rules) {
   const section = document.createElement('div');
   section.style.cssText = 'margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 4px;';
-  
+
   // Section header with enable/disable toggle
   const header = document.createElement('div');
   header.style.cssText = 'display: flex; align-items: center; margin-bottom: 10px;';
-  
+
   const enableCheckbox = document.createElement('input');
   enableCheckbox.type = 'checkbox';
   enableCheckbox.checked = rules.enabled;
   enableCheckbox.style.marginRight = '10px';
-  enableCheckbox.addEventListener('change', (e) => {
+  enableCheckbox.addEventListener('change', e => {
     rules.enabled = e.target.checked;
     // Enable/disable all other checkboxes in this section
     const otherCheckboxes = section.querySelectorAll('input[type="checkbox"]:not(:first-child)');
     otherCheckboxes.forEach(cb => cb.disabled = !e.target.checked);
   });
-  
+
   const headerLabel = document.createElement('h4');
   headerLabel.textContent = categoryLabel;
   headerLabel.style.cssText = 'margin: 0; font-size: 16px; color: #333;';
-  
+
   header.appendChild(enableCheckbox);
   header.appendChild(headerLabel);
   section.appendChild(header);
-  
+
   // Create checkboxes for each rule
   Object.entries(rules).forEach(([key, value]) => {
-    if (key === 'enabled') return; // Skip the enabled flag
-    
+    if (key === 'enabled') {return;} // Skip the enabled flag
+
     if (typeof value === 'boolean') {
-      const checkbox = createConfigCheckbox(key, formatRuleLabel(key), value, (checked) => {
+      const checkbox = createConfigCheckbox(key, formatRuleLabel(key), value, checked => {
         rules[key] = checked;
       });
       checkbox.style.marginLeft = '20px';
@@ -1285,7 +1395,7 @@ function createConfigSection(categoryKey, categoryLabel, rules) {
       }
       section.appendChild(checkbox);
     } else if (typeof value === 'number') {
-      const numberInput = createConfigNumberInput(key, formatRuleLabel(key), value, (newValue) => {
+      const numberInput = createConfigNumberInput(key, formatRuleLabel(key), value, newValue => {
         rules[key] = newValue;
       });
       numberInput.style.marginLeft = '20px';
@@ -1295,7 +1405,7 @@ function createConfigSection(categoryKey, categoryLabel, rules) {
       section.appendChild(numberInput);
     }
   });
-  
+
   return section;
 }
 
@@ -1310,22 +1420,22 @@ function createConfigSection(categoryKey, categoryLabel, rules) {
 function createConfigCheckbox(key, label, checked, onChange) {
   const container = document.createElement('div');
   container.style.cssText = 'margin: 8px 0; display: flex; align-items: center;';
-  
+
   const checkbox = document.createElement('input');
   checkbox.type = 'checkbox';
   checkbox.id = `config-${key}`;
   checkbox.checked = checked;
   checkbox.style.marginRight = '8px';
-  checkbox.addEventListener('change', (e) => onChange(e.target.checked));
-  
+  checkbox.addEventListener('change', e => onChange(e.target.checked));
+
   const labelElement = document.createElement('label');
   labelElement.setAttribute('for', `config-${key}`);
   labelElement.textContent = label;
   labelElement.style.cssText = 'cursor: pointer; font-size: 13px;';
-  
+
   container.appendChild(checkbox);
   container.appendChild(labelElement);
-  
+
   return container;
 }
 
@@ -1340,12 +1450,12 @@ function createConfigCheckbox(key, label, checked, onChange) {
 function createConfigNumberInput(key, label, value, onChange) {
   const container = document.createElement('div');
   container.style.cssText = 'margin: 8px 0; display: flex; align-items: center;';
-  
+
   const labelElement = document.createElement('label');
   labelElement.setAttribute('for', `config-${key}`);
   labelElement.textContent = label;
   labelElement.style.cssText = 'margin-right: 10px; font-size: 13px; min-width: 150px;';
-  
+
   const input = document.createElement('input');
   input.type = 'number';
   input.id = `config-${key}`;
@@ -1353,11 +1463,11 @@ function createConfigNumberInput(key, label, value, onChange) {
   input.min = key === 'minimumFontSize' ? '8' : '0';
   input.max = key === 'minimumFontSize' ? '24' : '100';
   input.style.cssText = 'width: 60px; padding: 4px; border: 1px solid #ccc; border-radius: 3px;';
-  input.addEventListener('change', (e) => onChange(parseInt(e.target.value) || value));
-  
+  input.addEventListener('change', e => onChange(parseInt(e.target.value) || value));
+
   container.appendChild(labelElement);
   container.appendChild(input);
-  
+
   return container;
 }
 
@@ -1386,11 +1496,11 @@ function createExportPanel() {
     if (existing) {
       existing.remove();
     }
-    
+
     const exportPanel = document.createElement('div');
     exportPanel.className = 'a11y-export-panel';
     exportPanel.setAttribute('aria-label', 'Export accessibility report panel');
-    
+
     exportPanel.style.cssText = `
       position: fixed;
       top: 50%;
@@ -1407,13 +1517,13 @@ function createExportPanel() {
       width: 400px;
       max-width: 90vw;
     `;
-    
+
     // Title
     const title = document.createElement('h3');
     title.textContent = 'Export Accessibility Report';
     title.style.cssText = 'margin: 0 0 20px 0; color: #28a745; font-size: 18px; text-align: center;';
     exportPanel.appendChild(title);
-    
+
     // Report info
     const summary = analyzeLogs();
     const infoSection = document.createElement('div');
@@ -1430,29 +1540,29 @@ function createExportPanel() {
       </div>
     `;
     exportPanel.appendChild(infoSection);
-    
+
     // Export format options
     const formatSection = document.createElement('div');
     formatSection.style.cssText = 'margin-bottom: 20px;';
-    
+
     const formatTitle = document.createElement('h4');
     formatTitle.textContent = 'Export Format:';
     formatTitle.style.cssText = 'margin: 0 0 10px 0; font-size: 14px;';
     formatSection.appendChild(formatTitle);
-    
+
     const formats = [
       { value: 'json', label: 'JSON (Developer-friendly)' },
       { value: 'csv', label: 'CSV (Spreadsheet)' },
       { value: 'html', label: 'HTML (Readable Report)' },
       { value: 'txt', label: 'Text (Simple List)' }
     ];
-    
+
     let selectedFormat = 'json';
-    
+
     formats.forEach(format => {
       const radioContainer = document.createElement('div');
       radioContainer.style.cssText = 'margin: 8px 0; display: flex; align-items: center;';
-      
+
       const radio = document.createElement('input');
       radio.type = 'radio';
       radio.name = 'exportFormat';
@@ -1465,23 +1575,23 @@ function createExportPanel() {
           selectedFormat = format.value;
         }
       });
-      
+
       const label = document.createElement('label');
       label.setAttribute('for', `export-${format.value}`);
       label.textContent = format.label;
       label.style.cssText = 'cursor: pointer; font-size: 13px;';
-      
+
       radioContainer.appendChild(radio);
       radioContainer.appendChild(label);
       formatSection.appendChild(radioContainer);
     });
-    
+
     exportPanel.appendChild(formatSection);
-    
+
     // Action buttons
     const buttonSection = document.createElement('div');
     buttonSection.style.cssText = 'display: flex; gap: 10px; justify-content: center;';
-    
+
     // Export button
     const exportBtn = document.createElement('button');
     exportBtn.textContent = 'Download Report';
@@ -1499,7 +1609,7 @@ function createExportPanel() {
       exportPanel.remove();
     });
     buttonSection.appendChild(exportBtn);
-    
+
     // Cancel button
     const cancelBtn = document.createElement('button');
     cancelBtn.textContent = 'Cancel';
@@ -1516,11 +1626,11 @@ function createExportPanel() {
       exportPanel.remove();
     });
     buttonSection.appendChild(cancelBtn);
-    
+
     exportPanel.appendChild(buttonSection);
-    
+
     document.body.appendChild(exportPanel);
-    
+
   } catch (error) {
     console.error('Error creating export panel:', error);
   }
@@ -1536,9 +1646,9 @@ function exportReport(format) {
     const summary = analyzeLogs();
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const filename = `accessibility-report-${timestamp}`;
-    
+
     let content, mimeType, extension;
-    
+
     switch (format) {
       case 'json':
         content = generateJSONReport(summary);
@@ -1563,12 +1673,12 @@ function exportReport(format) {
       default:
         throw new Error(`Unsupported export format: ${format}`);
     }
-    
+
     // Create and trigger download
     downloadFile(content, `${filename}.${extension}`, mimeType);
-    
+
     console.log(`Accessibility report exported as ${format.toUpperCase()}`);
-    
+
   } catch (error) {
     console.error('Error exporting report:', error);
     alert(`Failed to export report: ${error.message}`);
@@ -1613,7 +1723,7 @@ function generateJSONReport(summary) {
       scanSettings: customRules
     }
   };
-  
+
   return JSON.stringify(report, null, 2);
 }
 
@@ -1624,7 +1734,7 @@ function generateJSONReport(summary) {
 function generateCSVReport() {
   const headers = ['ID', 'Level', 'Category', 'Message', 'Element', 'XPath', 'Timestamp'];
   const rows = [headers.join(',')];
-  
+
   logs.forEach((log, index) => {
     const row = [
       index + 1,
@@ -1637,7 +1747,7 @@ function generateCSVReport() {
     ];
     rows.push(row.join(','));
   });
-  
+
   return rows.join('\n');
 }
 
@@ -1705,9 +1815,9 @@ function generateHTMLReport(summary) {
             </thead>
             <tbody>
                 ${Object.entries(summary.categories)
-                  .sort(([,a], [,b]) => b - a)
-                  .map(([cat, count]) => `<tr><td>${cat.charAt(0).toUpperCase() + cat.slice(1)}</td><td>${count}</td></tr>`)
-                  .join('')}
+    .sort(([,a], [,b]) => b - a)
+    .map(([cat, count]) => `<tr><td>${cat.charAt(0).toUpperCase() + cat.slice(1)}</td><td>${count}</td></tr>`)
+    .join('')}
             </tbody>
         </table>
         ` : ''}
@@ -1715,8 +1825,8 @@ function generateHTMLReport(summary) {
     
     <div class="issues">
         <h2>Detailed Issues</h2>
-        ${logs.length === 0 ? '<p>No accessibility issues found.</p>' : 
-          logs.map((log, index) => `
+        ${logs.length === 0 ? '<p>No accessibility issues found.</p>' :
+    logs.map((log, index) => `
             <div class="issue ${log.level || 'error'}">
                 <div>
                     <span class="category">${categorizeIssue(log.message, log.element)}</span>
@@ -1735,7 +1845,7 @@ function generateHTMLReport(summary) {
     </div>
 </body>
 </html>`;
-  
+
   return html;
 }
 
@@ -1746,7 +1856,7 @@ function generateHTMLReport(summary) {
  */
 function generateTextReport(summary) {
   const lines = [];
-  
+
   lines.push('ACCESSIBILITY REPORT');
   lines.push('===================');
   lines.push('');
@@ -1755,14 +1865,14 @@ function generateTextReport(summary) {
   lines.push(`Generated: ${new Date().toLocaleString()}`);
   lines.push(`Tool: Accessibility Highlighter v1.0.1`);
   lines.push('');
-  
+
   lines.push('SUMMARY');
   lines.push('-------');
   lines.push(`Total Issues: ${summary.total}`);
   lines.push(`Errors: ${summary.errors}`);
   lines.push(`Warnings: ${summary.warnings}`);
   lines.push('');
-  
+
   if (Object.keys(summary.categories).length > 0) {
     lines.push('ISSUES BY CATEGORY');
     lines.push('------------------');
@@ -1773,10 +1883,10 @@ function generateTextReport(summary) {
       });
     lines.push('');
   }
-  
+
   lines.push('DETAILED ISSUES');
   lines.push('---------------');
-  
+
   if (logs.length === 0) {
     lines.push('No accessibility issues found.');
   } else {
@@ -1789,7 +1899,7 @@ function generateTextReport(summary) {
       lines.push('');
     });
   }
-  
+
   return lines.join('\n');
 }
 
@@ -1799,30 +1909,30 @@ function generateTextReport(summary) {
  * @returns {string} XPath string
  */
 function getElementXPath(element) {
-  if (!element) return 'N/A';
-  
+  if (!element) {return 'N/A';}
+
   try {
     const parts = [];
     let current = element;
-    
+
     while (current && current.nodeType === Node.ELEMENT_NODE) {
       let index = 1;
       let sibling = current.previousSibling;
-      
+
       while (sibling) {
         if (sibling.nodeType === Node.ELEMENT_NODE && sibling.tagName === current.tagName) {
           index++;
         }
         sibling = sibling.previousSibling;
       }
-      
+
       const tagName = current.tagName.toLowerCase();
       const part = `${tagName}[${index}]`;
       parts.unshift(part);
-      
+
       current = current.parentNode;
     }
-    
+
     return '/' + parts.join('/');
   } catch (error) {
     return 'XPath generation failed';
@@ -1840,19 +1950,19 @@ function downloadFile(content, filename, mimeType) {
   try {
     const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);
-    
+
     const link = document.createElement('a');
     link.href = url;
     link.download = filename;
     link.style.display = 'none';
-    
+
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+
     // Clean up the URL object
     setTimeout(() => URL.revokeObjectURL(url), 100);
-    
+
   } catch (error) {
     console.error('Error downloading file:', error);
     throw new Error('Download failed');
@@ -1867,45 +1977,45 @@ function removeAccessibilityOverlays() {
   try {
     // Cancel any running incremental scan
     cancelIncrementalScan();
-    
+
     const errorOverlays = document.querySelectorAll(A11Y_CONFIG.SELECTORS.OVERLAY_ELEMENTS);
-    errorOverlays.forEach((overlay) => {
+    errorOverlays.forEach(overlay => {
       if (overlay.parentNode) {
         overlay.parentNode.removeChild(overlay);
       }
     });
-    
+
     // Remove filter panel
     const filterPanel = document.querySelector('.a11y-filter-panel');
     if (filterPanel) {
       filterPanel.remove();
     }
-    
+
     // Remove summary panel
     const summaryPanel = document.querySelector('.a11y-summary-panel');
     if (summaryPanel) {
       summaryPanel.remove();
     }
-    
+
     // Remove config panel
     const configPanel = document.querySelector('.a11y-config-panel');
     if (configPanel) {
       configPanel.remove();
     }
-    
+
     // Remove export panel
     const exportPanel = document.querySelector('.a11y-export-panel');
     if (exportPanel) {
       exportPanel.remove();
     }
-    
+
     // Clear logs array
     logs.length = 0;
-    
+
     // Reset keyboard navigation
     keyboardNavigationActive = false;
     currentOverlayIndex = -1;
-    
+
     // Hide progress indicator
     hideProgressIndicator();
   } catch (error) {
@@ -1950,10 +2060,10 @@ function startIncrementalScan() {
   try {
     // Clear previous logs and state
     logs.length = 0;
-    
+
     // Show progress indicator
     showProgressIndicator('Initializing incremental scan...', 0);
-    
+
     // Initialize incremental state
     incrementalState = {
       walker: null,
@@ -1966,15 +2076,15 @@ function startIncrementalScan() {
       isComplete: false,
       cancelled: false
     };
-    
+
     // Check for landmarks first (quick check)
     updateProgressIndicator('Checking page structure...', 5);
     checkForLandmarks();
-    
+
     // Count total elements for progress tracking
     const allElements = document.querySelectorAll('*');
     incrementalState.totalElements = allElements.length;
-    
+
     // Create TreeWalker for efficient traversal
     incrementalState.walker = document.createTreeWalker(
       document.body,
@@ -1991,12 +2101,12 @@ function startIncrementalScan() {
       },
       false
     );
-    
+
     updateProgressIndicator(`Starting scan of ${incrementalState.totalElements} elements...`, 10);
-    
+
     // Start processing chunks
     processNextChunk();
-    
+
   } catch (error) {
     console.error('Error starting incremental scan:', error);
     finishIncrementalScan();
@@ -2012,51 +2122,51 @@ function processNextChunk() {
     finishIncrementalScan();
     return;
   }
-  
+
   const chunkStartTime = performance.now();
   incrementalState.elementsInCurrentChunk = 0;
-  
+
   try {
     // Process elements in this chunk
     while (incrementalState.elementsInCurrentChunk < INCREMENTAL_CONFIG.CHUNK_SIZE) {
       const node = incrementalState.walker.nextNode();
-      
+
       // Check if we've reached the end
       if (!node) {
         incrementalState.isComplete = true;
         break;
       }
-      
+
       // Skip if already processed
-      if (incrementalState.processedElements.has(node)) continue;
+      if (incrementalState.processedElements.has(node)) {continue;}
       incrementalState.processedElements.add(node);
-      
+
       // Process the element
       processElement(node);
-      
+
       incrementalState.processedCount++;
       incrementalState.elementsInCurrentChunk++;
-      
+
       // Check if we've exceeded max scan time
       if (Date.now() - incrementalState.startTime > INCREMENTAL_CONFIG.MAX_SCAN_TIME) {
         console.warn('Incremental scan timeout reached, stopping early');
         incrementalState.isComplete = true;
         break;
       }
-      
+
       // Yield if we've been processing for too long in this chunk
       if (performance.now() - chunkStartTime > INCREMENTAL_CONFIG.CHUNK_DELAY) {
         break;
       }
     }
-    
+
     // Update progress
     const progress = 10 + Math.min(80, (incrementalState.processedCount / incrementalState.totalElements) * 80);
     updateProgressIndicator(
-      `Processed ${incrementalState.processedCount} of ${incrementalState.totalElements} elements...`, 
+      `Processed ${incrementalState.processedCount} of ${incrementalState.totalElements} elements...`,
       progress
     );
-    
+
     // Schedule next chunk or finish
     if (incrementalState.isComplete) {
       finishIncrementalScan();
@@ -2068,7 +2178,7 @@ function processNextChunk() {
         setTimeout(processNextChunk, INCREMENTAL_CONFIG.CHUNK_DELAY);
       }
     }
-    
+
   } catch (error) {
     console.error('Error processing chunk:', error);
     finishIncrementalScan();
@@ -2085,7 +2195,7 @@ function processElement(node) {
     const tagName = node.tagName.toLowerCase();
     const role = node.getAttribute('role');
     const tabindex = node.getAttribute('tabindex');
-    
+
     // Check element based on tag or role
     switch (tagName) {
       case 'img':
@@ -2124,7 +2234,7 @@ function processElement(node) {
         }
         break;
     }
-    
+
     // Check font size if enabled
     if (customRules.typography.enabled && customRules.typography.checkFontSize) {
       checkFontSize(node);
@@ -2143,21 +2253,21 @@ function finishIncrementalScan() {
     if (incrementalState && !incrementalState.cancelled) {
       const scanTime = Date.now() - incrementalState.startTime;
       updateProgressIndicator('Finalizing scan results...', 95);
-      
+
       // Log completion stats
       console.log(`Incremental scan completed: ${incrementalState.processedCount} elements in ${scanTime}ms`);
       console.table(logs);
-      
+
       // Final progress update
       hideProgressIndicator();
-      
+
       // Show completion message if there are issues
       if (logs.length > 0) {
         updateProgressIndicator(`Found ${logs.length} accessibility issues`, 100);
         setTimeout(() => hideProgressIndicator(), 2000);
       }
     }
-    
+
   } catch (error) {
     console.error('Error finishing incremental scan:', error);
   } finally {
@@ -2194,33 +2304,33 @@ function runAccessibilityChecks(useIncremental = true) {
     console.log(A11Y_CONFIG.MESSAGES.THROTTLED);
     return;
   }
-  
+
   isRunning = true;
   lastRunTime = now;
-  
+
   // Use incremental scanning for better performance
   if (useIncremental) {
     startIncrementalScan();
     return;
   }
-  
+
   try {
     // Clear previous logs
     logs.length = 0;
-    
+
     // Show progress indicator
     showProgressIndicator('Starting accessibility scan...', 0);
-    
+
     // Check for landmarks first (simple check)
     updateProgressIndicator('Checking page structure...', 10);
     checkForLandmarks();
-    
+
     // Count total elements for progress tracking
     const allElements = document.querySelectorAll('*');
     const totalElements = allElements.length;
-    
+
     updateProgressIndicator(`Scanning ${totalElements} elements...`, 20);
-    
+
     // Use TreeWalker for efficient single-pass DOM traversal
     const walker = document.createTreeWalker(
       document.body,
@@ -2237,28 +2347,28 @@ function runAccessibilityChecks(useIncremental = true) {
       },
       false
     );
-    
+
     // Single pass through all elements
     let node;
     let processedCount = 0;
     const processedElements = new Set();
-    
+
     while (node = walker.nextNode()) {
       // Skip if already processed
-      if (processedElements.has(node)) continue;
+      if (processedElements.has(node)) {continue;}
       processedElements.add(node);
       processedCount++;
-      
+
       // Update progress every 50 elements
       if (processedCount % 50 === 0) {
         const progress = 20 + Math.min(70, (processedCount / totalElements) * 70);
         updateProgressIndicator(`Processed ${processedCount} of ${totalElements} elements...`, progress);
       }
-      
+
       const tagName = node.tagName.toLowerCase();
       const role = node.getAttribute('role');
       const tabindex = node.getAttribute('tabindex');
-      
+
       // Check element based on tag or role
       switch (tagName) {
         case 'img':
@@ -2297,25 +2407,25 @@ function runAccessibilityChecks(useIncremental = true) {
           }
           break;
       }
-      
+
       // Check font size for text-containing elements
-      if (A11Y_CONFIG.SELECTORS.TEXT_ELEMENTS.includes(tagName) && 
+      if (A11Y_CONFIG.SELECTORS.TEXT_ELEMENTS.includes(tagName) &&
           node.textContent && node.textContent.trim().length > 0) {
         try {
           const fontSize = parseFloat(style.fontSize || window.getComputedStyle(node).fontSize);
           if (fontSize < A11Y_CONFIG.PERFORMANCE.FONT_SIZE_THRESHOLD) {
             console.log(node);
-            overlay.call(node, "overlay", "error", A11Y_CONFIG.MESSAGES.SMALL_FONT_SIZE);
+            overlay.call(node, 'overlay', 'error', A11Y_CONFIG.MESSAGES.SMALL_FONT_SIZE);
           }
         } catch (error) {
           // Skip elements that can't be styled
         }
       }
     }
-    
+
     // Finalize progress
     updateProgressIndicator('Completing scan...', 95);
-    
+
     // Log results
     if (logs.length > 0) {
       updateProgressIndicator(`Found ${logs.length} accessibility issues. Press Alt+Shift+F for filters.`, 100);
@@ -2325,12 +2435,12 @@ function runAccessibilityChecks(useIncremental = true) {
       updateProgressIndicator('No accessibility issues found!', 100);
       console.log(A11Y_CONFIG.MESSAGES.NO_ISSUES);
     }
-    
+
     // Hide progress indicator after a brief delay
     setTimeout(() => {
       hideProgressIndicator();
     }, 2000);
-    
+
   } catch (error) {
     console.error('Error during accessibility checks:', error);
     updateProgressIndicator('Error during scan', 100);
@@ -2348,11 +2458,11 @@ function runAccessibilityChecks(useIncremental = true) {
  * @returns {void}
  */
 function checkElement(element) {
-  if (!element) return;
-  
+  if (!element) {return;}
+
   const tagName = element.tagName.toLowerCase();
   const role = element.getAttribute('role');
-  
+
   try {
     switch (tagName) {
       case 'img':
@@ -2403,38 +2513,38 @@ function checkElement(element) {
  */
 function checkImageElement(element) {
   // Skip if image checks are disabled
-  if (!customRules.images.enabled) return;
-  
+  if (!customRules.images.enabled) {return;}
+
   // Check for missing alt attribute
   if (customRules.images.checkMissingAlt && !element.hasAttribute('alt')) {
     console.log(element);
-    overlay.call(element, "overlay", "error", A11Y_CONFIG.MESSAGES.MISSING_ALT);
+    overlay.call(element, 'overlay', 'error', A11Y_CONFIG.MESSAGES.MISSING_ALT);
     return;
   }
-  
+
   const altValue = element.getAttribute('alt');
   const titleValue = element.getAttribute('title');
-  
+
   // Check for uninformative alt text
-  if (customRules.images.checkUninformativeAlt && altValue && 
+  if (customRules.images.checkUninformativeAlt && altValue &&
       A11Y_CONFIG.PROHIBITED_ALT_VALUES.includes(altValue.toLowerCase())) {
     console.log(element);
-    overlay.call(element, "overlay", "error", A11Y_CONFIG.MESSAGES.UNINFORMATIVE_ALT);
+    overlay.call(element, 'overlay', 'error', A11Y_CONFIG.MESSAGES.UNINFORMATIVE_ALT);
   }
-  
+
   // Check for empty alt with non-empty title
-  if (customRules.images.checkEmptyAltWithTitle && altValue === '' && 
+  if (customRules.images.checkEmptyAltWithTitle && altValue === '' &&
       titleValue && titleValue.trim() !== '') {
     console.log(element);
-    overlay.call(element, "overlay", "error", A11Y_CONFIG.MESSAGES.EMPTY_ALT_WITH_TITLE);
+    overlay.call(element, 'overlay', 'error', A11Y_CONFIG.MESSAGES.EMPTY_ALT_WITH_TITLE);
   }
-  
+
   // Check for different alt and title attributes
-  if (customRules.images.checkDifferentAltTitle && altValue && titleValue && 
-      altValue.trim() !== '' && titleValue.trim() !== '' && 
+  if (customRules.images.checkDifferentAltTitle && altValue && titleValue &&
+      altValue.trim() !== '' && titleValue.trim() !== '' &&
       altValue.toLowerCase() !== titleValue.toLowerCase()) {
     console.log(element);
-    overlay.call(element, "overlay", "error", A11Y_CONFIG.MESSAGES.DIFFERENT_ALT_TITLE);
+    overlay.call(element, 'overlay', 'error', A11Y_CONFIG.MESSAGES.DIFFERENT_ALT_TITLE);
   }
 }
 
@@ -2447,10 +2557,10 @@ function checkButtonElement(element) {
   const hasAriaLabel = element.hasAttribute('aria-label');
   const hasAriaLabelledby = element.hasAttribute('aria-labelledby');
   const hasTextContent = element.textContent && element.textContent.trim() !== '';
-  
+
   if (!hasAriaLabel && !hasAriaLabelledby && !hasTextContent) {
     console.log(element);
-    overlay.call(element, "overlay", "error", A11Y_CONFIG.MESSAGES.BUTTON_NO_LABEL);
+    overlay.call(element, 'overlay', 'error', A11Y_CONFIG.MESSAGES.BUTTON_NO_LABEL);
   }
 }
 
@@ -2466,33 +2576,33 @@ function checkLinkElement(element) {
   const textContent = element.textContent ? element.textContent.trim() : '';
   const titleValue = element.getAttribute('title');
   const role = element.getAttribute('role');
-  
+
   // Skip if it's a button role
-  if (role === 'button') return;
-  
+  if (role === 'button') {return;}
+
   // Check for empty links
   if (!hasAriaLabel && !hasAriaLabelledby && textContent === '') {
     console.log(element);
-    overlay.call(element, "overlay", "error", A11Y_CONFIG.MESSAGES.LINK_NO_CONTENT);
+    overlay.call(element, 'overlay', 'error', A11Y_CONFIG.MESSAGES.LINK_NO_CONTENT);
     return;
   }
-  
+
   // Check for invalid href
   if (href === '#' || (href && href.startsWith('javascript:'))) {
     console.log(element);
-    overlay.call(element, "overlay", "error", A11Y_CONFIG.MESSAGES.INVALID_HREF);
+    overlay.call(element, 'overlay', 'error', A11Y_CONFIG.MESSAGES.INVALID_HREF);
   }
-  
+
   // Check for generic link text
   if (textContent && A11Y_CONFIG.PROHIBITED_LINK_TEXT.includes(textContent.toLowerCase())) {
     console.log(element);
-    overlay.call(element, "overlay", "error", A11Y_CONFIG.MESSAGES.GENERIC_LINK_TEXT);
+    overlay.call(element, 'overlay', 'error', A11Y_CONFIG.MESSAGES.GENERIC_LINK_TEXT);
   }
-  
+
   // Check for matching title and text
   if (titleValue && textContent && titleValue.toLowerCase() === textContent.toLowerCase()) {
     console.log(element);
-    overlay.call(element, "overlay", "error", A11Y_CONFIG.MESSAGES.MATCHING_TITLE_TEXT);
+    overlay.call(element, 'overlay', 'error', A11Y_CONFIG.MESSAGES.MATCHING_TITLE_TEXT);
   }
 }
 
@@ -2504,7 +2614,7 @@ function checkLinkElement(element) {
 function checkFieldsetElement(element) {
   if (!element.querySelector('legend')) {
     console.log(element);
-    overlay.call(element, "overlay", "error", A11Y_CONFIG.MESSAGES.FIELDSET_NO_LEGEND);
+    overlay.call(element, 'overlay', 'error', A11Y_CONFIG.MESSAGES.FIELDSET_NO_LEGEND);
   }
 }
 
@@ -2515,21 +2625,21 @@ function checkFieldsetElement(element) {
  */
 function checkInputElement(element) {
   const type = element.getAttribute('type');
-  
+
   if (type === 'image') {
     const hasAlt = element.hasAttribute('alt');
     const hasAriaLabel = element.hasAttribute('aria-label');
-    
+
     if (!hasAlt && !hasAriaLabel) {
       console.log(element);
-      overlay.call(element, "overlay", "error", A11Y_CONFIG.MESSAGES.INPUT_IMAGE_NO_ALT);
+      overlay.call(element, 'overlay', 'error', A11Y_CONFIG.MESSAGES.INPUT_IMAGE_NO_ALT);
     }
   } else if (type !== 'submit' && type !== 'image' && type !== 'hidden') {
     // Check for form fields without labels
     const id = element.getAttribute('id');
     if (!id || !document.querySelector(`label[for="${id}"]`)) {
       console.log(element);
-      overlay.call(element, "overlay", "error", A11Y_CONFIG.MESSAGES.FORM_FIELD_NO_LABEL);
+      overlay.call(element, 'overlay', 'error', A11Y_CONFIG.MESSAGES.FORM_FIELD_NO_LABEL);
     }
   }
 }
@@ -2543,23 +2653,23 @@ function checkTableElement(element) {
   // Check for tables without TH elements
   if (!element.querySelector('th')) {
     console.log(element);
-    overlay.call(element, "overlay", "error", A11Y_CONFIG.MESSAGES.TABLE_NO_HEADERS);
+    overlay.call(element, 'overlay', 'error', A11Y_CONFIG.MESSAGES.TABLE_NO_HEADERS);
   }
-  
+
   // Check for nested tables
   if (element.closest('th, td')) {
     console.log(element);
-    overlay.call(element, "overlay", "error", A11Y_CONFIG.MESSAGES.NESTED_TABLE);
+    overlay.call(element, 'overlay', 'error', A11Y_CONFIG.MESSAGES.NESTED_TABLE);
   }
-  
+
   // Check for uninformative summary
   const summaryValue = element.getAttribute('summary');
   if (summaryValue) {
     const summaryTrimmed = summaryValue.trim();
-    if (A11Y_CONFIG.PROHIBITED_TABLE_SUMMARIES.some(badSummary => 
-        summaryTrimmed.toLowerCase().includes(badSummary.toLowerCase()))) {
+    if (A11Y_CONFIG.PROHIBITED_TABLE_SUMMARIES.some(badSummary =>
+      summaryTrimmed.toLowerCase().includes(badSummary.toLowerCase()))) {
       console.log(element);
-      overlay.call(element, "overlay", "error", A11Y_CONFIG.MESSAGES.UNINFORMATIVE_SUMMARY);
+      overlay.call(element, 'overlay', 'error', A11Y_CONFIG.MESSAGES.UNINFORMATIVE_SUMMARY);
     }
   }
 }
@@ -2572,7 +2682,7 @@ function checkTableElement(element) {
 function checkIframeElement(element) {
   if (!element.hasAttribute('title')) {
     console.log(element);
-    overlay.call(element, "overlay", "error", A11Y_CONFIG.MESSAGES.IFRAME_NO_TITLE);
+    overlay.call(element, 'overlay', 'error', A11Y_CONFIG.MESSAGES.IFRAME_NO_TITLE);
   }
 }
 
@@ -2585,13 +2695,13 @@ function checkMediaElement(element) {
   // Check for autoplay
   if (element.hasAttribute('autoplay')) {
     console.log(element);
-    overlay.call(element, "overlay", "error", A11Y_CONFIG.MESSAGES.MEDIA_AUTOPLAY);
+    overlay.call(element, 'overlay', 'error', A11Y_CONFIG.MESSAGES.MEDIA_AUTOPLAY);
   }
-  
+
   // Check for captions
   if (!element.querySelector('track[kind="captions"]')) {
     console.log(element);
-    overlay.call(element, "overlay", "error", A11Y_CONFIG.MESSAGES.MEDIA_NO_CAPTIONS);
+    overlay.call(element, 'overlay', 'error', A11Y_CONFIG.MESSAGES.MEDIA_NO_CAPTIONS);
   }
 }
 
@@ -2604,26 +2714,26 @@ function checkMediaElement(element) {
 function checkRoleBasedElement(element, role) {
   const hasAriaLabel = element.hasAttribute('aria-label');
   const hasAriaLabelledby = element.hasAttribute('aria-labelledby');
-  
+
   switch (role) {
     case 'img':
       if (!hasAriaLabel && !hasAriaLabelledby) {
         console.log(element);
-        overlay.call(element, "overlay", "error", A11Y_CONFIG.MESSAGES.ROLE_IMG_NO_LABEL);
+        overlay.call(element, 'overlay', 'error', A11Y_CONFIG.MESSAGES.ROLE_IMG_NO_LABEL);
       }
       break;
     case 'button':
       const hasTextContent = element.textContent && element.textContent.trim() !== '';
       if (!hasAriaLabel && !hasAriaLabelledby && !hasTextContent) {
         console.log(element);
-        overlay.call(element, "overlay", "error", A11Y_CONFIG.MESSAGES.BUTTON_NO_LABEL);
+        overlay.call(element, 'overlay', 'error', A11Y_CONFIG.MESSAGES.BUTTON_NO_LABEL);
       }
       break;
     case 'link':
       const textContent = element.textContent ? element.textContent.trim() : '';
       if (!hasAriaLabel && !hasAriaLabelledby && textContent === '') {
         console.log(element);
-        overlay.call(element, "overlay", "error", A11Y_CONFIG.MESSAGES.LINK_NO_CONTENT);
+        overlay.call(element, 'overlay', 'error', A11Y_CONFIG.MESSAGES.LINK_NO_CONTENT);
       }
       break;
   }
@@ -2638,16 +2748,16 @@ function checkTabIndexElement(element) {
   const tagName = element.tagName.toLowerCase();
   const role = element.getAttribute('role');
   const tabindexValue = parseInt(element.getAttribute('tabindex'), 10);
-  
+
   // Skip interactive elements and elements with roles
   if (A11Y_CONFIG.SELECTORS.INTERACTIVE_ELEMENTS.includes(tagName) || role) {
     return;
   }
-  
+
   // Only flag elements with tabindex=0 or positive tabindex values
   if (!isNaN(tabindexValue) && tabindexValue >= 0) {
     console.log(element);
-    overlay.call(element, "overlay", "warning", A11Y_CONFIG.MESSAGES.NON_ACTIONABLE_TABINDEX + tabindexValue);
+    overlay.call(element, 'overlay', 'warning', A11Y_CONFIG.MESSAGES.NON_ACTIONABLE_TABINDEX + tabindexValue);
   }
 }
 
@@ -2669,10 +2779,10 @@ function checkFontSizes() {
  */
 function checkForLandmarks() {
   const landmarks = document.querySelectorAll(A11Y_CONFIG.SELECTORS.LANDMARK_ELEMENTS);
-  
+
   if (landmarks.length === 0) {
     console.log(document.body);
-    overlay.call(document.body, "overlay", "error", A11Y_CONFIG.MESSAGES.NO_LANDMARKS);
+    overlay.call(document.body, 'overlay', 'error', A11Y_CONFIG.MESSAGES.NO_LANDMARKS);
   }
 }
 
@@ -2683,7 +2793,7 @@ function checkForLandmarks() {
  */
 function toggleAccessibilityHighlight(isEnabled) {
   console.log(`Toggling accessibility highlights: ${isEnabled}`);
-  
+
   try {
     if (isEnabled) {
       runAccessibilityChecks();
@@ -2699,17 +2809,17 @@ function toggleAccessibilityHighlight(isEnabled) {
  * Initial check for isEnabled state from storage.
  * @returns {void}
  */
-chrome.storage.local.get(["isEnabled"], (result) => {
+chrome.storage.local.get(['isEnabled'], result => {
   try {
     // Validate storage result
     if (!result || typeof result !== 'object') {
       console.warn('Invalid storage result:', result);
       return;
     }
-    
+
     // Validate isEnabled value (default to false if not set)
     const isEnabled = result.isEnabled === true;
-    console.log("Initial isEnabled state:", isEnabled);
+    console.log('Initial isEnabled state:', isEnabled);
     toggleAccessibilityHighlight(isEnabled);
   } catch (error) {
     console.error('Error during initial state check:', error);
@@ -2725,26 +2835,26 @@ chrome.storage.local.get(["isEnabled"], (result) => {
  */
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   try {
-    console.log("Message received", message);
-    
+    console.log('Message received', message);
+
     // Validate message structure
     if (!message || typeof message !== 'object') {
       console.warn('Invalid message received:', message);
       return false;
     }
-    
-    if (message.action === "toggleAccessibilityHighlight") {
+
+    if (message.action === 'toggleAccessibilityHighlight') {
       // Validate isEnabled parameter
       if (typeof message.isEnabled !== 'boolean') {
         console.warn('Invalid isEnabled value:', message.isEnabled);
         return false;
       }
-      
+
       toggleAccessibilityHighlight(message.isEnabled);
-      sendResponse(message.isEnabled ? "highlighted" : "unhighlighted");
+      sendResponse(message.isEnabled ? 'highlighted' : 'unhighlighted');
       return true;
     }
-    
+
     return false;
   } catch (error) {
     console.error('Error handling message:', error);
@@ -2759,24 +2869,24 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
  */
 function highlightCurrentOverlay(index) {
   const overlays = document.querySelectorAll(A11Y_CONFIG.SELECTORS.OVERLAY_ELEMENTS);
-  
+
   // Remove previous highlight
   overlays.forEach(overlay => {
     overlay.style.outline = '';
     overlay.style.outlineOffset = '';
   });
-  
+
   if (index >= 0 && index < overlays.length) {
     const currentOverlay = overlays[index];
     currentOverlay.style.outline = '3px solid #007cba';
     currentOverlay.style.outlineOffset = '2px';
-    
+
     // Scroll into view
-    currentOverlay.scrollIntoView({ 
-      behavior: 'smooth', 
-      block: 'center' 
+    currentOverlay.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center'
     });
-    
+
     // Announce to screen readers
     const message = currentOverlay.dataset.a11ymessage || 'Accessibility issue';
     if ('speechSynthesis' in window) {
@@ -2794,9 +2904,9 @@ function highlightCurrentOverlay(index) {
  */
 function handleKeyboardNavigation(event) {
   const overlays = document.querySelectorAll(A11Y_CONFIG.SELECTORS.OVERLAY_ELEMENTS);
-  
-  if (overlays.length === 0) return;
-  
+
+  if (overlays.length === 0) {return;}
+
   // Alt + Shift + N: Start/activate keyboard navigation
   if (event.altKey && event.shiftKey && event.key === 'N') {
     event.preventDefault();
@@ -2805,7 +2915,7 @@ function handleKeyboardNavigation(event) {
     highlightCurrentOverlay(currentOverlayIndex);
     return;
   }
-  
+
   // Alt + Shift + F: Toggle filter panel
   if (event.altKey && event.shiftKey && event.key === 'F') {
     event.preventDefault();
@@ -2817,7 +2927,7 @@ function handleKeyboardNavigation(event) {
     }
     return;
   }
-  
+
   // Alt + Shift + S: Toggle summary panel
   if (event.altKey && event.shiftKey && event.key === 'S') {
     event.preventDefault();
@@ -2829,7 +2939,7 @@ function handleKeyboardNavigation(event) {
     }
     return;
   }
-  
+
   // Alt + Shift + C: Toggle configuration panel
   if (event.altKey && event.shiftKey && event.key === 'C') {
     event.preventDefault();
@@ -2841,7 +2951,7 @@ function handleKeyboardNavigation(event) {
     }
     return;
   }
-  
+
   // Alt + Shift + E: Toggle export panel
   if (event.altKey && event.shiftKey && event.key === 'E') {
     event.preventDefault();
@@ -2853,10 +2963,10 @@ function handleKeyboardNavigation(event) {
     }
     return;
   }
-  
+
   // Only handle navigation keys if keyboard navigation is active
-  if (!keyboardNavigationActive) return;
-  
+  if (!keyboardNavigationActive) {return;}
+
   switch (event.key) {
     case 'ArrowDown':
     case 'ArrowRight':
@@ -2864,26 +2974,26 @@ function handleKeyboardNavigation(event) {
       currentOverlayIndex = (currentOverlayIndex + 1) % overlays.length;
       highlightCurrentOverlay(currentOverlayIndex);
       break;
-      
+
     case 'ArrowUp':
     case 'ArrowLeft':
       event.preventDefault();
       currentOverlayIndex = currentOverlayIndex > 0 ? currentOverlayIndex - 1 : overlays.length - 1;
       highlightCurrentOverlay(currentOverlayIndex);
       break;
-      
+
     case 'Home':
       event.preventDefault();
       currentOverlayIndex = 0;
       highlightCurrentOverlay(currentOverlayIndex);
       break;
-      
+
     case 'End':
       event.preventDefault();
       currentOverlayIndex = overlays.length - 1;
       highlightCurrentOverlay(currentOverlayIndex);
       break;
-      
+
     case 'Escape':
       event.preventDefault();
       keyboardNavigationActive = false;
@@ -2894,7 +3004,7 @@ function handleKeyboardNavigation(event) {
         overlay.style.outlineOffset = '';
       });
       break;
-      
+
     case 'Enter':
     case ' ':
       event.preventDefault();
@@ -2902,7 +3012,7 @@ function handleKeyboardNavigation(event) {
         const currentOverlay = overlays[currentOverlayIndex];
         const message = currentOverlay.dataset.a11ymessage || 'Accessibility issue';
         console.log('Selected accessibility issue:', message);
-        
+
         // Show more detailed information
         if ('speechSynthesis' in window) {
           const utterance = new SpeechSynthesisUtterance(message);
@@ -2934,7 +3044,7 @@ if (typeof global !== 'undefined' && global.process && global.process.env && glo
   global.toggleAccessibilityHighlight = toggleAccessibilityHighlight;
   global.overlay = overlay;
   global.logs = logs;
-  
+
   // Export individual check functions
   global.checkElement = checkElement;
   global.checkImageElement = checkImageElement;
@@ -2949,13 +3059,13 @@ if (typeof global !== 'undefined' && global.process && global.process.env && glo
   global.checkTabIndexElement = checkTabIndexElement;
   global.checkFontSizes = checkFontSizes;
   global.checkForLandmarks = checkForLandmarks;
-  
+
   // Export throttling variables for test control
   global.resetThrottle = () => {
     isRunning = false;
     lastRunTime = 0;
   };
-  
+
   // Create config object from constants
   global.A11Y_CONFIG = {
     PERFORMANCE: {
