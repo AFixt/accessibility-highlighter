@@ -56,7 +56,7 @@ jobs:
       run: npm ci
       
     - name: Run unit tests
-      run: npm test -- --coverage --coverageReporters=text-lcov --coverageReporters=html
+      run: npm run test:coverage -- --coverageReporters=text-lcov --coverageReporters=html
       
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
