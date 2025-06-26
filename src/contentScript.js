@@ -752,8 +752,16 @@ function toggleAccessibilityHighlight(isEnabled) {
  */
 chrome.storage.local.get(["isEnabled"], (result) => {
   try {
-    console.log("Initial isEnabled state:", result.isEnabled);
-    toggleAccessibilityHighlight(result.isEnabled);
+    // Validate storage result
+    if (!result || typeof result !== 'object') {
+      console.warn('Invalid storage result:', result);
+      return;
+    }
+    
+    // Validate isEnabled value (default to false if not set)
+    const isEnabled = result.isEnabled === true;
+    console.log("Initial isEnabled state:", isEnabled);
+    toggleAccessibilityHighlight(isEnabled);
   } catch (error) {
     console.error('Error during initial state check:', error);
   }

@@ -35,10 +35,30 @@
  * @returns {Promise<Tab>} The currently active tab
  */
 async function getCurrentTab() {
-  /** @type {TabQueryOptions} */
-  const queryOptions = { active: true, lastFocusedWindow: true };
-  const [tab] = await chrome.tabs.query(queryOptions);
-  return tab;
+  try {
+    /** @type {TabQueryOptions} */
+    const queryOptions = { active: true, lastFocusedWindow: true };
+    const tabs = await chrome.tabs.query(queryOptions);
+    
+    // Validate tabs result
+    if (!Array.isArray(tabs) || tabs.length === 0) {
+      console.warn('No active tabs found');
+      return null;
+    }
+    
+    const tab = tabs[0];
+    
+    // Validate tab object
+    if (!tab || typeof tab !== 'object' || typeof tab.id !== 'number') {
+      console.error('Invalid tab object:', tab);
+      return null;
+    }
+    
+    return tab;
+  } catch (error) {
+    console.error('Error querying tabs:', error);
+    return null;
+  }
 }
 
 /**
@@ -48,27 +68,41 @@ async function getCurrentTab() {
  * @returns {void}
  */
 chrome.action.onClicked.addListener(() => {
-  chrome.storage.local.get(["isEnabled"]).then(({ isEnabled = false }) => {
-    console.log(isEnabled);
-    isEnabled = !isEnabled; // Toggle the state
+  chrome.storage.local.get(["isEnabled"]).then((result) => {
+    // Validate storage result
+    if (!result || typeof result !== 'object') {
+      console.error('Invalid storage result:', result);
+      return;
+    }
+    
+    // Validate and toggle isEnabled (default to false if not set)
+    const currentState = result.isEnabled === true;
+    const newState = !currentState;
+    console.log(`Toggling state from ${currentState} to ${newState}`);
 
-    chrome.storage.local.set({ isEnabled: isEnabled }).then(() => {
-      console.log(`Extension is now ${isEnabled ? "enabled" : "disabled"}.`);
+    chrome.storage.local.set({ isEnabled: newState }).then(() => {
+      console.log(`Extension is now ${newState ? "enabled" : "disabled"}.`);
 
       // Update the extension icon based on the current state
       chrome.action.setIcon({
         path: {
-          16: isEnabled ? "icons/icon-16.png" : "icons/icon-disabled-16.png",
-          48: isEnabled ? "icons/icon-48.png" : "icons/icon-disabled-48.png",
-          128: isEnabled ? "icons/icon-128.png" : "icons/icon-disabled-128.png",
+          16: newState ? "icons/icon-16.png" : "icons/icon-disabled-16.png",
+          48: newState ? "icons/icon-48.png" : "icons/icon-disabled-48.png",
+          128: newState ? "icons/icon-128.png" : "icons/icon-disabled-128.png",
         },
       });
 
       // Send a message to the active tab in the current window
       getCurrentTab().then(function (activeTab) {
-        if (activeTab) {
+        if (activeTab && activeTab.id) {
+          // Validate tab has valid ID
+          if (typeof activeTab.id !== 'number' || activeTab.id < 0) {
+            console.error('Invalid tab ID:', activeTab.id);
+            return;
+          }
+          
           /** @type {ExtensionMessage} */
-          const message = { action: "toggleAccessibilityHighlight", isEnabled: isEnabled };
+          const message = { action: "toggleAccessibilityHighlight", isEnabled: newState };
           
           chrome.tabs.sendMessage(
             activeTab.id,
@@ -90,9 +124,17 @@ chrome.action.onClicked.addListener(() => {
               }
             }
           );
+        } else {
+          console.warn('No active tab found');
         }
+      }).catch(error => {
+        console.error('Error getting current tab:', error);
       });
+    }).catch(error => {
+      console.error('Error setting storage:', error);
     });
+  }).catch(error => {
+    console.error('Error getting storage:', error);
   });
 });
 
@@ -104,8 +146,17 @@ chrome.action.onClicked.addListener(() => {
  */
 chrome.runtime.onInstalled.addListener(() => {
   // Set the initial state when the extension is installed/updated
-  chrome.storage.local.get(["isEnabled"]).then(({ isEnabled = false }) => {
-    // Default to `false` to prevent impacting user experience on install
+  chrome.storage.local.get(["isEnabled"]).then((result) => {
+    // Validate storage result
+    if (!result || typeof result !== 'object') {
+      console.error('Invalid storage result during install:', result);
+      // Set default state
+      result = { isEnabled: false };
+    }
+    
+    // Validate isEnabled value (default to false if not set)
+    const isEnabled = result.isEnabled === true;
+    
     chrome.action.setIcon({
       path: {
         16: isEnabled ? "icons/icon-16.png" : "icons/icon-disabled-16.png",
@@ -113,8 +164,15 @@ chrome.runtime.onInstalled.addListener(() => {
         128: isEnabled ? "icons/icon-128.png" : "icons/icon-disabled-128.png",
       },
     });
+  }).catch(error => {
+    console.error('Error during extension install setup:', error);
   });
   
   // Log install complete
   console.log("Accessibility Highlighter extension installed successfully");
 });
+
+// Export functions for testing (when in test environment)
+if (typeof global !== 'undefined' && global.process && global.process.env && global.process.env.NODE_ENV === 'test') {
+  global.getCurrentTab = getCurrentTab;
+}
