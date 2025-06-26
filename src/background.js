@@ -104,6 +104,23 @@ chrome.action.onClicked.addListener(() => {
         },
       });
 
+      // Update the title for accessibility (screen readers)
+      chrome.action.setTitle({
+        title: newState 
+          ? "Accessibility Highlighter (ON) - Click to disable accessibility checking"
+          : "Accessibility Highlighter (OFF) - Click to enable accessibility checking"
+      });
+
+      // Set badge text for visual indication
+      chrome.action.setBadgeText({
+        text: newState ? "ON" : "OFF"
+      });
+
+      // Set badge background color based on state
+      chrome.action.setBadgeBackgroundColor({
+        color: newState ? "#28a745" : "#dc3545" // Green for on, red for off
+      });
+
       // Send a message to the active tab in the current window
       getCurrentTab().then(function (activeTab) {
         if (activeTab && activeTab.id) {
@@ -175,6 +192,21 @@ chrome.runtime.onInstalled.addListener(() => {
         48: isEnabled ? "icons/icon-48.png" : "icons/icon-disabled-48.png",
         128: isEnabled ? "icons/icon-128.png" : "icons/icon-disabled-128.png",
       },
+    });
+
+    // Set initial accessibility properties
+    chrome.action.setTitle({
+      title: isEnabled 
+        ? "Accessibility Highlighter (ON) - Click to disable accessibility checking"
+        : "Accessibility Highlighter (OFF) - Click to enable accessibility checking"
+    });
+
+    chrome.action.setBadgeText({
+      text: isEnabled ? "ON" : "OFF"
+    });
+
+    chrome.action.setBadgeBackgroundColor({
+      color: isEnabled ? "#28a745" : "#dc3545" // Green for on, red for off
     });
   }).catch(error => {
     console.error('Error during extension install setup:', error);

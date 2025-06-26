@@ -15,7 +15,7 @@
       "48": "icons/icon-48.png",
       "128": "icons/icon-128.png"
     },
-    "default_title": "Toggle Accessibility Highlighter"
+    "default_title": "Accessibility Highlighter - Click to toggle accessibility checking"
   },
   "content_scripts": [
     {
