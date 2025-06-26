@@ -10,7 +10,7 @@ global.chrome = {
         return Promise.resolve({ isEnabled: true });
       }),
       set: jest.fn().mockImplementation((obj, callback) => {
-        if (callback) callback();
+        if (callback) {callback();}
         return Promise.resolve();
       })
     }
@@ -25,7 +25,7 @@ global.chrome = {
   tabs: {
     query: jest.fn().mockResolvedValue([{ id: 123 }]),
     sendMessage: jest.fn().mockImplementation((tabId, message, callback) => {
-      if (callback) callback("success");
+      if (callback) {callback('success');}
     })
   },
   action: {
@@ -159,7 +159,7 @@ global.runAccessibilityChecks = jest.fn().mockImplementation(() => {
   }
 });
 
-global.toggleAccessibilityHighlight = jest.fn().mockImplementation((isEnabled) => {
+global.toggleAccessibilityHighlight = jest.fn().mockImplementation(isEnabled => {
   if (isEnabled) {
     global.runAccessibilityChecks();
   } else {

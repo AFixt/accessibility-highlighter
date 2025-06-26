@@ -1,6 +1,6 @@
 /**
  * @fileoverview Performance Benchmark Tests
- * 
+ *
  * Tests to measure and validate performance characteristics of the
  * accessibility highlighter extension under various load conditions.
  */
@@ -50,7 +50,7 @@ describe('Performance Benchmarks', () => {
     global.resetThrottle();
     // Reset performance mock
     jest.clearAllMocks();
-    
+
     let mockTime = 0;
     global.performance.now.mockImplementation(() => mockTime += 1);
   });
@@ -63,16 +63,16 @@ describe('Performance Benchmarks', () => {
         div.textContent = `Content ${i}`;
         document.body.appendChild(div);
       }
-      
+
       const img = document.createElement('img');
       img.src = 'test.jpg';
       // Missing alt attribute for testing
       document.body.appendChild(img);
-      
+
       const startTime = performance.now();
       global.runAccessibilityChecks();
       const endTime = performance.now();
-      
+
       const duration = endTime - startTime;
       expect(duration).toBeLessThan(10);
     });
@@ -82,26 +82,26 @@ describe('Performance Benchmarks', () => {
       for (let i = 0; i < 100; i++) {
         const div = document.createElement('div');
         div.textContent = `Content ${i}`;
-        
+
         // Add some problematic elements
         if (i % 10 === 0) {
           const img = document.createElement('img');
           img.src = 'test.jpg';
           div.appendChild(img);
         }
-        
+
         if (i % 15 === 0) {
           const button = document.createElement('button');
           div.appendChild(button);
         }
-        
+
         document.body.appendChild(div);
       }
-      
+
       const startTime = performance.now();
       global.runAccessibilityChecks();
       const endTime = performance.now();
-      
+
       const duration = endTime - startTime;
       expect(duration).toBeLessThan(50);
     });
@@ -111,32 +111,32 @@ describe('Performance Benchmarks', () => {
       for (let i = 0; i < 500; i++) {
         const div = document.createElement('div');
         div.textContent = `Content ${i}`;
-        
+
         // Add various problematic elements
         if (i % 20 === 0) {
           const img = document.createElement('img');
           img.src = 'test.jpg';
           div.appendChild(img);
         }
-        
+
         if (i % 25 === 0) {
           const button = document.createElement('button');
           div.appendChild(button);
         }
-        
+
         if (i % 30 === 0) {
           const input = document.createElement('input');
           input.type = 'text';
           div.appendChild(input);
         }
-        
+
         document.body.appendChild(div);
       }
-      
+
       const startTime = performance.now();
       global.runAccessibilityChecks();
       const endTime = performance.now();
-      
+
       const duration = endTime - startTime;
       expect(duration).toBeLessThan(200);
     });
@@ -151,11 +151,11 @@ describe('Performance Benchmarks', () => {
         // Missing alt attribute
         document.body.appendChild(img);
       }
-      
+
       global.runAccessibilityChecks();
-      
+
       const overlays = document.querySelectorAll('.a11y-error, .overlay');
-      
+
       // Should create overlays but not excessive amounts
       expect(overlays.length).toBeGreaterThan(0);
       expect(overlays.length).toBeLessThanOrEqual(50);
@@ -168,14 +168,14 @@ describe('Performance Benchmarks', () => {
         img.src = 'test.jpg';
         document.body.appendChild(img);
       }
-      
+
       global.runAccessibilityChecks();
-      
+
       const initialOverlays = document.querySelectorAll('.a11y-error, .overlay').length;
       expect(initialOverlays).toBeGreaterThan(0);
-      
+
       global.removeAccessibilityOverlays();
-      
+
       const finalOverlays = document.querySelectorAll('.a11y-error, .overlay').length;
       expect(finalOverlays).toBe(0);
       expect(global.logs.length).toBe(0);
@@ -188,16 +188,16 @@ describe('Performance Benchmarks', () => {
         img.src = 'test.jpg';
         document.body.appendChild(img);
       }
-      
+
       // Run multiple cycles of check/remove
       for (let cycle = 0; cycle < 5; cycle++) {
         global.runAccessibilityChecks();
-        
+
         const overlays = document.querySelectorAll('.a11y-error, .overlay').length;
         expect(overlays).toBeGreaterThan(0);
-        
+
         global.removeAccessibilityOverlays();
-        
+
         const cleanedOverlays = document.querySelectorAll('.a11y-error, .overlay').length;
         expect(cleanedOverlays).toBe(0);
       }
@@ -209,24 +209,24 @@ describe('Performance Benchmarks', () => {
       const img = document.createElement('img');
       img.src = 'test.jpg';
       document.body.appendChild(img);
-      
+
       let executionCount = 0;
       const originalRunAccessibilityChecks = global.runAccessibilityChecks;
-      
+
       global.runAccessibilityChecks = function() {
         executionCount++;
         return originalRunAccessibilityChecks.apply(this, arguments);
       };
-      
+
       // Make rapid calls
       global.runAccessibilityChecks();
       global.runAccessibilityChecks();
       global.runAccessibilityChecks();
       global.runAccessibilityChecks();
-      
+
       // Only first call should execute due to throttling
       expect(executionCount).toBe(1);
-      
+
       // Restore original function
       global.runAccessibilityChecks = originalRunAccessibilityChecks;
     });
@@ -235,19 +235,19 @@ describe('Performance Benchmarks', () => {
       const img = document.createElement('img');
       img.src = 'test.jpg';
       document.body.appendChild(img);
-      
+
       // First call
       global.runAccessibilityChecks();
       const firstOverlays = document.querySelectorAll('.a11y-error, .overlay').length;
-      
+
       // Reset state
       global.removeAccessibilityOverlays();
       global.resetThrottle();
-      
+
       // Should be able to run again after reset
       global.runAccessibilityChecks();
       const secondOverlays = document.querySelectorAll('.a11y-error, .overlay').length;
-      
+
       expect(firstOverlays).toBe(secondOverlays);
       expect(secondOverlays).toBeGreaterThan(0);
     });
@@ -264,11 +264,11 @@ describe('Performance Benchmarks', () => {
         { tag: 'table', count: 5 },
         { tag: 'iframe', count: 3 }
       ];
-      
+
       elements.forEach(({ tag, count }) => {
         for (let i = 0; i < count; i++) {
           const element = document.createElement(tag);
-          
+
           // Make elements problematic
           if (tag === 'img') {
             element.src = 'test.jpg';
@@ -283,18 +283,18 @@ describe('Performance Benchmarks', () => {
             element.src = 'about:blank';
             // Missing title
           }
-          
+
           document.body.appendChild(element);
         }
       });
-      
+
       const startTime = performance.now();
       global.runAccessibilityChecks();
       const endTime = performance.now();
-      
+
       const duration = endTime - startTime;
       expect(duration).toBeLessThan(100); // Should process mixed content efficiently
-      
+
       // Should detect issues in multiple element types
       expect(global.logs.length).toBeGreaterThan(10);
     });
@@ -302,26 +302,26 @@ describe('Performance Benchmarks', () => {
     test('should handle deeply nested DOM efficiently', () => {
       // Create deeply nested structure
       let currentElement = document.body;
-      
+
       for (let depth = 0; depth < 20; depth++) {
         const div = document.createElement('div');
         div.textContent = `Level ${depth}`;
-        
+
         // Add problematic element at some levels
         if (depth % 5 === 0) {
           const img = document.createElement('img');
           img.src = 'test.jpg';
           div.appendChild(img);
         }
-        
+
         currentElement.appendChild(div);
         currentElement = div;
       }
-      
+
       const startTime = performance.now();
       global.runAccessibilityChecks();
       const endTime = performance.now();
-      
+
       const duration = endTime - startTime;
       expect(duration).toBeLessThan(50);
     });
@@ -332,26 +332,26 @@ describe('Performance Benchmarks', () => {
       // Create elements with various font sizes
       const textElements = ['p', 'span', 'div', 'h1', 'h2', 'h3'];
       const fontSize = [8, 10, 12, 14, 16, 18]; // Some below threshold
-      
+
       textElements.forEach((tag, index) => {
         for (let i = 0; i < 10; i++) {
           const element = document.createElement(tag);
           element.textContent = `Text content ${i}`;
           element.style.fontSize = `${fontSize[index]}px`;
-          
+
           // Mock getBoundingClientRect to avoid JSDOM issues
           Object.defineProperty(element, 'getBoundingClientRect', {
             value: () => ({ width: 100, height: 20, top: 0, left: 0 })
           });
-          
+
           document.body.appendChild(element);
         }
       });
-      
+
       const startTime = performance.now();
       global.runAccessibilityChecks();
       const endTime = performance.now();
-      
+
       const duration = endTime - startTime;
       expect(duration).toBeLessThan(100);
     });
@@ -361,30 +361,30 @@ describe('Performance Benchmarks', () => {
     test('should handle errors gracefully without performance impact', () => {
       // Create elements that might cause errors
       const problematicElement = document.createElement('div');
-      
+
       // Mock methods to throw errors
       Object.defineProperty(problematicElement, 'getBoundingClientRect', {
         value: () => { throw new Error('Mock error'); }
       });
-      
+
       document.body.appendChild(problematicElement);
-      
+
       // Add normal elements too
       for (let i = 0; i < 20; i++) {
         const img = document.createElement('img');
         img.src = 'test.jpg';
         document.body.appendChild(img);
       }
-      
+
       const startTime = performance.now();
-      
+
       expect(() => {
         global.runAccessibilityChecks();
       }).not.toThrow();
-      
+
       const endTime = performance.now();
       const duration = endTime - startTime;
-      
+
       expect(duration).toBeLessThan(100);
     });
   });
@@ -396,13 +396,13 @@ describe('Performance Benchmarks', () => {
         mediumPage: { elements: 100, expectedTime: 50 },
         largePage: { elements: 500, expectedTime: 200 }
       };
-      
+
       Object.entries(benchmarks).forEach(([size, { elements, expectedTime }]) => {
         // Reset for each test
         document.body.innerHTML = '';
         global.logs.length = 0;
         global.resetThrottle();
-        
+
         // Create elements
         for (let i = 0; i < elements; i++) {
           const div = document.createElement('div');
@@ -414,13 +414,13 @@ describe('Performance Benchmarks', () => {
           }
           document.body.appendChild(div);
         }
-        
+
         const startTime = performance.now();
         global.runAccessibilityChecks();
         const endTime = performance.now();
-        
+
         const duration = endTime - startTime;
-        
+
         console.log(`${size}: ${elements} elements processed in ${duration}ms (expected < ${expectedTime}ms)`);
         expect(duration).toBeLessThan(expectedTime);
       });

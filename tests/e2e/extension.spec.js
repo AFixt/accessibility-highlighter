@@ -9,36 +9,36 @@ const path = require('path');
 test.describe('Accessibility Highlighter Extension E2E Tests', () => {
   let context;
   let page;
-  
+
   test.beforeAll(async ({ browser }) => {
     // Create a new browser context with the extension loaded
     const pathToExtension = path.join(__dirname, '../../dist');
     context = await browser.newContext({
       args: [
         `--disable-extensions-except=${pathToExtension}`,
-        `--load-extension=${pathToExtension}`,
-      ],
+        `--load-extension=${pathToExtension}`
+      ]
     });
-    
+
     page = await context.newPage();
   });
-  
+
   test.afterAll(async () => {
     await context.close();
   });
-  
+
   test.beforeEach(async () => {
     // Navigate to the test page with accessibility issues
     await page.goto('/failing.html');
     await page.waitForLoadState('networkidle');
   });
-  
+
   test('should load extension without errors', async () => {
     // Check that the extension is loaded by looking for the background script
     const extensions = await context.serviceWorkers();
     expect(extensions.length).toBeGreaterThan(0);
   });
-  
+
   test('should detect and highlight accessibility issues', async () => {
     // Simulate extension activation (since we can't click browser action in headless mode)
     await page.evaluate(() => {
@@ -46,15 +46,15 @@ test.describe('Accessibility Highlighter Extension E2E Tests', () => {
       const event = new CustomEvent('extension-toggle', { detail: { enabled: true } });
       document.dispatchEvent(event);
     });
-    
+
     // Wait for overlays to be created
     await page.waitForTimeout(1000);
-    
+
     // Check if overlays are present
     const overlays = await page.locator('.a11y-error, .a11y-warning, .overlay').count();
     expect(overlays).toBeGreaterThan(0);
   });
-  
+
   test('should create overlays with proper positioning', async () => {
     // Add an image without alt text
     await page.setContent(`
@@ -64,7 +64,7 @@ test.describe('Accessibility Highlighter Extension E2E Tests', () => {
         </body>
       </html>
     `);
-    
+
     // Simulate running accessibility checks
     await page.evaluate(() => {
       // Inject the content script functionality for testing
@@ -93,24 +93,24 @@ test.describe('Accessibility Highlighter Extension E2E Tests', () => {
       }
       runAccessibilityChecks();
     });
-    
+
     // Check that overlay is positioned correctly
     const overlay = page.locator('.overlay').first();
     await expect(overlay).toBeVisible();
-    
+
     const overlayBox = await overlay.boundingBox();
     const imageBox = await page.locator('img').boundingBox();
-    
+
     // Overlay should roughly match image position
     expect(Math.abs(overlayBox.x - imageBox.x)).toBeLessThan(5);
     expect(Math.abs(overlayBox.y - imageBox.y)).toBeLessThan(5);
   });
-  
+
   test('should not create overlays for accessible content', async () => {
     // Navigate to a page with accessible content
     await page.goto('/passing.html');
     await page.waitForLoadState('networkidle');
-    
+
     // Simulate running accessibility checks
     await page.evaluate(() => {
       if (typeof runAccessibilityChecks === 'undefined') {
@@ -121,15 +121,15 @@ test.describe('Accessibility Highlighter Extension E2E Tests', () => {
       }
       runAccessibilityChecks();
     });
-    
+
     // Wait a moment for any potential overlays
     await page.waitForTimeout(500);
-    
+
     // Should have no accessibility error overlays
     const overlays = await page.locator('.a11y-error').count();
     expect(overlays).toBe(0);
   });
-  
+
   test('should handle multiple issues on same page', async () => {
     await page.setContent(`
       <html>
@@ -145,12 +145,12 @@ test.describe('Accessibility Highlighter Extension E2E Tests', () => {
         </body>
       </html>
     `);
-    
+
     // Simulate running comprehensive accessibility checks
     await page.evaluate(() => {
       window.runAccessibilityChecks = function() {
         let errorCount = 0;
-        
+
         // Check images without alt
         document.querySelectorAll('img:not([alt])').forEach(img => {
           const overlay = document.createElement('div');
@@ -160,7 +160,7 @@ test.describe('Accessibility Highlighter Extension E2E Tests', () => {
           document.body.appendChild(overlay);
           errorCount++;
         });
-        
+
         // Check form fields without labels
         document.querySelectorAll('input[type="text"]:not([aria-label])').forEach(input => {
           if (!input.id || !document.querySelector(`label[for="${input.id}"]`)) {
@@ -172,7 +172,7 @@ test.describe('Accessibility Highlighter Extension E2E Tests', () => {
             errorCount++;
           }
         });
-        
+
         // Check empty buttons
         document.querySelectorAll('button').forEach(button => {
           if (!button.textContent.trim() && !button.getAttribute('aria-label')) {
@@ -184,18 +184,18 @@ test.describe('Accessibility Highlighter Extension E2E Tests', () => {
             errorCount++;
           }
         });
-        
+
         console.log(`Found ${errorCount} accessibility issues`);
       };
       runAccessibilityChecks();
     });
-    
+
     // Should find multiple issues
     await page.waitForTimeout(500);
     const overlays = await page.locator('.overlay').count();
     expect(overlays).toBeGreaterThan(2);
   });
-  
+
   test('should remove overlays when toggled off', async () => {
     // First, create some overlays
     await page.setContent(`
@@ -205,35 +205,35 @@ test.describe('Accessibility Highlighter Extension E2E Tests', () => {
         </body>
       </html>
     `);
-    
+
     await page.evaluate(() => {
       // Add overlays
       const overlay = document.createElement('div');
       overlay.className = 'overlay a11y-error';
       overlay.style.cssText = 'position: absolute; background: rgba(255,0,0,0.4);';
       document.body.appendChild(overlay);
-      
+
       // Define removal function
       window.removeAccessibilityOverlays = function() {
         document.querySelectorAll('.overlay, .a11y-error, .a11y-warning').forEach(el => {
-          if (el.parentNode) el.parentNode.removeChild(el);
+          if (el.parentNode) {el.parentNode.removeChild(el);}
         });
       };
     });
-    
+
     // Verify overlay exists
     await expect(page.locator('.overlay')).toBeVisible();
-    
+
     // Remove overlays
     await page.evaluate(() => {
       removeAccessibilityOverlays();
     });
-    
+
     // Verify overlays are removed
     const overlayCount = await page.locator('.overlay').count();
     expect(overlayCount).toBe(0);
   });
-  
+
   test('should handle pages with dynamic content', async () => {
     await page.setContent(`
       <html>
@@ -243,14 +243,14 @@ test.describe('Accessibility Highlighter Extension E2E Tests', () => {
         </body>
       </html>
     `);
-    
+
     // Add event listener to add problematic content dynamically
     await page.evaluate(() => {
       document.getElementById('add-content').addEventListener('click', () => {
         const container = document.getElementById('container');
         container.innerHTML = '<img src="dynamic.jpg"><input type="text">';
       });
-      
+
       window.runAccessibilityChecks = function() {
         const issues = document.querySelectorAll('img:not([alt]), input[type="text"]:not([aria-label])');
         issues.forEach((element, index) => {
@@ -262,20 +262,20 @@ test.describe('Accessibility Highlighter Extension E2E Tests', () => {
         });
       };
     });
-    
+
     // Initially no issues
     await page.evaluate(() => runAccessibilityChecks());
     expect(await page.locator('.overlay').count()).toBe(0);
-    
+
     // Add content and recheck
     await page.click('#add-content');
     await page.evaluate(() => runAccessibilityChecks());
-    
+
     // Should now find issues in dynamic content
     const overlays = await page.locator('.overlay').count();
     expect(overlays).toBeGreaterThan(0);
   });
-  
+
   test('should work on complex real-world pages', async () => {
     // Create a more complex page structure
     await page.setContent(`
@@ -314,17 +314,17 @@ test.describe('Accessibility Highlighter Extension E2E Tests', () => {
         </body>
       </html>
     `);
-    
+
     // Run comprehensive accessibility checks
     await page.evaluate(() => {
       window.runAccessibilityChecks = function() {
         const issues = [];
-        
+
         // Check images without alt
         document.querySelectorAll('img:not([alt])').forEach(img => {
           issues.push({ element: img, message: 'Missing alt attribute' });
         });
-        
+
         // Check generic link text
         document.querySelectorAll('a').forEach(link => {
           const text = link.textContent.toLowerCase().trim();
@@ -332,7 +332,7 @@ test.describe('Accessibility Highlighter Extension E2E Tests', () => {
             issues.push({ element: link, message: 'Generic link text' });
           }
         });
-        
+
         // Check form fields without labels
         document.querySelectorAll('input[type="text"], input[type="email"]').forEach(input => {
           if (!input.id || !document.querySelector(`label[for="${input.id}"]`)) {
@@ -341,14 +341,14 @@ test.describe('Accessibility Highlighter Extension E2E Tests', () => {
             }
           }
         });
-        
+
         // Check tables without headers
         document.querySelectorAll('table').forEach(table => {
           if (!table.querySelector('th')) {
             issues.push({ element: table, message: 'Table without headers' });
           }
         });
-        
+
         // Create overlays for issues
         issues.forEach((issue, index) => {
           const overlay = document.createElement('div');
@@ -358,21 +358,21 @@ test.describe('Accessibility Highlighter Extension E2E Tests', () => {
           overlay.setAttribute('data-issue-id', index);
           document.body.appendChild(overlay);
         });
-        
+
         console.log(`Found ${issues.length} accessibility issues`);
         return issues.length;
       };
     });
-    
+
     const issueCount = await page.evaluate(() => runAccessibilityChecks());
-    
+
     // Should find multiple issues in this complex page
     expect(issueCount).toBeGreaterThan(3);
-    
+
     // Verify overlays were created
     const overlays = await page.locator('.overlay').count();
     expect(overlays).toBe(issueCount);
-    
+
     // Check that overlays have proper attributes
     const firstOverlay = page.locator('.overlay').first();
     await expect(firstOverlay).toHaveAttribute('data-a11ymessage');

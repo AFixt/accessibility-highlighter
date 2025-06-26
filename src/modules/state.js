@@ -2,7 +2,7 @@
  * @fileoverview State management module for Accessibility Highlighter
  * 
  * This module manages the global state of the accessibility highlighter including:
- * - Scan results and logs
+ * - Scan results and LOGS
  * - UI state (overlays, progress indicators)
  * - Keyboard navigation state
  * - Filter and configuration state
@@ -24,7 +24,7 @@ import { DEFAULT_FILTERS, DEFAULT_CUSTOM_RULES, loadCustomRules, loadFilterSetti
  * Array to store accessibility check results for logging.
  * @type {LogEntry[]}
  */
-export const logs = [];
+export const LOGS = [];
 
 /**
  * Current overlay index for keyboard navigation.
@@ -235,12 +235,12 @@ export function resetIncrementalState() {
 }
 
 /**
- * Adds a log entry to the logs array.
+ * Adds a log entry to the LOGS array.
  * @param {LogEntry} logEntry - The log entry to add
  * @returns {void}
  */
 export function addLogEntry(logEntry) {
-  logs.push(logEntry);
+  LOGS.push(logEntry);
 }
 
 /**
@@ -248,7 +248,7 @@ export function addLogEntry(logEntry) {
  * @returns {void}
  */
 export function clearLogs() {
-  logs.length = 0;
+  LOGS.length = 0;
 }
 
 /**
@@ -256,7 +256,7 @@ export function clearLogs() {
  * @returns {LogEntry[]} Array of log entries
  */
 export function getLogs() {
-  return logs;
+  return LOGS;
 }
 
 /**
@@ -264,7 +264,7 @@ export function getLogs() {
  * @returns {number} Number of log entries
  */
 export function getLogCount() {
-  return logs.length;
+  return LOGS.length;
 }
 
 /**
@@ -292,7 +292,7 @@ export async function initializeState() {
  * @returns {void}
  */
 export function resetState() {
-  // Reset logs
+  // Reset LOGS
   clearLogs();
   
   // Reset navigation state
@@ -322,7 +322,7 @@ export function resetState() {
  */
 export function getStateSummary() {
   return {
-    logCount: logs.length,
+    logCount: LOGS.length,
     currentOverlayIndex,
     keyboardNavigationActive,
     hasProgressIndicator: progressIndicator !== null,

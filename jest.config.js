@@ -7,10 +7,17 @@ module.exports = {
   collectCoverage: true,
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov'],
+  collectCoverageFrom: [
+    'src/**/*.js',
+    '!src/contentScript-original.js',
+    '!**/node_modules/**',
+    '!**/dist/**'
+  ],
   moduleFileExtensions: ['js', 'json', 'html'],
   transform: {
-    '\\.html$': 'jest-html-loader',
+    '\\.html$': 'jest-html-loader'
   },
   testPathIgnorePatterns: ['/node_modules/', '/tests/fixtures/', '/tests/e2e/'],
   moduleDirectories: ['node_modules', 'tests'],
+  setupFiles: ['<rootDir>/tests/setup-env.js']
 };

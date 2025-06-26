@@ -14,12 +14,12 @@ module.exports = {
     baseURL: 'http://localhost:3000',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
-    headless: true,
+    headless: true
   },
   projects: [
     {
       name: 'chromium',
-      use: { 
+      use: {
         ...require('@playwright/test').devices['Desktop Chrome'],
         // Enable Chrome extension testing
         launchOptions: {
@@ -28,12 +28,12 @@ module.exports = {
             '--load-extension=./dist'
           ]
         }
-      },
-    },
+      }
+    }
   ],
   webServer: {
     command: 'python3 -m http.server 3000 --directory tests/fixtures',
     port: 3000,
-    reuseExistingServer: !process.env.CI,
-  },
+    reuseExistingServer: !process.env.CI
+  }
 };

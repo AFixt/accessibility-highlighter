@@ -1,6 +1,6 @@
 /**
  * @fileoverview Accessibility Scenarios E2E Tests
- * 
+ *
  * Comprehensive end-to-end tests for various accessibility scenarios
  * that the extension should detect and highlight.
  */
@@ -16,7 +16,7 @@ test.describe('Accessibility Scenarios E2E Tests', () => {
 
   test.beforeAll(async () => {
     const pathToExtension = path.join(__dirname, '../../dist');
-    
+
     // Launch Chrome with the extension loaded
     browser = await chromium.launch({
       headless: false, // Extension testing requires headed mode
@@ -29,7 +29,7 @@ test.describe('Accessibility Scenarios E2E Tests', () => {
     });
 
     context = await browser.newContext();
-    
+
     // Get all pages and find the background page to get extension ID
     const backgrounds = context.backgroundPages();
     if (backgrounds.length > 0) {
@@ -72,18 +72,18 @@ test.describe('Accessibility Scenarios E2E Tests', () => {
     `;
 
     await page.setContent(htmlContent);
-    
+
     // Click the extension icon to activate
     await page.goto(`chrome-extension://${extensionId}/popup.html`);
     await page.goBack();
-    
+
     // Wait a moment for the extension to process
     await page.waitForTimeout(2000);
-    
+
     // Check for overlays on problematic images
     const overlays = await page.locator('.a11y-error, .overlay').count();
     expect(overlays).toBeGreaterThan(0);
-    
+
     // Check console for logged issues
     const logs = await page.evaluate(() => {
       return window.console._logs || [];
@@ -108,13 +108,13 @@ test.describe('Accessibility Scenarios E2E Tests', () => {
     `;
 
     await page.setContent(htmlContent);
-    
+
     // Activate extension
     await page.goto(`chrome-extension://${extensionId}/popup.html`);
     await page.goBack();
-    
+
     await page.waitForTimeout(2000);
-    
+
     // Should find issues with unlabeled inputs
     const overlays = await page.locator('.a11y-error, .overlay').count();
     expect(overlays).toBeGreaterThan(0);
@@ -140,13 +140,13 @@ test.describe('Accessibility Scenarios E2E Tests', () => {
     `;
 
     await page.setContent(htmlContent);
-    
+
     // Activate extension
     await page.goto(`chrome-extension://${extensionId}/popup.html`);
     await page.goBack();
-    
+
     await page.waitForTimeout(2000);
-    
+
     // Should detect the table without headers
     const overlays = await page.locator('.a11y-error, .overlay').count();
     expect(overlays).toBeGreaterThan(0);
@@ -168,13 +168,13 @@ test.describe('Accessibility Scenarios E2E Tests', () => {
     `;
 
     await page.setContent(htmlContent);
-    
+
     // Activate extension
     await page.goto(`chrome-extension://${extensionId}/popup.html`);
     await page.goBack();
-    
+
     await page.waitForTimeout(2000);
-    
+
     // Should detect buttons without accessible names
     const overlays = await page.locator('.a11y-error, .overlay').count();
     expect(overlays).toBeGreaterThan(0);
@@ -202,13 +202,13 @@ test.describe('Accessibility Scenarios E2E Tests', () => {
     `;
 
     await page.setContent(htmlContent);
-    
+
     // Activate extension
     await page.goto(`chrome-extension://${extensionId}/popup.html`);
     await page.goBack();
-    
+
     await page.waitForTimeout(2000);
-    
+
     // Should detect small font sizes
     const overlays = await page.locator('.a11y-error, .overlay').count();
     expect(overlays).toBeGreaterThan(0);
@@ -227,13 +227,13 @@ test.describe('Accessibility Scenarios E2E Tests', () => {
     `;
 
     await page.setContent(htmlContent);
-    
+
     // Activate extension
     await page.goto(`chrome-extension://${extensionId}/popup.html`);
     await page.goBack();
-    
+
     await page.waitForTimeout(2000);
-    
+
     // Should detect missing landmarks
     const overlays = await page.locator('.a11y-error, .overlay').count();
     expect(overlays).toBeGreaterThan(0);
@@ -267,13 +267,13 @@ test.describe('Accessibility Scenarios E2E Tests', () => {
     `;
 
     await page.setContent(htmlContent);
-    
+
     // Activate extension
     await page.goto(`chrome-extension://${extensionId}/popup.html`);
     await page.goBack();
-    
+
     await page.waitForTimeout(3000);
-    
+
     // Should detect multiple issues
     const overlays = await page.locator('.a11y-error, .overlay').count();
     expect(overlays).toBeGreaterThan(3); // Multiple issues should be found
@@ -291,23 +291,23 @@ test.describe('Accessibility Scenarios E2E Tests', () => {
     `;
 
     await page.setContent(htmlContent);
-    
+
     // Activate extension
     await page.goto(`chrome-extension://${extensionId}/popup.html`);
     await page.goBack();
-    
+
     await page.waitForTimeout(2000);
-    
+
     // Should have overlays
     let overlays = await page.locator('.a11y-error, .overlay').count();
     expect(overlays).toBeGreaterThan(0);
-    
+
     // Click extension icon again to toggle off
     await page.goto(`chrome-extension://${extensionId}/popup.html`);
     await page.goBack();
-    
+
     await page.waitForTimeout(1000);
-    
+
     // Should have no overlays
     overlays = await page.locator('.a11y-error, .overlay').count();
     expect(overlays).toBe(0);
@@ -338,26 +338,26 @@ test.describe('Accessibility Scenarios E2E Tests', () => {
     `;
 
     await page.setContent(htmlContent);
-    
+
     // Initially activate extension - should find no issues
     await page.goto(`chrome-extension://${extensionId}/popup.html`);
     await page.goBack();
-    
+
     await page.waitForTimeout(2000);
-    
+
     let overlays = await page.locator('.a11y-error, .overlay').count();
     const initialOverlays = overlays;
-    
+
     // Add problematic content dynamically
     await page.click('button');
     await page.waitForTimeout(500);
-    
+
     // Re-run accessibility check
     await page.goto(`chrome-extension://${extensionId}/popup.html`);
     await page.goBack();
-    
+
     await page.waitForTimeout(2000);
-    
+
     // Should now detect the new issue
     overlays = await page.locator('.a11y-error, .overlay').count();
     expect(overlays).toBeGreaterThan(initialOverlays);

@@ -10,7 +10,7 @@
  * - Missing ARIA attributes
  * - And many more accessibility violations
  *
- * The script uses overlays to visually indicate problem areas and logs detailed
+ * The script uses overlays to visually indicate problem areas and LOGS detailed
  * information to the console for developers.
  *
  * @author AFixt
@@ -23,7 +23,7 @@ console.log('Content script loaded');
  * Array to store accessibility check results for logging.
  * @type {LogEntry[]}
  */
-const logs = [];
+const LOGS = [];
 
 /**
  * Current overlay index for keyboard navigation.
@@ -47,7 +47,7 @@ let progressIndicator = null;
  * Current filter settings for accessibility results.
  * @type {Object}
  */
-const currentFilters = {
+const CURRENT_FILTERS = {
   showErrors: true,
   showWarnings: true,
   categories: {
@@ -146,7 +146,7 @@ let customRules = {
  * @typedef {Object} PerformanceConfig
  * @property {number} THROTTLE_DELAY - Throttle delay in milliseconds
  * @property {number} FONT_SIZE_THRESHOLD - Minimum font size threshold in pixels
- * @property {number} MAX_LOG_ELEMENT_LENGTH - Maximum length for element HTML in logs
+ * @property {number} MAX_LOG_ELEMENT_LENGTH - Maximum length for element HTML in LOGS
  * @property {number} Z_INDEX_OVERLAY - Z-index value for overlays
  */
 
@@ -231,7 +231,7 @@ const A11Y_CONFIG = {
   PERFORMANCE: {
     THROTTLE_DELAY: 1000, // 1 second throttle delay
     FONT_SIZE_THRESHOLD: 12, // Minimum font size in pixels
-    MAX_LOG_ELEMENT_LENGTH: 100, // Maximum length for element HTML in logs
+    MAX_LOG_ELEMENT_LENGTH: 100, // Maximum length for element HTML in LOGS
     Z_INDEX_OVERLAY: 2147483647 // Highest z-index for overlays
   },
 
@@ -399,12 +399,12 @@ function overlay(overlayClass, level, msg) {
     // Append overlay to document body
     document.body.appendChild(overlayEl);
 
-    // Push the error to the logs array with sanitized element HTML
+    // Push the error to the LOGS array with sanitized element HTML
     const sanitizedElementHTML = elementInError.outerHTML
       .slice(0, A11Y_CONFIG.PERFORMANCE.MAX_LOG_ELEMENT_LENGTH)
       .replace(/[<>"'&]/g, '') + '...';
 
-    logs.push({
+    LOGS.push({
       Level: level,
       Message: sanitizedMsg,
       Element: sanitizedElementHTML
@@ -568,10 +568,10 @@ function applyFilters() {
 
       // Check if overlay should be visible based on filters
       const shouldShow =
-        (level === 'error' && currentFilters.showErrors) ||
-        (level === 'warning' && currentFilters.showWarnings);
+        (level === 'error' && CURRENT_FILTERS.showErrors) ||
+        (level === 'warning' && CURRENT_FILTERS.showWarnings);
 
-      const categoryEnabled = currentFilters.categories[category];
+      const categoryEnabled = CURRENT_FILTERS.categories[category];
 
       if (shouldShow && categoryEnabled) {
         overlay.style.display = 'block';
@@ -642,15 +642,15 @@ function createFilterPanel() {
     severityGroup.appendChild(severityTitle);
 
     // Error checkbox
-    const errorCheckbox = createFilterCheckbox('show-errors', 'Errors', currentFilters.showErrors, checked => {
-      currentFilters.showErrors = checked;
+    const errorCheckbox = createFilterCheckbox('show-errors', 'Errors', CURRENT_FILTERS.showErrors, checked => {
+      CURRENT_FILTERS.showErrors = checked;
       applyFilters();
     });
     severityGroup.appendChild(errorCheckbox);
 
     // Warning checkbox
-    const warningCheckbox = createFilterCheckbox('show-warnings', 'Warnings', currentFilters.showWarnings, checked => {
-      currentFilters.showWarnings = checked;
+    const warningCheckbox = createFilterCheckbox('show-warnings', 'Warnings', CURRENT_FILTERS.showWarnings, checked => {
+      CURRENT_FILTERS.showWarnings = checked;
       applyFilters();
     });
     severityGroup.appendChild(warningCheckbox);
@@ -676,8 +676,8 @@ function createFilterPanel() {
     ];
 
     categories.forEach(({ key, label }) => {
-      const checkbox = createFilterCheckbox(`category-${key}`, label, currentFilters.categories[key], checked => {
-        currentFilters.categories[key] = checked;
+      const checkbox = createFilterCheckbox(`category-${key}`, label, CURRENT_FILTERS.categories[key], checked => {
+        CURRENT_FILTERS.categories[key] = checked;
         applyFilters();
       });
       categoryGroup.appendChild(checkbox);
@@ -749,7 +749,7 @@ function createSummaryPanel() {
     // Remove existing summary panel
     removePreviousSummaryPanel();
 
-    // Analyze logs to create summary
+    // Analyze LOGS to create summary
     const summary = analyzeLogs();
 
     // Create main panel structure
@@ -1072,12 +1072,12 @@ function createSummaryCloseButton(panel) {
 }
 
 /**
- * Analyzes the logs array to create summary statistics.
+ * Analyzes the LOGS array to create summary statistics.
  * @returns {Object} Summary object with statistics
  */
 function analyzeLogs() {
   const summary = {
-    total: logs.length,
+    total: LOGS.length,
     errors: 0,
     warnings: 0,
     categories: {},
@@ -1086,7 +1086,7 @@ function analyzeLogs() {
 
   const messageCount = {};
 
-  logs.forEach(log => {
+  LOGS.forEach(log => {
     // Count by severity
     if (log.level === 'error') {
       summary.errors++;
@@ -1293,7 +1293,7 @@ function createConfigPanel() {
       await saveCustomRules();
       configPanel.remove();
       // Optionally re-run checks with new rules
-      if (logs.length > 0) {
+      if (LOGS.length > 0) {
         removeAccessibilityOverlays();
         setTimeout(() => runAccessibilityChecks(), 100);
       }
@@ -1706,7 +1706,7 @@ function generateJSONReport(summary) {
       categories: summary.categories,
       topIssues: summary.topIssues.slice(0, 10)
     },
-    issues: logs.map((log, index) => ({
+    issues: LOGS.map((log, index) => ({
       id: index + 1,
       level: log.level,
       message: log.message,
@@ -1735,7 +1735,7 @@ function generateCSVReport() {
   const headers = ['ID', 'Level', 'Category', 'Message', 'Element', 'XPath', 'Timestamp'];
   const rows = [headers.join(',')];
 
-  logs.forEach((log, index) => {
+  LOGS.forEach((log, index) => {
     const row = [
       index + 1,
       log.level,
@@ -1825,8 +1825,8 @@ function generateHTMLReport(summary) {
     
     <div class="issues">
         <h2>Detailed Issues</h2>
-        ${logs.length === 0 ? '<p>No accessibility issues found.</p>' :
-    logs.map((log, index) => `
+        ${LOGS.length === 0 ? '<p>No accessibility issues found.</p>' :
+    LOGS.map((log, index) => `
             <div class="issue ${log.level || 'error'}">
                 <div>
                     <span class="category">${categorizeIssue(log.message, log.element)}</span>
@@ -1887,10 +1887,10 @@ function generateTextReport(summary) {
   lines.push('DETAILED ISSUES');
   lines.push('---------------');
 
-  if (logs.length === 0) {
+  if (LOGS.length === 0) {
     lines.push('No accessibility issues found.');
   } else {
-    logs.forEach((log, index) => {
+    LOGS.forEach((log, index) => {
       lines.push(`${index + 1}. [${(log.level || 'error').toUpperCase()}] ${log.message}`);
       if (log.element) {
         lines.push(`   Element: <${log.element.tagName.toLowerCase()}>`);
@@ -2009,8 +2009,8 @@ function removeAccessibilityOverlays() {
       exportPanel.remove();
     }
 
-    // Clear logs array
-    logs.length = 0;
+    // Clear LOGS array
+    LOGS.length = 0;
 
     // Reset keyboard navigation
     keyboardNavigationActive = false;
@@ -2058,8 +2058,8 @@ let incrementalState = null;
  */
 function startIncrementalScan() {
   try {
-    // Clear previous logs and state
-    logs.length = 0;
+    // Clear previous LOGS and state
+    LOGS.length = 0;
 
     // Show progress indicator
     showProgressIndicator('Initializing incremental scan...', 0);
@@ -2256,14 +2256,14 @@ function finishIncrementalScan() {
 
       // Log completion stats
       console.log(`Incremental scan completed: ${incrementalState.processedCount} elements in ${scanTime}ms`);
-      console.table(logs);
+      console.table(LOGS);
 
       // Final progress update
       hideProgressIndicator();
 
       // Show completion message if there are issues
-      if (logs.length > 0) {
-        updateProgressIndicator(`Found ${logs.length} accessibility issues`, 100);
+      if (LOGS.length > 0) {
+        updateProgressIndicator(`Found ${LOGS.length} accessibility issues`, 100);
         setTimeout(() => hideProgressIndicator(), 2000);
       }
     }
@@ -2313,7 +2313,7 @@ function shouldThrottleScan() {
 function initializeScanState() {
   isRunning = true;
   lastRunTime = Date.now();
-  logs.length = 0;
+  LOGS.length = 0;
 }
 
 /**
@@ -2448,9 +2448,9 @@ function finalizeScanResults() {
   updateProgressIndicator('Completing scan...', 95);
 
   // Log results
-  if (logs.length > 0) {
-    updateProgressIndicator(`Found ${logs.length} accessibility issues. Press Alt+Shift+F for filters.`, 100);
-    console.table(logs);
+  if (LOGS.length > 0) {
+    updateProgressIndicator(`Found ${LOGS.length} accessibility issues. Press Alt+Shift+F for filters.`, 100);
+    console.table(LOGS);
     console.log('💡 Tip: Press Alt+Shift+F to open the filter panel and customize which issues are shown.');
   } else {
     updateProgressIndicator('No accessibility issues found!', 100);
@@ -3119,7 +3119,7 @@ if (typeof global !== 'undefined' && global.process && global.process.env && glo
   global.removeOverlays = removeAccessibilityOverlays; // Alias for tests
   global.toggleAccessibilityHighlight = toggleAccessibilityHighlight;
   global.overlay = overlay;
-  global.logs = logs;
+  global.LOGS = LOGS;
 
   // Export individual check functions
   global.checkElement = checkElement;
