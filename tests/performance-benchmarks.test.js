@@ -45,14 +45,18 @@ describe('Performance Benchmarks', () => {
     // Reset DOM
     document.body.innerHTML = '';
     // Clear logs
-    global.logs.length = 0;
+    if (global.logs) {
+      global.logs.length = 0;
+    }
     // Reset throttle
-    global.resetThrottle();
+    if (global.resetThrottle) {
+      global.resetThrottle();
+    }
     // Reset performance mock
     jest.clearAllMocks();
 
     let mockTime = 0;
-    global.performance.now.mockImplementation(() => mockTime += 1);
+    global.performance.now = jest.fn(() => mockTime += 1);
   });
 
   describe('DOM Traversal Performance', () => {
