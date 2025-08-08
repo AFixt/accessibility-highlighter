@@ -53,8 +53,6 @@ describe('Performance Benchmarks', () => {
       global.resetThrottle();
     }
     // Reset performance mock
-    jest.clearAllMocks();
-
     let mockTime = 0;
     global.performance.now = jest.fn(() => mockTime += 1);
   });

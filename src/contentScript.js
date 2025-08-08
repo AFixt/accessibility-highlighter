@@ -857,7 +857,7 @@ function addOverallStatsSection(panel, summary) {
  * @returns {void}
  */
 function addCategoryBreakdownSection(panel, summary) {
-  if (Object.keys(summary.categories).length === 0) return;
+  if (Object.keys(summary.categories).length === 0) {return;}
 
   const categoryTitle = document.createElement('h4');
   categoryTitle.textContent = 'Issues by Category';
@@ -875,7 +875,7 @@ function addCategoryBreakdownSection(panel, summary) {
  */
 function createCategoryList(categories) {
   const categoryList = document.createElement('div');
-  
+
   Object.entries(categories)
     .sort(([,a], [,b]) => b - a) // Sort by count descending
     .forEach(([category, count]) => {
@@ -916,7 +916,7 @@ function createCategoryItem(category, count) {
  * @returns {void}
  */
 function addTopIssuesSection(panel, summary) {
-  if (summary.topIssues.length === 0) return;
+  if (summary.topIssues.length === 0) {return;}
 
   const topIssuesTitle = document.createElement('h4');
   topIssuesTitle.textContent = 'Most Common Issues';
@@ -934,7 +934,7 @@ function addTopIssuesSection(panel, summary) {
  */
 function createTopIssuesList(topIssues) {
   const topIssuesList = document.createElement('div');
-  
+
   topIssues.slice(0, 5).forEach(({ message, count }) => {
     const issueItem = createTopIssueItem(message, count);
     topIssuesList.appendChild(issueItem);
@@ -2237,7 +2237,7 @@ function processElement(node) {
 
     // Check font size if enabled
     if (customRules.typography.enabled && customRules.typography.checkFontSize) {
-      checkFontSize(node);
+      checkElementFontSize(node, tagName);
     }
   } catch (error) {
     console.warn('Error processing element:', node, error);
@@ -2424,9 +2424,9 @@ function traverseAndProcessElements(walker, totalElements) {
   let processedCount = 0;
   const processedElements = new Set();
 
-  while (node = walker.nextNode()) {
+  while ((node = walker.nextNode())) {
     // Skip if already processed
-    if (processedElements.has(node)) continue;
+    if (processedElements.has(node)) {continue;}
     processedElements.add(node);
     processedCount++;
 
@@ -2798,20 +2798,22 @@ function checkRoleBasedElement(element, role) {
         overlay.call(element, 'overlay', 'error', A11Y_CONFIG.MESSAGES.ROLE_IMG_NO_LABEL);
       }
       break;
-    case 'button':
+    case 'button': {
       const hasTextContent = element.textContent && element.textContent.trim() !== '';
       if (!hasAriaLabel && !hasAriaLabelledby && !hasTextContent) {
         console.log(element);
         overlay.call(element, 'overlay', 'error', A11Y_CONFIG.MESSAGES.BUTTON_NO_LABEL);
       }
       break;
-    case 'link':
+    }
+    case 'link': {
       const textContent = element.textContent ? element.textContent.trim() : '';
       if (!hasAriaLabel && !hasAriaLabelledby && textContent === '') {
         console.log(element);
         overlay.call(element, 'overlay', 'error', A11Y_CONFIG.MESSAGES.LINK_NO_CONTENT);
       }
       break;
+    }
   }
 }
 
