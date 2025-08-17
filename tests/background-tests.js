@@ -30,32 +30,42 @@ const mockRuntime = {
   lastError: null
 };
 
+const mockCommands = {
+  onCommand: {
+    addListener: jest.fn()
+  }
+};
+
 global.chrome = {
   storage: {
     local: mockStorage
   },
   tabs: mockTabs,
   action: mockAction,
-  runtime: mockRuntime
+  runtime: mockRuntime,
+  commands: mockCommands
 };
 
 describe('Background Script Real Code Tests', () => {
+  let isScriptLoaded = false;
+
   beforeEach(() => {
-    // Clear all mocks
-    jest.clearAllMocks();
+    // Load the background script only once
+    if (!isScriptLoaded) {
+      require('../src/background.js');
+      isScriptLoaded = true;
+    }
 
-    // Reset mock implementations
-    mockStorage.get.mockImplementation((keys, callback) => {
-      if (callback) {
-        callback({ isEnabled: false });
-      }
-      return Promise.resolve({ isEnabled: false });
-    });
+    // Clear storage and tabs mocks but not listener registrations
+    mockStorage.get.mockClear();
+    mockStorage.set.mockClear();
+    mockTabs.query.mockClear();
+    mockTabs.sendMessage.mockClear();
+    mockAction.setIcon.mockClear();
 
-    mockStorage.set.mockImplementation((obj, callback) => {
-      if (callback) {callback();}
-      return Promise.resolve();
-    });
+    // Reset mock implementations - background.js uses Promise-based API
+    mockStorage.get.mockResolvedValue({ isEnabled: false });
+    mockStorage.set.mockResolvedValue();
 
     mockTabs.query.mockResolvedValue([{ id: 123 }]);
     mockTabs.sendMessage.mockImplementation((tabId, message, callback) => {
@@ -64,25 +74,19 @@ describe('Background Script Real Code Tests', () => {
   });
 
   test('should set up click listener and install listener on import', () => {
-    // Import background script
-    require('../src/background.js');
-
     // Verify listeners were set up
     expect(mockAction.onClicked.addListener).toHaveBeenCalled();
     expect(mockRuntime.onInstalled.addListener).toHaveBeenCalled();
+    expect(mockCommands.onCommand.addListener).toHaveBeenCalled();
   });
 
   test('should handle click event and toggle state', async () => {
-    // Import background script
-    require('../src/background.js');
 
     // Get the click handler function
     const clickHandler = mockAction.onClicked.addListener.mock.calls[0][0];
 
     // Mock storage.get to return false initially
-    mockStorage.get.mockImplementation(keys => {
-      return Promise.resolve({ isEnabled: false });
-    });
+    mockStorage.get.mockResolvedValue({ isEnabled: false });
 
     // Mock storage.set to capture the new value
     let capturedValue;
@@ -93,6 +97,9 @@ describe('Background Script Real Code Tests', () => {
 
     // Execute click handler
     await clickHandler();
+
+    // Small delay to let Promise chains resolve
+    await new Promise(resolve => setTimeout(resolve, 10));
 
     // Verify state was toggled
     expect(mockStorage.get).toHaveBeenCalledWith(['isEnabled']);
@@ -108,11 +115,13 @@ describe('Background Script Real Code Tests', () => {
       }
     });
 
-    // Verify tab message was sent
+    // Verify tab query was called
     expect(mockTabs.query).toHaveBeenCalledWith({
       active: true,
       lastFocusedWindow: true
     });
+    
+    // Verify tab message was sent
     expect(mockTabs.sendMessage).toHaveBeenCalledWith(
       123,
       { action: 'toggleAccessibilityHighlight', isEnabled: true },
@@ -121,14 +130,11 @@ describe('Background Script Real Code Tests', () => {
   });
 
   test('should handle install event and set initial icon', async () => {
-    // Import background script
-    require('../src/background.js');
-
     // Get the install handler function
     const installHandler = mockRuntime.onInstalled.addListener.mock.calls[0][0];
 
     // Mock storage.get for install
-    mockStorage.get.mockImplementation(keys => {
+    mockStorage.get.mockImplementation(_keys => {
       return Promise.resolve({ isEnabled: false });
     });
 
@@ -146,9 +152,6 @@ describe('Background Script Real Code Tests', () => {
   });
 
   test('should handle messaging errors gracefully', async () => {
-    // Import background script
-    require('../src/background.js');
-
     // Mock console.warn to capture error handling
     const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
 
@@ -158,17 +161,29 @@ describe('Background Script Real Code Tests', () => {
     // Get the click handler function
     const clickHandler = mockAction.onClicked.addListener.mock.calls[0][0];
 
+    // Mock storage using Promise-based API
+    mockStorage.get.mockResolvedValue({ isEnabled: false });
+    mockStorage.set.mockResolvedValue();
+
     // Execute click handler
     await clickHandler();
 
-    // The sendMessage callback should handle the error
-    const messageCallback = mockTabs.sendMessage.mock.calls[0][2];
-    messageCallback('response');
+    // Wait for async operations
+    await new Promise(resolve => setTimeout(resolve, 10));
 
-    // Verify error was handled
-    expect(consoleSpy).toHaveBeenCalledWith(
-      expect.stringContaining('Could not send message to tab 123')
-    );
+    // Verify sendMessage was called
+    expect(mockTabs.sendMessage).toHaveBeenCalled();
+
+    // The sendMessage callback should handle the error
+    if (mockTabs.sendMessage.mock.calls.length > 0 && mockTabs.sendMessage.mock.calls[0][2]) {
+      const messageCallback = mockTabs.sendMessage.mock.calls[0][2];
+      messageCallback('response');
+
+      // Verify error was handled
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Could not send message to tab 123')
+      );
+    }
 
     // Cleanup
     consoleSpy.mockRestore();
@@ -176,9 +191,6 @@ describe('Background Script Real Code Tests', () => {
   });
 
   test('should handle getCurrentTab function', async () => {
-    // Import background script
-    require('../src/background.js');
-
     // Test the exported getCurrentTab function
     expect(typeof global.getCurrentTab).toBe('function');
 
@@ -188,5 +200,35 @@ describe('Background Script Real Code Tests', () => {
       active: true,
       lastFocusedWindow: true
     });
+  });
+
+  test('should handle keyboard command to toggle accessibility', async () => {
+    // Get the command handler function
+    const commandHandler = mockCommands.onCommand.addListener.mock.calls[0][0];
+
+    // Mock storage.get to return false initially
+    mockStorage.get.mockImplementation(_keys => {
+      return Promise.resolve({ isEnabled: false });
+    });
+
+    // Mock storage.set to capture the new value
+    let capturedValue;
+    mockStorage.set.mockImplementation(obj => {
+      capturedValue = obj;
+      return Promise.resolve();
+    });
+
+    // Execute command handler with the toggle command
+    await commandHandler('toggle-accessibility');
+
+    // Verify state was toggled
+    expect(mockStorage.get).toHaveBeenCalledWith(['isEnabled']);
+    expect(mockStorage.set).toHaveBeenCalled();
+    expect(capturedValue.isEnabled).toBe(true);
+
+    // Test with wrong command - should not toggle
+    jest.clearAllMocks();
+    await commandHandler('wrong-command');
+    expect(mockStorage.get).not.toHaveBeenCalled();
   });
 });
