@@ -1,6 +1,6 @@
 /**
  * @fileoverview Tests for overlay functionality in contentScript.js
- * 
+ *
  * Tests the overlay creation, removal, and management functionality that
  * is implemented in the main content script.
  */
@@ -13,11 +13,11 @@ global.chrome = {
   storage: {
     local: {
       get: jest.fn().mockImplementation((keys, callback) => {
-        if (callback) callback({ isEnabled: true });
+        if (callback) {callback({ isEnabled: true });}
         return Promise.resolve({ isEnabled: true });
       }),
       set: jest.fn().mockImplementation((obj, callback) => {
-        if (callback) callback();
+        if (callback) {callback();}
         return Promise.resolve();
       })
     }
@@ -42,15 +42,15 @@ describe('Overlay Functions from contentScript.js', () => {
   beforeEach(() => {
     // Clear DOM
     document.body.innerHTML = '';
-    
+
     // Reset mocks
     jest.clearAllMocks();
-    
+
     // Setup console spy
     consoleSpy = jest.spyOn(console, 'error').mockImplementation();
     jest.spyOn(console, 'warn').mockImplementation();
     jest.spyOn(console, 'log').mockImplementation();
-    
+
     // Reset global LOGS
     global.LOGS = [];
 
@@ -119,10 +119,10 @@ describe('Overlay Functions from contentScript.js', () => {
       // Test error level
       global.overlay.call(mockElement, 'overlay', 'error', 'Error message');
       let overlayEl = document.querySelector('.overlay, .a11y-error, .a11y-warning');
-      
+
       if (overlayEl) {
         // Should have error styling
-        expect(overlayEl.style.backgroundColor).toContain('red') || 
+        expect(overlayEl.style.backgroundColor).toContain('red') ||
         expect(overlayEl.style.backgroundColor).toContain('#');
       }
 
@@ -130,7 +130,7 @@ describe('Overlay Functions from contentScript.js', () => {
       document.body.innerHTML = '';
       global.overlay.call(mockElement, 'overlay', 'warning', 'Warning message');
       overlayEl = document.querySelector('.overlay, .a11y-error, .a11y-warning');
-      
+
       if (overlayEl) {
         // Should have warning styling (different from error)
         expect(overlayEl.style.backgroundColor).toBeDefined();
@@ -139,12 +139,12 @@ describe('Overlay Functions from contentScript.js', () => {
 
     test('should add log entry when creating overlay', () => {
       const initialLogCount = global.LOGS.length;
-      
+
       global.overlay.call(mockElement, 'overlay', 'error', 'Test message');
 
       // Should have added to LOGS
       expect(global.LOGS.length).toBeGreaterThan(initialLogCount);
-      
+
       const lastLog = global.LOGS[global.LOGS.length - 1];
       expect(lastLog.Message).toBe('Test message');
       expect(lastLog.Level).toBe('error');
@@ -263,7 +263,7 @@ describe('Overlay Functions from contentScript.js', () => {
   describe('overlay message handling', () => {
     test('should store message in data attribute', () => {
       const testMessage = 'This is a test accessibility message';
-      
+
       global.overlay.call(mockElement, 'overlay', 'error', testMessage);
 
       const overlayEl = document.querySelector('.overlay, .a11y-error, .a11y-warning');
@@ -274,7 +274,7 @@ describe('Overlay Functions from contentScript.js', () => {
 
     test('should handle long messages appropriately', () => {
       const longMessage = 'A'.repeat(500); // Very long message
-      
+
       global.overlay.call(mockElement, 'overlay', 'error', longMessage);
 
       const overlayEl = document.querySelector('.overlay, .a11y-error, .a11y-warning');
@@ -286,7 +286,7 @@ describe('Overlay Functions from contentScript.js', () => {
 
     test('should handle special characters in messages', () => {
       const specialMessage = 'Message with "quotes" and \'apostrophes\' and & symbols';
-      
+
       global.overlay.call(mockElement, 'overlay', 'error', specialMessage);
 
       const overlayEl = document.querySelector('.overlay, .a11y-error, .a11y-warning');
@@ -301,11 +301,11 @@ describe('Overlay Functions from contentScript.js', () => {
   describe('overlay integration with global state', () => {
     test('should track overlays in global LOGS', () => {
       const initialLogCount = global.LOGS.length;
-      
+
       global.overlay.call(mockElement, 'overlay', 'error', 'Log tracking test');
 
       expect(global.LOGS.length).toBe(initialLogCount + 1);
-      
+
       const newLog = global.LOGS[global.LOGS.length - 1];
       expect(newLog.Message).toBe('Log tracking test');
       expect(newLog.Level).toBe('error');
