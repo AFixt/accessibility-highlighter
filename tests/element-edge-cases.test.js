@@ -36,7 +36,7 @@ describe('Element Checker Edge Cases', () => {
 
   describe('Image Element Edge Cases', () => {
     test('should handle img with empty alt attribute correctly', () => {
-      const img = document.createElement('img');
+      const _img = document.createElement('img');
       img.src = 'test.jpg';
       img.alt = '';
       img.title = 'Chart showing quarterly results';
@@ -49,7 +49,7 @@ describe('Element Checker Edge Cases', () => {
     });
 
     test('should handle img with alt and title having subtle differences', () => {
-      const img = document.createElement('img');
+      const _img = document.createElement('img');
       img.src = 'test.jpg';
       img.alt = 'Chart showing quarterly results';
       img.title = 'Chart showing quarterly results.'; // Note the period
@@ -61,7 +61,7 @@ describe('Element Checker Edge Cases', () => {
     });
 
     test('should handle img with very long alt text', () => {
-      const img = document.createElement('img');
+      const _img = document.createElement('img');
       img.src = 'test.jpg';
       img.alt = 'A'.repeat(1000); // Very long alt text
       document.body.appendChild(img);
@@ -72,7 +72,7 @@ describe('Element Checker Edge Cases', () => {
     });
 
     test('should handle img with special characters in alt', () => {
-      const img = document.createElement('img');
+      const _img = document.createElement('img');
       img.src = 'test.jpg';
       img.alt = 'Chart with émojis 🎯 and spëciál characters';
       document.body.appendChild(img);
@@ -83,7 +83,7 @@ describe('Element Checker Edge Cases', () => {
     });
 
     test('should handle img with data URI src', () => {
-      const img = document.createElement('img');
+      const _img = document.createElement('img');
       img.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==';
       document.body.appendChild(img);
 
@@ -93,7 +93,7 @@ describe('Element Checker Edge Cases', () => {
     });
 
     test('should handle img with blob URL src', () => {
-      const img = document.createElement('img');
+      const _img = document.createElement('img');
       img.src = 'blob:https://example.com/12345678-1234-1234-1234-123456789012';
       document.body.appendChild(img);
 
@@ -105,7 +105,7 @@ describe('Element Checker Edge Cases', () => {
 
   describe('Link Element Edge Cases', () => {
     test('should handle link with only whitespace text content', () => {
-      const link = document.createElement('a');
+      const _link = document.createElement('a');
       link.href = 'https://example.com';
       link.textContent = '   \n\t   ';
       document.body.appendChild(link);
@@ -116,9 +116,9 @@ describe('Element Checker Edge Cases', () => {
     });
 
     test('should handle link with nested elements containing text', () => {
-      const link = document.createElement('a');
+      const _link = document.createElement('a');
       link.href = 'https://example.com';
-      const span = document.createElement('span');
+      const _span = document.createElement('span');
       span.textContent = 'Click here';
       link.appendChild(span);
       document.body.appendChild(link);
@@ -130,7 +130,7 @@ describe('Element Checker Edge Cases', () => {
     });
 
     test('should handle link with JavaScript protocol', () => {
-      const link = document.createElement('a');
+      const _link = document.createElement('a');
       link.href = 'javascript:void(0)';
       link.textContent = 'Click me';
       document.body.appendChild(link);
@@ -141,7 +141,7 @@ describe('Element Checker Edge Cases', () => {
     });
 
     test('should handle link with tel protocol', () => {
-      const link = document.createElement('a');
+      const _link = document.createElement('a');
       link.href = 'tel:+1234567890';
       link.textContent = 'Call us';
       document.body.appendChild(link);
@@ -152,7 +152,7 @@ describe('Element Checker Edge Cases', () => {
     });
 
     test('should handle link with mailto protocol', () => {
-      const link = document.createElement('a');
+      const _link = document.createElement('a');
       link.href = 'mailto:test@example.com';
       link.textContent = 'Email us';
       document.body.appendChild(link);
@@ -163,7 +163,7 @@ describe('Element Checker Edge Cases', () => {
     });
 
     test('should handle link with role="button"', () => {
-      const link = document.createElement('a');
+      const _link = document.createElement('a');
       link.href = 'https://example.com';
       link.setAttribute('role', 'button');
       link.textContent = 'Click here';
@@ -176,7 +176,7 @@ describe('Element Checker Edge Cases', () => {
     });
 
     test('should handle link with generic text variations', () => {
-      const genericTexts = [
+      const _genericTexts = [
         'click here',
         'CLICK HERE',
         'Click Here',
@@ -191,7 +191,7 @@ describe('Element Checker Edge Cases', () => {
 
       genericTexts.forEach(text => {
         document.body.innerHTML = '';
-        const link = document.createElement('a');
+        const _link = document.createElement('a');
         link.href = 'https://example.com';
         link.textContent = text;
         document.body.appendChild(link);
@@ -206,11 +206,11 @@ describe('Element Checker Edge Cases', () => {
 
   describe('Table Element Edge Cases', () => {
     test('should handle table with empty th elements', () => {
-      const table = document.createElement('table');
-      const thead = document.createElement('thead');
-      const tr = document.createElement('tr');
-      const th1 = document.createElement('th');
-      const th2 = document.createElement('th');
+      const _table = document.createElement('table');
+      const _thead = document.createElement('thead');
+      const _tr = document.createElement('tr');
+      const _th1 = document.createElement('th');
+      const _th2 = document.createElement('th');
       th1.textContent = ''; // Empty header
       th2.textContent = 'Valid Header';
 
@@ -227,10 +227,10 @@ describe('Element Checker Edge Cases', () => {
     });
 
     test('should handle table with whitespace-only th elements', () => {
-      const table = document.createElement('table');
-      const thead = document.createElement('thead');
-      const tr = document.createElement('tr');
-      const th = document.createElement('th');
+      const _table = document.createElement('table');
+      const _thead = document.createElement('thead');
+      const _tr = document.createElement('tr');
+      const _th = document.createElement('th');
       th.textContent = '   \n\t   ';
 
       tr.appendChild(th);
@@ -245,16 +245,16 @@ describe('Element Checker Edge Cases', () => {
     });
 
     test('should handle nested tables correctly', () => {
-      const outerTable = document.createElement('table');
-      const outerThead = document.createElement('thead');
-      const outerTr = document.createElement('tr');
-      const outerTh = document.createElement('th');
+      const _outerTable = document.createElement('table');
+      const _outerThead = document.createElement('thead');
+      const _outerTr = document.createElement('tr');
+      const _outerTh = document.createElement('th');
       outerTh.textContent = 'Outer Header';
 
-      const innerTable = document.createElement('table');
-      const innerTbody = document.createElement('tbody');
-      const innerTr = document.createElement('tr');
-      const innerTd = document.createElement('td');
+      const _innerTable = document.createElement('table');
+      const _innerTbody = document.createElement('tbody');
+      const _innerTr = document.createElement('tr');
+      const _innerTd = document.createElement('td');
       innerTd.textContent = 'Inner Cell';
 
       innerTr.appendChild(innerTd);
@@ -273,11 +273,11 @@ describe('Element Checker Edge Cases', () => {
     });
 
     test('should handle table with summary attribute edge cases', () => {
-      const table = document.createElement('table');
+      const _table = document.createElement('table');
       table.setAttribute('summary', 'layout'); // Uninformative summary that matches prohibited list
-      const thead = document.createElement('thead');
-      const tr = document.createElement('tr');
-      const th = document.createElement('th');
+      const _thead = document.createElement('thead');
+      const _tr = document.createElement('tr');
+      const _th = document.createElement('th');
       th.textContent = 'Header';
 
       tr.appendChild(th);
@@ -293,8 +293,8 @@ describe('Element Checker Edge Cases', () => {
 
   describe('Form Element Edge Cases', () => {
     test('should handle input with implicit label via parent label', () => {
-      const label = document.createElement('label');
-      const input = document.createElement('input');
+      const _label = document.createElement('label');
+      const _input = document.createElement('input');
       input.type = 'text';
       input.name = 'username';
 
@@ -309,12 +309,12 @@ describe('Element Checker Edge Cases', () => {
     });
 
     test('should handle input with aria-describedby', () => {
-      const input = document.createElement('input');
+      const _input = document.createElement('input');
       input.type = 'text';
       input.name = 'password';
       input.setAttribute('aria-describedby', 'pwd-help');
 
-      const helpText = document.createElement('div');
+      const _helpText = document.createElement('div');
       helpText.id = 'pwd-help';
       helpText.textContent = 'Password must be at least 8 characters';
 
@@ -327,15 +327,15 @@ describe('Element Checker Edge Cases', () => {
     });
 
     test('should handle input with multiple labels', () => {
-      const label1 = document.createElement('label');
+      const _label1 = document.createElement('label');
       label1.textContent = 'First Name';
       label1.htmlFor = 'name-input';
 
-      const label2 = document.createElement('label');
+      const _label2 = document.createElement('label');
       label2.textContent = 'Given Name';
       label2.htmlFor = 'name-input';
 
-      const input = document.createElement('input');
+      const _input = document.createElement('input');
       input.type = 'text';
       input.id = 'name-input';
       input.name = 'firstName';
@@ -350,7 +350,7 @@ describe('Element Checker Edge Cases', () => {
     });
 
     test('should handle input with placeholder as only label', () => {
-      const input = document.createElement('input');
+      const _input = document.createElement('input');
       input.type = 'text';
       input.placeholder = 'Enter your email';
       input.name = 'email';
@@ -365,7 +365,7 @@ describe('Element Checker Edge Cases', () => {
 
   describe('Button Element Edge Cases', () => {
     test('should handle button with only icon font content', () => {
-      const button = document.createElement('button');
+      const _button = document.createElement('button');
       button.innerHTML = '<i class="fa fa-save"></i>'; // Icon font
       document.body.appendChild(button);
 
@@ -375,8 +375,8 @@ describe('Element Checker Edge Cases', () => {
     });
 
     test('should handle button with nested elements containing text', () => {
-      const button = document.createElement('button');
-      const span = document.createElement('span');
+      const _button = document.createElement('button');
+      const _span = document.createElement('span');
       span.textContent = 'Save Document';
       button.appendChild(span);
       document.body.appendChild(button);
@@ -387,7 +387,7 @@ describe('Element Checker Edge Cases', () => {
     });
 
     test('should handle button with mixed content', () => {
-      const button = document.createElement('button');
+      const _button = document.createElement('button');
       button.innerHTML = '<i class="icon"></i> Save';
       document.body.appendChild(button);
 
@@ -397,7 +397,7 @@ describe('Element Checker Edge Cases', () => {
     });
 
     test('should handle button with only special characters', () => {
-      const button = document.createElement('button');
+      const _button = document.createElement('button');
       button.textContent = '×'; // Close button with × symbol
       document.body.appendChild(button);
 
@@ -427,7 +427,7 @@ describe('Element Checker Edge Cases', () => {
 
   describe('Tabindex Edge Cases', () => {
     test('should handle negative tabindex values', () => {
-      const div = document.createElement('div');
+      const _div = document.createElement('div');
       div.tabIndex = -1;
       div.textContent = 'Focusable but not in tab order';
       document.body.appendChild(div);
@@ -438,7 +438,7 @@ describe('Element Checker Edge Cases', () => {
     });
 
     test('should handle very high tabindex values', () => {
-      const div = document.createElement('div');
+      const _div = document.createElement('div');
       div.tabIndex = 999999;
       div.textContent = 'Very high tab order';
       document.body.appendChild(div);
@@ -449,7 +449,7 @@ describe('Element Checker Edge Cases', () => {
     });
 
     test('should handle elements with tabindex on non-interactive elements', () => {
-      const span = document.createElement('span');
+      const _span = document.createElement('span');
       span.tabIndex = 0;
       span.textContent = 'Focusable span';
       document.body.appendChild(span);
@@ -462,7 +462,7 @@ describe('Element Checker Edge Cases', () => {
 
   describe('Overlay Creation Edge Cases', () => {
     test('should handle elements with zero dimensions', () => {
-      const div = document.createElement('div');
+      const _div = document.createElement('div');
       div.textContent = 'Hidden element';
       div.style.width = '0px';
       div.style.height = '0px';
@@ -481,12 +481,12 @@ describe('Element Checker Edge Cases', () => {
       global.overlay.call(div, 'overlay', 'error', 'Test message');
 
       // Should not create overlay for zero-sized elements
-      const overlays = document.querySelectorAll('.overlay');
+      const _overlays = document.querySelectorAll('.overlay');
       expect(overlays.length).toBe(0);
     });
 
     test('should handle elements outside viewport', () => {
-      const div = document.createElement('div');
+      const _div = document.createElement('div');
       div.textContent = 'Off-screen element';
       document.body.appendChild(div);
 
@@ -507,7 +507,7 @@ describe('Element Checker Edge Cases', () => {
     });
 
     test('should handle very large elements', () => {
-      const div = document.createElement('div');
+      const _div = document.createElement('div');
       div.textContent = 'Large element';
       document.body.appendChild(div);
 

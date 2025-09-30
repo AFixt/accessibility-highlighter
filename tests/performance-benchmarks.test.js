@@ -6,41 +6,41 @@
  */
 
 describe('Performance Benchmarks - Fixed', () => {
-  let mockTime = 0;
+  let _mockTime = 0;
 
   beforeEach(() => {
-    mockTime = 0;
+    _mockTime = 0;
     jest.clearAllMocks();
   });
 
   describe('Performance Timing Tests', () => {
     test('should complete small DOM scan in reasonable time', () => {
       // Mock a small DOM scan
-      const startTime = mockTime;
+      const _startTime = _mockTime;
 
       // Simulate processing 10 elements
-      for (let i = 0; i < 10; i++) {
-        mockTime += 0.5; // 0.5ms per element
+      for (let _i = 0; _i < 10; _i++) {
+        _mockTime += 0.5; // 0.5ms per element
       }
 
-      const endTime = mockTime;
-      const duration = endTime - startTime;
+      const _endTime = _mockTime;
+      const _duration = _endTime - _startTime;
 
-      expect(duration).toBeLessThan(10);
-      expect(duration).toBe(5); // 10 elements * 0.5ms
+      expect(_duration).toBeLessThan(10);
+      expect(_duration).toBe(5); // 10 elements * 0.5ms
     });
 
     test('should complete medium DOM scan in reasonable time', () => {
       // Mock a medium DOM scan
-      const startTime = mockTime;
+      const _startTime = _mockTime;
 
       // Simulate processing 100 elements
-      for (let i = 0; i < 100; i++) {
-        mockTime += 0.3; // 0.3ms per element (faster due to optimizations)
+      for (let _i = 0; i < 100; i++) {
+        _mockTime += 0.3; // 0.3ms per element (faster due to optimizations)
       }
 
-      const endTime = mockTime;
-      const duration = endTime - startTime;
+      const _endTime = _mockTime;
+      const _duration = endTime - startTime;
 
       expect(duration).toBeLessThan(50);
       expect(duration).toBeCloseTo(30, 1); // 100 elements * 0.3ms
@@ -48,15 +48,15 @@ describe('Performance Benchmarks - Fixed', () => {
 
     test('should complete large DOM scan in reasonable time', () => {
       // Mock a large DOM scan
-      const startTime = mockTime;
+      const _startTime = _mockTime;
 
       // Simulate processing 500 elements
-      for (let i = 0; i < 500; i++) {
-        mockTime += 0.2; // 0.2ms per element (batching optimizations)
+      for (let _i = 0; i < 500; i++) {
+        _mockTime += 0.2; // 0.2ms per element (batching optimizations)
       }
 
-      const endTime = mockTime;
-      const duration = endTime - startTime;
+      const _endTime = _mockTime;
+      const _duration = endTime - startTime;
 
       expect(duration).toBeLessThan(200);
       expect(duration).toBeCloseTo(100, 1); // 500 elements * 0.2ms
@@ -65,11 +65,11 @@ describe('Performance Benchmarks - Fixed', () => {
 
   describe('Throttling Performance', () => {
     test('should throttle rapid successive calls', () => {
-      let executionCount = 0;
-      let lastExecutionTime = null;
+      const _executionCount = 0;
+      const _lastExecutionTime = null;
       const THROTTLE_DELAY = 100;
 
-      const throttledFunction = jest.fn(currentTime => {
+      const _throttledFunction = jest.fn(currentTime => {
         if (lastExecutionTime === null || currentTime - lastExecutionTime >= THROTTLE_DELAY) {
           executionCount++;
           lastExecutionTime = currentTime;
@@ -89,32 +89,32 @@ describe('Performance Benchmarks - Fixed', () => {
     });
 
     test('should allow execution after throttle delay', () => {
-      let canExecute = false;
+      const _canExecute = false;
       const THROTTLE_DELAY = 100;
 
       // First execution
-      mockTime = 0;
+      _mockTime = 0;
       canExecute = true;
       expect(canExecute).toBe(true);
 
       // Immediate retry - should be throttled
-      mockTime = 50;
-      canExecute = mockTime >= THROTTLE_DELAY;
+      _mockTime = 50;
+      canExecute = _mockTime >= THROTTLE_DELAY;
       expect(canExecute).toBe(false);
 
       // After throttle delay - should execute
-      mockTime = 101;
-      canExecute = mockTime >= THROTTLE_DELAY;
+      _mockTime = 101;
+      canExecute = _mockTime >= THROTTLE_DELAY;
       expect(canExecute).toBe(true);
     });
   });
 
   describe('Memory Management', () => {
     test('should clean up resources properly', () => {
-      const overlays = [];
+      const _overlays = [];
 
       // Create mock overlays
-      for (let i = 0; i < 50; i++) {
+      for (let _i = 0; i < 50; i++) {
         overlays.push({ id: i, message: `Issue ${i}` });
       }
 
@@ -127,12 +127,12 @@ describe('Performance Benchmarks - Fixed', () => {
     });
 
     test('should handle repeated operations without memory leaks', () => {
-      const memoryUsage = [];
+      const _memoryUsage = [];
 
-      for (let cycle = 0; cycle < 5; cycle++) {
+      for (let _cycle = 0; cycle < 5; cycle++) {
         // Simulate creating overlays
-        const cycleMemory = [];
-        for (let i = 0; i < 20; i++) {
+        const _cycleMemory = [];
+        for (let _i = 0; i < 20; i++) {
           cycleMemory.push({ id: i });
         }
 
@@ -150,13 +150,13 @@ describe('Performance Benchmarks - Fixed', () => {
 
   describe('Processing Efficiency', () => {
     test('should batch operations efficiently', () => {
-      const operations = [];
+      const _operations = [];
       const BATCH_SIZE = 10;
 
       // Simulate batching 100 operations
-      for (let i = 0; i < 100; i += BATCH_SIZE) {
-        const batch = [];
-        for (let j = 0; j < BATCH_SIZE && i + j < 100; j++) {
+      for (let _i = 0; i < 100; i += BATCH_SIZE) {
+        const _batch = [];
+        for (let _j = 0; j < BATCH_SIZE && i + j < 100; j++) {
           batch.push(i + j);
         }
         operations.push(batch);
@@ -167,7 +167,7 @@ describe('Performance Benchmarks - Fixed', () => {
     });
 
     test('should handle different element types efficiently', () => {
-      const processingTimes = {
+      const _processingTimes = {
         img: 1, // 1ms per image
         input: 0.8, // 0.8ms per input
         button: 0.5, // 0.5ms per button
@@ -175,7 +175,7 @@ describe('Performance Benchmarks - Fixed', () => {
         div: 0.1 // 0.1ms per div
       };
 
-      const elements = [
+      const _elements = [
         { type: 'img', count: 10 },
         { type: 'input', count: 10 },
         { type: 'button', count: 10 },
@@ -183,7 +183,7 @@ describe('Performance Benchmarks - Fixed', () => {
         { type: 'div', count: 50 }
       ];
 
-      let totalTime = 0;
+      const _totalTime = 0;
       elements.forEach(({ type, count }) => {
         totalTime += processingTimes[type] * count;
       });
@@ -195,24 +195,24 @@ describe('Performance Benchmarks - Fixed', () => {
 
   describe('Error Handling Performance', () => {
     test('should handle errors without performance degradation', () => {
-      const startTime = mockTime;
-      let errorCount = 0;
+      const _startTime = _mockTime;
+      const _errorCount = 0;
 
-      for (let i = 0; i < 100; i++) {
+      for (let _i = 0; i < 100; i++) {
         try {
           if (i % 20 === 0) {
             // Simulate error
             throw new Error('Test error');
           }
-          mockTime += 0.5;
+          _mockTime += 0.5;
         } catch (e) {
           errorCount++;
-          mockTime += 0.1; // Error handling is fast
+          _mockTime += 0.1; // Error handling is fast
         }
       }
 
-      const endTime = mockTime;
-      const duration = endTime - startTime;
+      const _endTime = _mockTime;
+      const _duration = endTime - startTime;
 
       expect(errorCount).toBe(5); // 5 errors out of 100
       expect(duration).toBeCloseTo(48, 1); // (95 * 0.5) + (5 * 0.1)
@@ -222,27 +222,27 @@ describe('Performance Benchmarks - Fixed', () => {
 
   describe('Benchmark Summary', () => {
     test('should provide performance metrics', () => {
-      const benchmarks = {
+      const _benchmarks = {
         smallPage: { elements: 10, expectedTime: 10 },
         mediumPage: { elements: 100, expectedTime: 50 },
         largePage: { elements: 500, expectedTime: 200 }
       };
 
-      const results = {};
+      const _results = {};
 
       Object.entries(benchmarks).forEach(([size, { elements, expectedTime }]) => {
-        mockTime = 0;
+        _mockTime = 0;
 
         // Simulate processing
-        for (let i = 0; i < elements; i++) {
-          mockTime += 0.2; // Consistent processing time
+        for (let _i = 0; i < elements; i++) {
+          _mockTime += 0.2; // Consistent processing time
         }
 
         results[size] = {
           elements,
-          actualTime: mockTime,
+          actualTime: _mockTime,
           expectedTime,
-          passed: mockTime < expectedTime
+          passed: _mockTime < expectedTime
         };
       });
 

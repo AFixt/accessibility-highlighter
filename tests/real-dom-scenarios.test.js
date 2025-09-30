@@ -17,19 +17,19 @@ describe('Setup test', () => {
 });
 
 describe('Real DOM Scenarios Tests', () => {
-  let mockDocument;
+  let _mockDocument;
   let mockWindow;
-  let mockConsole;
+  let _mockConsole;
 
   beforeEach(() => {
     // Mock console
-    mockConsole = {
+    _mockConsole = {
       log: jest.fn(),
       warn: jest.fn(),
       error: jest.fn(),
       table: jest.fn()
     };
-    global.console = mockConsole;
+    global.console = _mockConsole;
 
     // Mock window
     mockWindow = {
@@ -48,7 +48,7 @@ describe('Real DOM Scenarios Tests', () => {
     global.window = mockWindow;
 
     // Mock document with complex DOM structure capabilities
-    mockDocument = {
+    _mockDocument = {
       body: {
         innerHTML: '',
         appendChild: jest.fn(),
@@ -60,7 +60,7 @@ describe('Real DOM Scenarios Tests', () => {
         }))
       },
       createElement: jest.fn(tag => {
-        const element = {
+        const _element = {
           tagName: tag.toUpperCase(),
           innerHTML: '',
           textContent: '',
@@ -81,7 +81,7 @@ describe('Real DOM Scenarios Tests', () => {
             child.parentNode = element;
           }),
           removeChild: jest.fn(child => {
-            const index = element.children.indexOf(child);
+            const _index = element.children.indexOf(child);
             if (index > -1) {
               element.children.splice(index, 1);
               child.parentNode = null;
@@ -107,8 +107,8 @@ describe('Real DOM Scenarios Tests', () => {
       querySelectorAll: jest.fn(() => []),
       querySelector: jest.fn(() => null)
     };
-    
-    global.document = mockDocument;
+
+    global.document = _mockDocument;
   });
 
   afterEach(() => {
@@ -118,27 +118,27 @@ describe('Real DOM Scenarios Tests', () => {
   describe('Complex Page Structures', () => {
     test('should handle nested iframe structures', () => {
       // Create complex nested iframe structure
-      const createNestedIframeStructure = () => {
-        const mainPage = mockDocument.createElement('div');
+      const _createNestedIframeStructure = () => {
+        const _mainPage = _mockDocument.createElement('div');
         mainPage.id = 'main-content';
 
         // Create primary iframe
-        const primaryIframe = mockDocument.createElement('iframe');
+        const _primaryIframe = _mockDocument.createElement('iframe');
         primaryIframe.src = 'https://example.com/widget';
         primaryIframe.setAttribute('title', 'Interactive Widget');
         mainPage.appendChild(primaryIframe);
 
         // Create secondary iframe (accessibility issues)
-        const secondaryIframe = mockDocument.createElement('iframe');
+        const _secondaryIframe = _mockDocument.createElement('iframe');
         secondaryIframe.src = 'https://example.com/ads';
         // Missing title attribute - accessibility issue
         mainPage.appendChild(secondaryIframe);
 
         // Create nested structure
-        const outerContainer = mockDocument.createElement('div');
+        const _outerContainer = _mockDocument.createElement('div');
         outerContainer.className = 'iframe-container';
-        
-        const nestedIframe = mockDocument.createElement('iframe');
+
+        const _nestedIframe = _mockDocument.createElement('iframe');
         nestedIframe.src = 'about:blank';
         nestedIframe.setAttribute('title', 'Nested Content');
         outerContainer.appendChild(nestedIframe);
@@ -147,10 +147,10 @@ describe('Real DOM Scenarios Tests', () => {
         return mainPage;
       };
 
-      const checkIframeAccessibility = (container) => {
-        const issues = [];
-        const iframes = [];
-        
+      const _checkIframeAccessibility = container => {
+        const _issues = [];
+        const _iframes = [];
+
         // Simulate finding iframes
         container.children.forEach(child => {
           if (child.tagName === 'IFRAME') {
@@ -175,7 +175,7 @@ describe('Real DOM Scenarios Tests', () => {
           }
 
           // Check for empty title
-          const title = iframe.getAttribute('title');
+          const _title = iframe.getAttribute('title');
           if (title && title.trim() === '') {
             issues.push({
               element: iframe,
@@ -188,8 +188,8 @@ describe('Real DOM Scenarios Tests', () => {
         return { iframes: iframes.length, issues };
       };
 
-      const structure = createNestedIframeStructure();
-      const results = checkIframeAccessibility(structure);
+      const _structure = createNestedIframeStructure();
+      const _results = checkIframeAccessibility(structure);
 
       expect(results.iframes).toBe(3);
       expect(results.issues).toHaveLength(1);
@@ -199,20 +199,20 @@ describe('Real DOM Scenarios Tests', () => {
 
     test('should handle complex table structures with nested content', () => {
       // Create complex table with accessibility challenges
-      const createComplexTable = () => {
-        const table = mockDocument.createElement('table');
+      const _createComplexTable = () => {
+        const _table = _mockDocument.createElement('table');
         table.setAttribute('role', 'table');
 
         // Create caption
-        const caption = mockDocument.createElement('caption');
+        const _caption = _mockDocument.createElement('caption');
         caption.textContent = 'Quarterly Sales Data';
         table.appendChild(caption);
 
         // Create header with complex structure
-        const thead = mockDocument.createElement('thead');
-        const headerRow = mockDocument.createElement('tr');
-        
-        const headers = [
+        const _thead = _mockDocument.createElement('thead');
+        const _headerRow = _mockDocument.createElement('tr');
+
+        const _headers = [
           { text: 'Product', scope: 'col' },
           { text: 'Q1 2023', scope: 'col' },
           { text: 'Q2 2023', scope: 'col' },
@@ -221,32 +221,32 @@ describe('Real DOM Scenarios Tests', () => {
         ];
 
         headers.forEach(headerData => {
-          const th = mockDocument.createElement('th');
+          const _th = _mockDocument.createElement('th');
           th.textContent = headerData.text;
           if (headerData.scope) {
             th.setAttribute('scope', headerData.scope);
           }
           headerRow.appendChild(th);
         });
-        
+
         thead.appendChild(headerRow);
         table.appendChild(thead);
 
         // Create complex body with rowspan/colspan
-        const tbody = mockDocument.createElement('tbody');
-        
+        const _tbody = _mockDocument.createElement('tbody');
+
         // Row 1
-        const row1 = mockDocument.createElement('tr');
-        const row1Headers = [
+        const _row1 = _mockDocument.createElement('tr');
+        const _row1Headers = [
           { text: 'Product A', scope: 'row' },
           { text: '$10,000' },
           { text: '$12,000' },
           { text: 'Up 20%' },
           { text: '$22,000' }
         ];
-        
+
         row1Headers.forEach((cellData, index) => {
-          const cell = index === 0 ? mockDocument.createElement('th') : mockDocument.createElement('td');
+          const _cell = index === 0 ? _mockDocument.createElement('th') : _mockDocument.createElement('td');
           cell.textContent = cellData.text;
           if (cellData.scope) {
             cell.setAttribute('scope', cellData.scope);
@@ -256,17 +256,17 @@ describe('Real DOM Scenarios Tests', () => {
         tbody.appendChild(row1);
 
         // Row 2 with missing th scope
-        const row2 = mockDocument.createElement('tr');
-        const row2Headers = [
+        const _row2 = _mockDocument.createElement('tr');
+        const _row2Headers = [
           { text: 'Product B' }, // Missing scope attribute
           { text: '$8,000' },
           { text: '$9,500' },
           { text: 'Up 18%' },
           { text: '$17,500' }
         ];
-        
+
         row2Headers.forEach((cellData, index) => {
-          const cell = index === 0 ? mockDocument.createElement('th') : mockDocument.createElement('td');
+          const _cell = index === 0 ? _mockDocument.createElement('th') : _mockDocument.createElement('td');
           cell.textContent = cellData.text;
           // Intentionally not setting scope for first cell
           row2.appendChild(cell);
@@ -277,11 +277,11 @@ describe('Real DOM Scenarios Tests', () => {
         return table;
       };
 
-      const checkTableAccessibility = (table) => {
-        const issues = [];
+      const _checkTableAccessibility = table => {
+        const _issues = [];
 
         // Check for caption
-        const caption = table.children.find(child => child.tagName === 'CAPTION');
+        const _caption = table.children.find(child => child.tagName === 'CAPTION');
         if (!caption) {
           issues.push({
             issue: 'missing_caption',
@@ -290,9 +290,9 @@ describe('Real DOM Scenarios Tests', () => {
         }
 
         // Check header cells
-        const thead = table.children.find(child => child.tagName === 'THEAD');
+        const _thead = table.children.find(child => child.tagName === 'THEAD');
         if (thead) {
-          const headerRow = thead.children[0];
+          const _headerRow = thead.children[0];
           if (headerRow) {
             headerRow.children.forEach((th, index) => {
               if (th.tagName === 'TH') {
@@ -316,10 +316,10 @@ describe('Real DOM Scenarios Tests', () => {
         }
 
         // Check row headers
-        const tbody = table.children.find(child => child.tagName === 'TBODY');
+        const _tbody = table.children.find(child => child.tagName === 'TBODY');
         if (tbody) {
           tbody.children.forEach((row, rowIndex) => {
-            const firstCell = row.children[0];
+            const _firstCell = row.children[0];
             if (firstCell && firstCell.tagName === 'TH') {
               if (!firstCell.getAttribute('scope')) {
                 issues.push({
@@ -335,8 +335,8 @@ describe('Real DOM Scenarios Tests', () => {
         return issues;
       };
 
-      const table = createComplexTable();
-      const issues = checkTableAccessibility(table);
+      const _table = createComplexTable();
+      const _issues = checkTableAccessibility(table);
 
       expect(issues).toHaveLength(2);
       expect(issues.some(issue => issue.issue === 'empty_header')).toBe(true);
@@ -345,29 +345,29 @@ describe('Real DOM Scenarios Tests', () => {
 
     test('should handle form structures with complex field relationships', () => {
       // Create complex form with various accessibility patterns
-      const createComplexForm = () => {
-        const form = mockDocument.createElement('form');
+      const _createComplexForm = () => {
+        const _form = _mockDocument.createElement('form');
         form.setAttribute('role', 'form');
         form.setAttribute('aria-labelledby', 'form-title');
 
         // Form title
-        const title = mockDocument.createElement('h2');
+        const _title = _mockDocument.createElement('h2');
         title.id = 'form-title';
         title.textContent = 'Registration Form';
         form.appendChild(title);
 
         // Fieldset 1: Personal Information
-        const personalFieldset = mockDocument.createElement('fieldset');
-        const personalLegend = mockDocument.createElement('legend');
+        const _personalFieldset = _mockDocument.createElement('fieldset');
+        const _personalLegend = _mockDocument.createElement('legend');
         personalLegend.textContent = 'Personal Information';
         personalFieldset.appendChild(personalLegend);
 
         // Name field (proper labeling)
-        const nameDiv = mockDocument.createElement('div');
-        const nameLabel = mockDocument.createElement('label');
+        const _nameDiv = _mockDocument.createElement('div');
+        const _nameLabel = _mockDocument.createElement('label');
         nameLabel.setAttribute('for', 'name');
         nameLabel.textContent = 'Full Name *';
-        const nameInput = mockDocument.createElement('input');
+        const _nameInput = _mockDocument.createElement('input');
         nameInput.type = 'text';
         nameInput.id = 'name';
         nameInput.setAttribute('required', 'true');
@@ -375,15 +375,15 @@ describe('Real DOM Scenarios Tests', () => {
         nameDiv.appendChild(nameLabel);
         nameDiv.appendChild(nameInput);
 
-        const nameHelp = mockDocument.createElement('div');
+        const _nameHelp = _mockDocument.createElement('div');
         nameHelp.id = 'name-help';
         nameHelp.textContent = 'Enter your first and last name';
         nameDiv.appendChild(nameHelp);
         personalFieldset.appendChild(nameDiv);
 
         // Email field (missing label)
-        const emailDiv = mockDocument.createElement('div');
-        const emailInput = mockDocument.createElement('input');
+        const _emailDiv = _mockDocument.createElement('div');
+        const _emailInput = _mockDocument.createElement('input');
         emailInput.type = 'email';
         emailInput.id = 'email';
         emailInput.setAttribute('placeholder', 'Enter email address');
@@ -394,36 +394,36 @@ describe('Real DOM Scenarios Tests', () => {
         form.appendChild(personalFieldset);
 
         // Fieldset 2: Preferences
-        const prefFieldset = mockDocument.createElement('fieldset');
-        const prefLegend = mockDocument.createElement('legend');
+        const _prefFieldset = _mockDocument.createElement('fieldset');
+        const _prefLegend = _mockDocument.createElement('legend');
         prefLegend.textContent = 'Preferences';
         prefFieldset.appendChild(prefLegend);
 
         // Radio group (missing fieldset grouping)
-        const radioDiv = mockDocument.createElement('div');
-        const radioLabel1 = mockDocument.createElement('label');
-        const radio1 = mockDocument.createElement('input');
+        const _radioDiv = _mockDocument.createElement('div');
+        const _radioLabel1 = _mockDocument.createElement('label');
+        const _radio1 = _mockDocument.createElement('input');
         radio1.type = 'radio';
         radio1.name = 'newsletter';
         radio1.value = 'weekly';
         radioLabel1.appendChild(radio1);
-        radioLabel1.appendChild(mockDocument.createTextNode('Weekly Newsletter'));
+        radioLabel1.appendChild(_mockDocument.createTextNode('Weekly Newsletter'));
         radioDiv.appendChild(radioLabel1);
 
-        const radioLabel2 = mockDocument.createElement('label');
-        const radio2 = mockDocument.createElement('input');
+        const _radioLabel2 = _mockDocument.createElement('label');
+        const _radio2 = _mockDocument.createElement('input');
         radio2.type = 'radio';
         radio2.name = 'newsletter';
         radio2.value = 'monthly';
         radioLabel2.appendChild(radio2);
-        radioLabel2.appendChild(mockDocument.createTextNode('Monthly Newsletter'));
+        radioLabel2.appendChild(_mockDocument.createTextNode('Monthly Newsletter'));
         radioDiv.appendChild(radioLabel2);
 
         prefFieldset.appendChild(radioDiv);
         form.appendChild(prefFieldset);
 
         // Submit button (good)
-        const submitButton = mockDocument.createElement('button');
+        const _submitButton = _mockDocument.createElement('button');
         submitButton.type = 'submit';
         submitButton.textContent = 'Register';
         form.appendChild(submitButton);
@@ -431,14 +431,14 @@ describe('Real DOM Scenarios Tests', () => {
         return form;
       };
 
-      const checkFormAccessibility = (form) => {
-        const issues = [];
+      const _checkFormAccessibility = form => {
+        const _issues = [];
 
         // Check for form label or title
-        const ariaLabelledby = form.getAttribute('aria-labelledby');
-        const ariaLabel = form.getAttribute('aria-label');
+        const _ariaLabelledby = form.getAttribute('aria-labelledby');
+        const _ariaLabel = form.getAttribute('aria-label');
         if (!ariaLabelledby && !ariaLabel) {
-          const firstChild = form.children[0];
+          const _firstChild = form.children[0];
           if (!firstChild || !['H1', 'H2', 'H3', 'H4', 'H5', 'H6'].includes(firstChild.tagName)) {
             issues.push({
               issue: 'missing_form_label',
@@ -448,8 +448,8 @@ describe('Real DOM Scenarios Tests', () => {
         }
 
         // Check input labels
-        const inputs = [];
-        const findInputs = (element) => {
+        const _inputs = [];
+        const _findInputs = element => {
           element.children.forEach(child => {
             if (child.tagName === 'INPUT' && ['text', 'email', 'password', 'tel'].includes(child.type)) {
               inputs.push(child);
@@ -461,13 +461,13 @@ describe('Real DOM Scenarios Tests', () => {
         findInputs(form);
 
         inputs.forEach(input => {
-          const id = input.id;
-          let hasLabel = false;
+          const _id = input.id;
+          const _hasLabel = false;
 
           if (id) {
             // Check for explicit label
-            const labels = [];
-            const findLabels = (element) => {
+            const _labels = [];
+            const _findLabels = element => {
               element.children.forEach(child => {
                 if (child.tagName === 'LABEL' && child.getAttribute('for') === id) {
                   labels.push(child);
@@ -477,7 +477,7 @@ describe('Real DOM Scenarios Tests', () => {
               });
             };
             findLabels(form);
-            
+
             if (labels.length > 0) {
               hasLabel = true;
             }
@@ -505,10 +505,10 @@ describe('Real DOM Scenarios Tests', () => {
         // Check required fields have proper indication
         inputs.forEach(input => {
           if (input.hasAttribute('required')) {
-            const id = input.id;
+            const _id = input.id;
             if (id) {
-              const labels = [];
-              const findLabels = (element) => {
+              const _labels = [];
+              const _findLabels = element => {
                 element.children.forEach(child => {
                   if (child.tagName === 'LABEL' && child.getAttribute('for') === id) {
                     labels.push(child);
@@ -519,7 +519,7 @@ describe('Real DOM Scenarios Tests', () => {
               };
               findLabels(form);
 
-              const hasRequiredIndicator = labels.some(label => 
+              const _hasRequiredIndicator = labels.some(label =>
                 label.textContent.includes('*') || label.textContent.includes('required')
               );
 
@@ -537,8 +537,8 @@ describe('Real DOM Scenarios Tests', () => {
         return issues;
       };
 
-      const form = createComplexForm();
-      const issues = checkFormAccessibility(form);
+      const _form = createComplexForm();
+      const _issues = checkFormAccessibility(form);
 
       expect(issues).toHaveLength(1); // Should find missing label for email input
       expect(issues[0].issue).toBe('missing_input_label');
@@ -547,16 +547,16 @@ describe('Real DOM Scenarios Tests', () => {
 
   describe('Edge Case Handling', () => {
     test('should handle elements with zero dimensions', () => {
-      const handleZeroDimensionElements = () => {
-        const elements = [
+      const _handleZeroDimensionElements = () => {
+        const _elements = [
           { width: 0, height: 0, visible: false },
           { width: 100, height: 0, visible: false },
           { width: 0, height: 50, visible: false },
           { width: 100, height: 50, visible: true }
         ];
 
-        const results = elements.map(el => {
-          const isVisible = el.width > 0 && el.height > 0;
+        const _results = elements.map(el => {
+          const _isVisible = el.width > 0 && el.height > 0;
           return {
             ...el,
             shouldCheck: isVisible,
@@ -567,7 +567,7 @@ describe('Real DOM Scenarios Tests', () => {
         return results;
       };
 
-      const results = handleZeroDimensionElements();
+      const _results = handleZeroDimensionElements();
 
       expect(results[0].shouldCheck).toBe(false);
       expect(results[0].reason).toBe('zero_dimensions');
@@ -578,18 +578,18 @@ describe('Real DOM Scenarios Tests', () => {
     });
 
     test('should handle elements outside viewport', () => {
-      const checkElementVisibility = (elements, viewport) => {
+      const _checkElementVisibility = (elements, viewport) => {
         return elements.map(el => {
-          const rect = el.getBoundingClientRect();
-          
-          const isInViewport = (
+          const _rect = el.getBoundingClientRect();
+
+          const _isInViewport = (
             rect.top < viewport.height &&
             rect.bottom > 0 &&
             rect.left < viewport.width &&
             rect.right > 0
           );
 
-          const isVisible = (
+          const _isVisible = (
             rect.width > 0 &&
             rect.height > 0 &&
             isInViewport
@@ -606,7 +606,7 @@ describe('Real DOM Scenarios Tests', () => {
       };
 
       // Create test elements
-      const elements = [
+      const _elements = [
         // In viewport
         {
           getBoundingClientRect: () => ({ top: 100, left: 100, bottom: 200, right: 200, width: 100, height: 100 })
@@ -629,8 +629,8 @@ describe('Real DOM Scenarios Tests', () => {
         }
       ];
 
-      const viewport = { width: 1024, height: 768 };
-      const results = checkElementVisibility(elements, viewport);
+      const _viewport = { width: 1024, height: 768 };
+      const _results = checkElementVisibility(elements, viewport);
 
       expect(results[0].isVisible).toBe(true);
       expect(results[0].isInViewport).toBe(true);
@@ -641,8 +641,8 @@ describe('Real DOM Scenarios Tests', () => {
     });
 
     test('should handle malformed or corrupted DOM elements', () => {
-      const handleMalformedElements = (elements) => {
-        const results = {
+      const _handleMalformedElements = elements => {
+        const _results = {
           processed: 0,
           errors: [],
           skipped: 0,
@@ -671,9 +671,9 @@ describe('Real DOM Scenarios Tests', () => {
             }
 
             // Try to access common properties safely
-            const tagName = element.tagName || 'UNKNOWN';
-            const id = element.id || '';
-            const className = element.className || '';
+            const _tagName = element.tagName || 'UNKNOWN';
+            const _id = element.id || '';
+            const _className = element.className || '';
 
             // Validate critical methods exist
             if (typeof element.getAttribute !== 'function') {
@@ -717,7 +717,7 @@ describe('Real DOM Scenarios Tests', () => {
       };
 
       // Test with various malformed elements
-      const testElements = [
+      const _testElements = [
         // Valid element
         {
           tagName: 'DIV',
@@ -749,7 +749,7 @@ describe('Real DOM Scenarios Tests', () => {
         }
       ];
 
-      const results = handleMalformedElements(testElements);
+      const _results = handleMalformedElements(testElements);
 
       expect(results.processed).toBe(1);
       expect(results.skipped).toBe(5);
@@ -759,13 +759,13 @@ describe('Real DOM Scenarios Tests', () => {
     });
 
     test('should handle deeply nested DOM structures', () => {
-      const createDeeplyNestedStructure = (depth) => {
-        let current = mockDocument.createElement('div');
+      const _createDeeplyNestedStructure = depth => {
+        const _current = _mockDocument.createElement('div');
         current.className = 'root';
-        const root = current;
+        const _root = current;
 
-        for (let i = 1; i < depth; i++) {
-          const child = mockDocument.createElement('div');
+        for (let _i = 1; i < depth; i++) {
+          const _child = _mockDocument.createElement('div');
           child.className = `level-${i}`;
           child.id = `element-${i}`;
           current.appendChild(child);
@@ -773,7 +773,7 @@ describe('Real DOM Scenarios Tests', () => {
         }
 
         // Add final element with accessibility issue
-        const finalElement = mockDocument.createElement('img');
+        const _finalElement = _mockDocument.createElement('img');
         finalElement.src = 'deep-image.jpg';
         // Missing alt attribute
         current.appendChild(finalElement);
@@ -781,15 +781,15 @@ describe('Real DOM Scenarios Tests', () => {
         return root;
       };
 
-      const traverseNestedStructure = (element, maxDepth = 50) => {
-        const results = {
+      const _traverseNestedStructure = (element, maxDepth = 50) => {
+        const _results = {
           totalElements: 0,
           maxDepthReached: 0,
           issues: [],
           depthExceeded: false
         };
 
-        const traverse = (el, currentDepth) => {
+        const _traverse = (el, currentDepth) => {
           if (currentDepth > maxDepth) {
             results.depthExceeded = true;
             return;
@@ -820,8 +820,8 @@ describe('Real DOM Scenarios Tests', () => {
       };
 
       // Test with moderate depth
-      const moderateStructure = createDeeplyNestedStructure(20);
-      const moderateResults = traverseNestedStructure(moderateStructure);
+      const _moderateStructure = createDeeplyNestedStructure(20);
+      const _moderateResults = traverseNestedStructure(moderateStructure);
 
       expect(moderateResults.totalElements).toBe(21); // 20 divs + 1 img
       expect(moderateResults.maxDepthReached).toBe(20);
@@ -830,8 +830,8 @@ describe('Real DOM Scenarios Tests', () => {
       expect(moderateResults.depthExceeded).toBe(false);
 
       // Test with excessive depth
-      const deepStructure = createDeeplyNestedStructure(100);
-      const deepResults = traverseNestedStructure(deepStructure, 50);
+      const _deepStructure = createDeeplyNestedStructure(100);
+      const _deepResults = traverseNestedStructure(deepStructure, 50);
 
       expect(deepResults.depthExceeded).toBe(true);
       expect(deepResults.maxDepthReached).toBe(50);
@@ -841,10 +841,10 @@ describe('Real DOM Scenarios Tests', () => {
   describe('Cross-Browser Compatibility', () => {
     test('should handle different browser API implementations', () => {
       // Mock different browser environments
-      const browserEnvironments = {
+      const _browserEnvironments = {
         chrome: {
           name: 'Chrome',
-          getComputedStyle: (element) => ({
+          getComputedStyle: element => ({
             display: 'block',
             visibility: 'visible',
             fontSize: '16px'
@@ -857,7 +857,7 @@ describe('Real DOM Scenarios Tests', () => {
         },
         firefox: {
           name: 'Firefox',
-          getComputedStyle: (element) => ({
+          getComputedStyle: element => ({
             display: 'block',
             visibility: 'visible',
             fontSize: '16px'
@@ -870,7 +870,7 @@ describe('Real DOM Scenarios Tests', () => {
         },
         safari: {
           name: 'Safari',
-          getComputedStyle: (element) => ({
+          getComputedStyle: element => ({
             display: 'block',
             visibility: 'visible',
             fontSize: '16px'
@@ -883,7 +883,7 @@ describe('Real DOM Scenarios Tests', () => {
         },
         ie11: {
           name: 'IE11',
-          getComputedStyle: (element) => ({
+          getComputedStyle: element => ({
             display: 'block',
             visibility: 'visible',
             fontSize: '16px'
@@ -896,8 +896,8 @@ describe('Real DOM Scenarios Tests', () => {
         }
       };
 
-      const checkBrowserCompatibility = (browser) => {
-        const compatibility = {
+      const _checkBrowserCompatibility = browser => {
+        const _compatibility = {
           browser: browser.name,
           supportedFeatures: [],
           fallbacksNeeded: [],
@@ -932,11 +932,11 @@ describe('Real DOM Scenarios Tests', () => {
       };
 
       Object.values(browserEnvironments).forEach(browser => {
-        const compatibility = checkBrowserCompatibility(browser);
+        const _compatibility = checkBrowserCompatibility(browser);
 
         expect(compatibility.browser).toBe(browser.name);
         expect(compatibility.supportedFeatures).toContain('MutationObserver'); // All support this
-        
+
         if (browser.name === 'IE11') {
           expect(compatibility.fallbacksNeeded).toContain('IntersectionObserver');
           expect(compatibility.fallbacksNeeded).toContain('CustomElements');
@@ -945,27 +945,27 @@ describe('Real DOM Scenarios Tests', () => {
     });
 
     test('should handle different CSS property implementations', () => {
-      const checkCSSPropertySupport = (element, property) => {
-        const testValues = {
+      const _checkCSSPropertySupport = (element, property) => {
+        const _testValues = {
           'font-size': ['16px', '1rem', '1em'],
           'display': ['block', 'flex', 'grid'],
           'visibility': ['visible', 'hidden', 'collapse']
         };
 
-        const support = {
+        const _support = {
           property,
           supportedValues: [],
           unsupportedValues: [],
           fallbacks: []
         };
 
-        const values = testValues[property] || [];
-        
+        const _values = testValues[property] || [];
+
         values.forEach(value => {
           try {
             // Simulate setting and reading CSS property
             element.style[property] = value;
-            
+
             // Mock successful property setting for tests
             if (property === 'font-size' && value === '16px') {
               support.supportedValues.push(value);
@@ -973,14 +973,14 @@ describe('Real DOM Scenarios Tests', () => {
               support.supportedValues.push(value);
             } else {
               // For other values, simulate partial support
-              const computed = mockWindow.getComputedStyle(element);
-              const actualValue = computed[property];
+              const _computed = mockWindow.getComputedStyle(element);
+              const _actualValue = computed[property];
 
               if (actualValue === value || (actualValue && actualValue.includes && actualValue.includes(value))) {
                 support.supportedValues.push(value);
               } else {
                 support.unsupportedValues.push(value);
-                
+
                 // Suggest fallbacks
                 if (property === 'display' && value === 'grid') {
                   support.fallbacks.push('Use flexbox or table layout');
@@ -998,25 +998,25 @@ describe('Real DOM Scenarios Tests', () => {
         return support;
       };
 
-      const testElement = mockDocument.createElement('div');
-      
-      const fontSizeSupport = checkCSSPropertySupport(testElement, 'font-size');
-      const displaySupport = checkCSSPropertySupport(testElement, 'display');
+      const _testElement = _mockDocument.createElement('div');
+
+      const _fontSizeSupport = checkCSSPropertySupport(testElement, 'font-size');
+      const _displaySupport = checkCSSPropertySupport(testElement, 'display');
 
       expect(fontSizeSupport.supportedValues).toContain('16px');
       expect(displaySupport.supportedValues).toContain('block');
     });
 
     test('should provide graceful degradation for unsupported features', () => {
-      const createFeatureDetection = () => {
-        const features = {
+      const _createFeatureDetection = () => {
+        const _features = {
           intersectionObserver: typeof global.IntersectionObserver !== 'undefined',
           mutationObserver: typeof global.MutationObserver !== 'undefined',
           requestAnimationFrame: typeof global.requestAnimationFrame !== 'undefined',
           customElements: typeof global.customElements !== 'undefined'
         };
 
-        const fallbacks = {};
+        const _fallbacks = {};
 
         // Intersection Observer fallback
         if (!features.intersectionObserver) {
@@ -1052,21 +1052,21 @@ describe('Real DOM Scenarios Tests', () => {
         if (!features.requestAnimationFrame) {
           fallbacks.requestAnimationFrame = {
             method: 'setTimeout',
-            implementation: (callback) => setTimeout(callback, 16)
+            implementation: callback => setTimeout(callback, 16)
           };
         }
 
         return { features, fallbacks };
       };
 
-      const detection = createFeatureDetection();
+      const _detection = createFeatureDetection();
 
       expect(typeof detection.features).toBe('object');
       expect(typeof detection.fallbacks).toBe('object');
 
       // Test fallback creation
       if (!detection.features.intersectionObserver) {
-        const fallbackObserver = detection.fallbacks.intersectionObserver.implementation();
+        const _fallbackObserver = detection.fallbacks.intersectionObserver.implementation();
         expect(fallbackObserver.observe).toBeDefined();
         expect(fallbackObserver.disconnect).toBeDefined();
       }

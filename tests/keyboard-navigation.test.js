@@ -91,8 +91,8 @@ describe('Keyboard Navigation', () => {
   });
 
   function createTestOverlays() {
-    for (let i = 0; i < 3; i++) {
-      const overlay = document.createElement('div');
+    for (let _i = 0; i < 3; i++) {
+      const _overlay = document.createElement('div');
       overlay.className = 'a11y-error';
       overlay.setAttribute('data-a11ymessage', `Test error ${i + 1}`);
       overlay.style.position = 'absolute';
@@ -106,7 +106,7 @@ describe('Keyboard Navigation', () => {
 
   function simulateKeydown(key) {
     mockKeydownEvent.key = key;
-    const event = new KeyboardEvent('keydown', { key });
+    const _event = new KeyboardEvent('keydown', { key });
     Object.defineProperty(event, 'preventDefault', {
       value: jest.fn(),
       writable: true
@@ -117,7 +117,7 @@ describe('Keyboard Navigation', () => {
 
   describe('Keyboard Navigation Activation', () => {
     test('should activate keyboard navigation with Alt+Shift+N', () => {
-      const event = simulateKeydown('n');
+      const _event = simulateKeydown('n');
       Object.defineProperty(event, 'altKey', { value: true });
       Object.defineProperty(event, 'shiftKey', { value: true });
 
@@ -130,7 +130,7 @@ describe('Keyboard Navigation', () => {
     test('should only respond to keyboard navigation when active', () => {
       global.keyboardNavigationActive = false;
 
-      const event = simulateKeydown('ArrowDown');
+      const _event = simulateKeydown('ArrowDown');
       document.dispatchEvent(event);
 
       // Should not change index when navigation is inactive
@@ -145,7 +145,7 @@ describe('Keyboard Navigation', () => {
     });
 
     test('should navigate forward with ArrowDown', () => {
-      const event = simulateKeydown('ArrowDown');
+      const _event = simulateKeydown('ArrowDown');
       document.dispatchEvent(event);
 
       expect(event.preventDefault).toHaveBeenCalled();
@@ -153,7 +153,7 @@ describe('Keyboard Navigation', () => {
     });
 
     test('should navigate forward with ArrowRight', () => {
-      const event = simulateKeydown('ArrowRight');
+      const _event = simulateKeydown('ArrowRight');
       document.dispatchEvent(event);
 
       expect(event.preventDefault).toHaveBeenCalled();
@@ -161,7 +161,7 @@ describe('Keyboard Navigation', () => {
     });
 
     test('should navigate backward with ArrowUp', () => {
-      const event = simulateKeydown('ArrowUp');
+      const _event = simulateKeydown('ArrowUp');
       document.dispatchEvent(event);
 
       expect(event.preventDefault).toHaveBeenCalled();
@@ -169,7 +169,7 @@ describe('Keyboard Navigation', () => {
     });
 
     test('should navigate backward with ArrowLeft', () => {
-      const event = simulateKeydown('ArrowLeft');
+      const _event = simulateKeydown('ArrowLeft');
       document.dispatchEvent(event);
 
       expect(event.preventDefault).toHaveBeenCalled();
@@ -179,7 +179,7 @@ describe('Keyboard Navigation', () => {
     test('should wrap around when navigating forward from last overlay', () => {
       global.currentOverlayIndex = 2; // Last overlay
 
-      const event = simulateKeydown('ArrowDown');
+      const _event = simulateKeydown('ArrowDown');
       document.dispatchEvent(event);
 
       expect(global.currentOverlayIndex).toBe(0); // Should wrap to first
@@ -188,7 +188,7 @@ describe('Keyboard Navigation', () => {
     test('should wrap around when navigating backward from first overlay', () => {
       global.currentOverlayIndex = 0; // First overlay
 
-      const event = simulateKeydown('ArrowUp');
+      const _event = simulateKeydown('ArrowUp');
       document.dispatchEvent(event);
 
       expect(global.currentOverlayIndex).toBe(2); // Should wrap to last
@@ -202,7 +202,7 @@ describe('Keyboard Navigation', () => {
     });
 
     test('should jump to first overlay with Home key', () => {
-      const event = simulateKeydown('Home');
+      const _event = simulateKeydown('Home');
       document.dispatchEvent(event);
 
       expect(event.preventDefault).toHaveBeenCalled();
@@ -210,7 +210,7 @@ describe('Keyboard Navigation', () => {
     });
 
     test('should jump to last overlay with End key', () => {
-      const event = simulateKeydown('End');
+      const _event = simulateKeydown('End');
       document.dispatchEvent(event);
 
       expect(event.preventDefault).toHaveBeenCalled();
@@ -224,7 +224,7 @@ describe('Keyboard Navigation', () => {
       global.currentOverlayIndex = 1;
 
       // Set up overlays with styling
-      const overlays = document.querySelectorAll('.a11y-error');
+      const _overlays = document.querySelectorAll('.a11y-error');
       overlays.forEach(overlay => {
         overlay.style.outline = '2px solid blue';
         overlay.style.outlineOffset = '1px';
@@ -232,7 +232,7 @@ describe('Keyboard Navigation', () => {
     });
 
     test('should exit keyboard navigation with Escape key', () => {
-      const event = simulateKeydown('Escape');
+      const _event = simulateKeydown('Escape');
       document.dispatchEvent(event);
 
       expect(event.preventDefault).toHaveBeenCalled();
@@ -241,9 +241,9 @@ describe('Keyboard Navigation', () => {
     });
 
     test('should remove all overlay highlights when exiting navigation', () => {
-      const overlays = document.querySelectorAll('.a11y-error');
+      const _overlays = document.querySelectorAll('.a11y-error');
 
-      const event = simulateKeydown('Escape');
+      const _event = simulateKeydown('Escape');
       document.dispatchEvent(event);
 
       overlays.forEach(overlay => {
@@ -260,7 +260,7 @@ describe('Keyboard Navigation', () => {
     });
 
     test('should announce accessibility issue with Enter key', () => {
-      const event = simulateKeydown('Enter');
+      const _event = simulateKeydown('Enter');
       document.dispatchEvent(event);
 
       expect(event.preventDefault).toHaveBeenCalled();
@@ -268,7 +268,7 @@ describe('Keyboard Navigation', () => {
     });
 
     test('should announce accessibility issue with Space key', () => {
-      const event = simulateKeydown(' ');
+      const _event = simulateKeydown(' ');
       document.dispatchEvent(event);
 
       expect(event.preventDefault).toHaveBeenCalled();
@@ -276,18 +276,18 @@ describe('Keyboard Navigation', () => {
     });
 
     test('should use speech synthesis when available', () => {
-      const event = simulateKeydown('Enter');
+      const _event = simulateKeydown('Enter');
       document.dispatchEvent(event);
 
       expect(window.speechSynthesis.speak).toHaveBeenCalled();
-      const spokenText = window.speechSynthesis.speak.mock.calls[0][0].text;
+      const _spokenText = window.speechSynthesis.speak.mock.calls[0][0].text;
       expect(spokenText).toBe('Test error 2');
     });
 
     test('should handle invalid overlay index gracefully', () => {
       global.currentOverlayIndex = 99; // Invalid index
 
-      const event = simulateKeydown('Enter');
+      const _event = simulateKeydown('Enter');
       document.dispatchEvent(event);
 
       expect(event.preventDefault).toHaveBeenCalled();
@@ -297,7 +297,7 @@ describe('Keyboard Navigation', () => {
     test('should handle negative overlay index gracefully', () => {
       global.currentOverlayIndex = -1; // Invalid index
 
-      const event = simulateKeydown('Enter');
+      const _event = simulateKeydown('Enter');
       document.dispatchEvent(event);
 
       expect(event.preventDefault).toHaveBeenCalled();
@@ -313,7 +313,7 @@ describe('Keyboard Navigation', () => {
       global.keyboardNavigationActive = true;
       global.currentOverlayIndex = 0;
 
-      const event = simulateKeydown('ArrowDown');
+      const _event = simulateKeydown('ArrowDown');
       document.dispatchEvent(event);
 
       // Should handle gracefully without errors
@@ -324,7 +324,7 @@ describe('Keyboard Navigation', () => {
       global.keyboardNavigationActive = true;
       global.currentOverlayIndex = 1;
 
-      const event = simulateKeydown('a');
+      const _event = simulateKeydown('a');
       document.dispatchEvent(event);
 
       // Index should not change for non-navigation keys
@@ -341,11 +341,11 @@ describe('Keyboard Navigation', () => {
     test('should highlight current overlay during navigation', () => {
       global.currentOverlayIndex = 1;
 
-      const event = simulateKeydown('ArrowDown');
+      const _event = simulateKeydown('ArrowDown');
       document.dispatchEvent(event);
 
-      const overlays = document.querySelectorAll('.a11y-error');
-      const currentOverlay = overlays[global.currentOverlayIndex];
+      const _overlays = document.querySelectorAll('.a11y-error');
+      const _currentOverlay = overlays[global.currentOverlayIndex];
 
       // Verify the overlay gets highlighted (this would be done by highlightCurrentOverlay function)
       expect(global.currentOverlayIndex).toBe(2);
@@ -354,10 +354,10 @@ describe('Keyboard Navigation', () => {
     test('should scroll highlighted overlay into view', () => {
       global.currentOverlayIndex = 0;
 
-      const event = simulateKeydown('ArrowDown');
+      const _event = simulateKeydown('ArrowDown');
       document.dispatchEvent(event);
 
-      const overlays = document.querySelectorAll('.a11y-error');
+      const _overlays = document.querySelectorAll('.a11y-error');
       // The highlightCurrentOverlay function should call scrollIntoView
       expect(global.currentOverlayIndex).toBe(1);
     });

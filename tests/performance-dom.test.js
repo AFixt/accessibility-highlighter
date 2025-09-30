@@ -16,8 +16,8 @@ describe('Setup test', () => {
 });
 
 describe('Performance and DOM Tests', () => {
-  let mockDocument;
-  let mockConsole;
+  let _mockDocument;
+  let _mockConsole;
   let mockChrome;
   let originalSetTimeout;
   let originalClearTimeout;
@@ -39,15 +39,15 @@ describe('Performance and DOM Tests', () => {
 
   beforeEach(() => {
     // Mock console
-    mockConsole = {
+    _mockConsole = {
       log: jest.fn(),
       warn: jest.fn(),
       error: jest.fn()
     };
-    global.console = mockConsole;
+    global.console = _mockConsole;
 
     // Mock document
-    mockDocument = {
+    _mockDocument = {
       body: {
         innerHTML: '',
         appendChild: jest.fn(),
@@ -82,8 +82,8 @@ describe('Performance and DOM Tests', () => {
       querySelectorAll: jest.fn(() => []),
       querySelector: jest.fn(() => null)
     };
-    
-    global.document = mockDocument;
+
+    global.document = _mockDocument;
     global.A11Y_CONFIG = A11Y_CONFIG;
 
     // Mock Chrome APIs
@@ -101,7 +101,7 @@ describe('Performance and DOM Tests', () => {
     originalSetTimeout = global.setTimeout;
     originalClearTimeout = global.clearTimeout;
     originalDateNow = Date.now;
-    
+
     global.setTimeout = jest.fn((fn, delay) => {
       fn();
       return 123; // Mock timer ID
@@ -112,7 +112,7 @@ describe('Performance and DOM Tests', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
-    
+
     // Restore original functions
     global.setTimeout = originalSetTimeout;
     global.clearTimeout = originalClearTimeout;
@@ -124,18 +124,18 @@ describe('Performance and DOM Tests', () => {
       // Simulate keyboard event handler setup
       const setupKeyboardListeners = () => {
         const handler = jest.fn();
-        mockDocument.addEventListener('keydown', handler, true);
+        _mockDocument.addEventListener('keydown', handler, true);
         return handler;
       };
 
       const handler = setupKeyboardListeners();
 
-      expect(mockDocument.addEventListener).toHaveBeenCalledWith('keydown', handler, true);
+      expect(_mockDocument.addEventListener).toHaveBeenCalledWith('keydown', handler, true);
     });
 
     test('should handle keydown events for accessibility navigation', () => {
       // Create mock keyboard event handler
-      const handleKeyboardNavigation = (event) => {
+      const handleKeyboardNavigation = event => {
         if (event.altKey && event.shiftKey && event.key === 'N') {
           event.preventDefault();
           return 'navigation_started';
@@ -181,7 +181,7 @@ describe('Performance and DOM Tests', () => {
       };
 
       // Create mutation observer simulator
-      const createDOMObserver = (callback) => {
+      const createDOMObserver = callback => {
         const observer = {
           observe: mockObserver.observe,
           disconnect: mockObserver.disconnect,
@@ -206,12 +206,12 @@ describe('Performance and DOM Tests', () => {
       const mutationCallback = jest.fn();
       const observer = createDOMObserver(mutationCallback);
 
-      observer.observe(mockDocument.body, {
+      observer.observe(_mockDocument.body, {
         childList: true,
         subtree: true
       });
 
-      expect(mockObserver.observe).toHaveBeenCalledWith(mockDocument.body, {
+      expect(mockObserver.observe).toHaveBeenCalledWith(_mockDocument.body, {
         childList: true,
         subtree: true
       });
@@ -231,27 +231,27 @@ describe('Performance and DOM Tests', () => {
         const initialization = async () => {
           try {
             await loadCustomRules();
-            mockConsole.log('Accessibility Highlighter: Custom rules initialized');
+            _mockConsole.log('Accessibility Highlighter: Custom rules initialized');
             return true;
           } catch (error) {
-            mockConsole.warn('Accessibility Highlighter: Failed to initialize custom rules:', error);
+            _mockConsole.warn('Accessibility Highlighter: Failed to initialize custom rules:', error);
             return false;
           }
         };
         return initialization();
       };
 
-      return initializeOnLoad().then(result => {
-        expect(result).toBe(true);
-        expect(mockConsole.log).toHaveBeenCalledWith('Accessibility Highlighter: Custom rules initialized');
+      return initializeOnLoad().then(_result => {
+        expect(_result).toBe(true);
+        expect(_mockConsole.log).toHaveBeenCalledWith('Accessibility Highlighter: Custom rules initialized');
       });
     });
 
     test('should detect and handle dynamic element addition', () => {
       // Simulate dynamic content detection
-      const detectDynamicContent = (mutations) => {
+      const detectDynamicContent = mutations => {
         const newElements = [];
-        
+
         mutations.forEach(mutation => {
           if (mutation.type === 'childList') {
             mutation.addedNodes.forEach(node => {
@@ -362,12 +362,12 @@ describe('Performance and DOM Tests', () => {
     test('should handle concurrent scan attempts', () => {
       const runAccessibilityChecks = () => {
         if (shouldThrottleScan()) {
-          mockConsole.log(A11Y_CONFIG.MESSAGES.THROTTLED);
+          _mockConsole.log(A11Y_CONFIG.MESSAGES.THROTTLED);
           return 'throttled';
         }
 
         initializeScanState();
-        
+
         try {
           // Simulate scan work
           return 'completed';
@@ -377,16 +377,16 @@ describe('Performance and DOM Tests', () => {
       };
 
       // First call should succeed
-      const result1 = runAccessibilityChecks();
-      expect(result1).toBe('completed');
+      const _result1 = runAccessibilityChecks();
+      expect(_result1).toBe('completed');
 
       // Reset for next test
       isRunning = true;
 
       // Second immediate call should be throttled
-      const result2 = runAccessibilityChecks();
-      expect(result2).toBe('throttled');
-      expect(mockConsole.log).toHaveBeenCalledWith(A11Y_CONFIG.MESSAGES.THROTTLED);
+      const _result2 = runAccessibilityChecks();
+      expect(_result2).toBe('throttled');
+      expect(_mockConsole.log).toHaveBeenCalledWith(A11Y_CONFIG.MESSAGES.THROTTLED);
     });
 
     test('should respect performance configuration', () => {
@@ -411,7 +411,7 @@ describe('Performance and DOM Tests', () => {
     });
 
     test('should handle throttle during incremental scanning', () => {
-      let incrementalState = {
+      const incrementalState = {
         isActive: false,
         cancelled: false
       };
@@ -461,7 +461,7 @@ describe('Performance and DOM Tests', () => {
         for (let i = 0; i < elements.length; i += chunkSize) {
           const chunk = elements.slice(i, i + chunkSize);
           chunks.push(chunk);
-          
+
           // Simulate processing delay
           chunk.forEach(element => {
             processedElements.push({
@@ -486,13 +486,13 @@ describe('Performance and DOM Tests', () => {
         processed: false
       }));
 
-      const result = processElementsInChunks(elements, 50);
+      const _result = processElementsInChunks(elements, 50);
 
-      expect(result.totalChunks).toBe(3); // 150 / 50 = 3 chunks
-      expect(result.processedCount).toBe(150);
-      expect(result.chunks[0]).toHaveLength(50);
-      expect(result.chunks[1]).toHaveLength(50);
-      expect(result.chunks[2]).toHaveLength(50);
+      expect(_result.totalChunks).toBe(3); // 150 / 50 = 3 chunks
+      expect(_result.processedCount).toBe(150);
+      expect(_result.chunks[0]).toHaveLength(50);
+      expect(_result.chunks[1]).toHaveLength(50);
+      expect(_result.chunks[2]).toHaveLength(50);
     });
 
     test('should handle large DOM trees efficiently', () => {
@@ -521,7 +521,7 @@ describe('Performance and DOM Tests', () => {
         };
       };
 
-      const traverseWithTreeWalker = (walker) => {
+      const traverseWithTreeWalker = walker => {
         const processedElements = [];
         let node;
 
@@ -571,9 +571,9 @@ describe('Performance and DOM Tests', () => {
         }
 
         // Immediate creation
-        overlay.domElement = mockDocument.createElement('div');
+        overlay.domElement = _mockDocument.createElement('div');
         overlay.domElement.className = 'a11y-highlight-overlay';
-        
+
         return overlay;
       };
 
@@ -584,7 +584,7 @@ describe('Performance and DOM Tests', () => {
       ];
 
       // Test batch mode optimization
-      const batchOverlays = elements.map(el => 
+      const batchOverlays = elements.map(el =>
         createOptimizedOverlay(el, 'Test message', true)
       );
 
@@ -605,7 +605,7 @@ describe('Performance and DOM Tests', () => {
 
         addOverlay: function(overlay) {
           this.overlays.push(overlay);
-          
+
           // Cleanup if exceeding limit
           if (this.overlays.length > this.maxOverlays) {
             this.cleanup();
@@ -616,7 +616,7 @@ describe('Performance and DOM Tests', () => {
           // Remove oldest overlays
           const toRemove = this.overlays.length - this.maxOverlays;
           const removed = this.overlays.splice(0, toRemove);
-          
+
           // Simulate DOM cleanup
           removed.forEach(overlay => {
             if (overlay.domElement && overlay.domElement.parentNode) {

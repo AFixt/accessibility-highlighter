@@ -172,8 +172,8 @@ describe('Accessibility Highlighter Unit Tests', () => {
         }
       };
 
-      const result = mockFunction();
-      expect(result).toBe(false);
+      const _result = mockFunction();
+      expect(_result).toBe(false);
       expect(global.console.error).toHaveBeenCalledWith('Error caught:', expect.any(Error));
     });
   });

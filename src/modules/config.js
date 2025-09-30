@@ -1,12 +1,12 @@
 /**
  * @fileoverview Configuration module for Accessibility Highlighter
- * 
+ *
  * This module centralizes all configuration data including:
  * - Performance and visual settings
  * - Accessibility checking rules
  * - Filter settings
  * - Persistent configuration management
- * 
+ *
  * @author AFixt
  * @version 1.0.1
  */
@@ -351,10 +351,16 @@ export async function saveFilterSettings(filters) {
  */
 function mergeWithDefaults(userSettings, defaultSettings) {
   const merged = JSON.parse(JSON.stringify(defaultSettings));
-  
+
+  /**
+   * Deep merge two objects
+   * @param {Object} target - Target object
+   * @param {Object} source - Source object
+   * @returns {Object} Merged object
+   */
   function deepMerge(target, source) {
     for (const key in source) {
-      if (source.hasOwnProperty(key)) {
+      if (Object.prototype.hasOwnProperty.call(source, key)) {
         if (typeof source[key] === 'object' && source[key] !== null && !Array.isArray(source[key])) {
           if (!target[key] || typeof target[key] !== 'object') {
             target[key] = {};
@@ -365,8 +371,9 @@ function mergeWithDefaults(userSettings, defaultSettings) {
         }
       }
     }
+    return target;
   }
-  
+
   deepMerge(merged, userSettings);
   return merged;
 }

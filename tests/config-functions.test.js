@@ -20,16 +20,16 @@ global.chrome = {
 };
 
 // Mock localStorage
-const localStorageMock = {
+const __localStorageMock = {
   getItem: jest.fn(),
   setItem: jest.fn(),
   removeItem: jest.fn(),
   clear: jest.fn()
 };
-global.localStorage = localStorageMock;
+global.localStorage = __localStorageMock;
 
 // Mock console methods
-const consoleSpy = {
+const _consoleSpy = {
   log: jest.spyOn(console, 'log').mockImplementation(),
   warn: jest.spyOn(console, 'warn').mockImplementation(),
   error: jest.spyOn(console, 'error').mockImplementation()
@@ -57,19 +57,19 @@ describe('Config Module Functions', () => {
 
   describe('loadCustomRules()', () => {
     test('should load custom rules from Chrome storage', async () => {
-      const customRules = {
+      const _customRules = {
         prohibitedAlts: ['test1', 'test2'],
         prohibitedLinks: ['click', 'here']
       };
 
       chrome.storage.local.get.mockImplementation((key, callback) => {
-        callback({ customRules });
+        callback({ customRules: _customRules });
       });
 
-      const result = await loadCustomRules();
+      const _result = await loadCustomRules();
 
       expect(chrome.storage.local.get).toHaveBeenCalledWith('customRules', expect.any(Function));
-      expect(result).toMatchObject(customRules);
+      expect(_result).toMatchObject(_customRules);
     });
 
     test('should return default rules when no custom rules exist', async () => {
@@ -77,28 +77,28 @@ describe('Config Module Functions', () => {
         callback({});
       });
 
-      const result = await loadCustomRules();
+      const _result = await loadCustomRules();
 
-      expect(result).toEqual(DEFAULT_CUSTOM_RULES);
+      expect(_result).toEqual(DEFAULT_CUSTOM_RULES);
     });
 
     test('should fallback to localStorage when Chrome storage is unavailable', async () => {
       // Temporarily remove chrome.storage
-      const originalChrome = global.chrome;
+      const __originalChrome = global.chrome;
       delete global.chrome.storage;
 
-      const customRules = {
+      const _customRules = {
         prohibitedAlts: ['test1', 'test2']
       };
-      localStorageMock.getItem.mockReturnValue(JSON.stringify(customRules));
+      __localStorageMock.getItem.mockReturnValue(JSON.stringify(_customRules));
 
-      const result = await loadCustomRules();
+      const _result = await loadCustomRules();
 
-      expect(localStorageMock.getItem).toHaveBeenCalledWith('a11y-custom-rules');
-      expect(result).toMatchObject(customRules);
+      expect(__localStorageMock.getItem).toHaveBeenCalledWith('a11y-custom-rules');
+      expect(_result).toMatchObject(_customRules);
 
       // Restore chrome.storage
-      global.chrome = originalChrome;
+      global.chrome = _originalChrome;
     });
 
     test('should handle errors gracefully and return defaults', async () => {
@@ -106,19 +106,19 @@ describe('Config Module Functions', () => {
         throw new Error('Storage error');
       });
 
-      const result = await loadCustomRules();
+      const _result = await loadCustomRules();
 
-      expect(consoleSpy.warn).toHaveBeenCalledWith(
+      expect(_consoleSpy.warn).toHaveBeenCalledWith(
         'Error loading custom rules, using defaults:',
         expect.any(Error)
       );
-      expect(result).toEqual(DEFAULT_CUSTOM_RULES);
+      expect(_result).toEqual(DEFAULT_CUSTOM_RULES);
     });
   });
 
   describe('saveCustomRules()', () => {
     test('should save custom rules to Chrome storage', async () => {
-      const customRules = {
+      const _customRules = {
         prohibitedAlts: ['test1', 'test2']
       };
 
@@ -126,32 +126,32 @@ describe('Config Module Functions', () => {
         callback();
       });
 
-      await saveCustomRules(customRules);
+      await saveCustomRules(_customRules);
 
       expect(chrome.storage.local.set).toHaveBeenCalledWith(
-        { customRules },
+        { customRules: _customRules },
         expect.any(Function)
       );
-      expect(consoleSpy.log).toHaveBeenCalledWith('Custom rules saved successfully');
+      expect(_consoleSpy.log).toHaveBeenCalledWith('Custom rules saved successfully');
     });
 
     test('should fallback to localStorage when Chrome storage is unavailable', async () => {
-      const originalChrome = global.chrome;
+      const __originalChrome = global.chrome;
       delete global.chrome.storage;
 
-      const customRules = {
+      const _customRules = {
         prohibitedAlts: ['test1', 'test2']
       };
 
-      await saveCustomRules(customRules);
+      await saveCustomRules(_customRules);
 
-      expect(localStorageMock.setItem).toHaveBeenCalledWith(
+      expect(_localStorageMock.setItem).toHaveBeenCalledWith(
         'a11y-custom-rules',
-        JSON.stringify(customRules)
+        JSON.stringify(_customRules)
       );
-      expect(consoleSpy.log).toHaveBeenCalledWith('Custom rules saved to localStorage');
+      expect(_consoleSpy.log).toHaveBeenCalledWith('Custom rules saved to localStorage');
 
-      global.chrome = originalChrome;
+      global.chrome = _originalChrome;
     });
 
     test('should handle errors gracefully', async () => {
@@ -161,7 +161,7 @@ describe('Config Module Functions', () => {
 
       await saveCustomRules({});
 
-      expect(consoleSpy.error).toHaveBeenCalledWith(
+      expect(_consoleSpy.error).toHaveBeenCalledWith(
         'Error saving custom rules:',
         expect.any(Error)
       );
@@ -170,7 +170,7 @@ describe('Config Module Functions', () => {
 
   describe('loadFilterSettings()', () => {
     test('should load filter settings from Chrome storage', async () => {
-      const filterSettings = {
+      const _filterSettings = {
         showErrors: true,
         showWarnings: false,
         categories: {
@@ -180,13 +180,13 @@ describe('Config Module Functions', () => {
       };
 
       chrome.storage.local.get.mockImplementation((key, callback) => {
-        callback({ filterSettings });
+        callback({ filterSettings: _filterSettings });
       });
 
-      const result = await loadFilterSettings();
+      const _result = await loadFilterSettings();
 
       expect(chrome.storage.local.get).toHaveBeenCalledWith('filterSettings', expect.any(Function));
-      expect(result).toMatchObject(filterSettings);
+      expect(_result).toMatchObject(_filterSettings);
     });
 
     test('should return default filters when no settings exist', async () => {
@@ -194,27 +194,27 @@ describe('Config Module Functions', () => {
         callback({});
       });
 
-      const result = await loadFilterSettings();
+      const _result = await loadFilterSettings();
 
-      expect(result).toEqual(DEFAULT_FILTERS);
+      expect(_result).toEqual(DEFAULT_FILTERS);
     });
 
     test('should fallback to localStorage when Chrome storage is unavailable', async () => {
-      const originalChrome = global.chrome;
+      const __originalChrome = global.chrome;
       delete global.chrome.storage;
 
-      const filterSettings = {
+      const _filterSettings = {
         showErrors: false,
         showWarnings: true
       };
-      localStorageMock.getItem.mockReturnValue(JSON.stringify(filterSettings));
+      _localStorageMock.getItem.mockReturnValue(JSON.stringify(_filterSettings));
 
-      const result = await loadFilterSettings();
+      const _result = await loadFilterSettings();
 
-      expect(localStorageMock.getItem).toHaveBeenCalledWith('a11y-filter-settings');
-      expect(result).toMatchObject(filterSettings);
+      expect(_localStorageMock.getItem).toHaveBeenCalledWith('a11y-filter-settings');
+      expect(_result).toMatchObject(_filterSettings);
 
-      global.chrome = originalChrome;
+      global.chrome = _originalChrome;
     });
 
     test('should handle errors gracefully and return defaults', async () => {
@@ -222,19 +222,19 @@ describe('Config Module Functions', () => {
         throw new Error('Storage error');
       });
 
-      const result = await loadFilterSettings();
+      const _result = await loadFilterSettings();
 
-      expect(consoleSpy.warn).toHaveBeenCalledWith(
+      expect(_consoleSpy.warn).toHaveBeenCalledWith(
         'Error loading filter settings, using defaults:',
         expect.any(Error)
       );
-      expect(result).toEqual(DEFAULT_FILTERS);
+      expect(_result).toEqual(DEFAULT_FILTERS);
     });
   });
 
   describe('saveFilterSettings()', () => {
     test('should save filter settings to Chrome storage', async () => {
-      const filterSettings = {
+      const _filterSettings = {
         showErrors: true,
         showWarnings: false
       };
@@ -243,33 +243,33 @@ describe('Config Module Functions', () => {
         callback();
       });
 
-      await saveFilterSettings(filterSettings);
+      await saveFilterSettings(_filterSettings);
 
       expect(chrome.storage.local.set).toHaveBeenCalledWith(
-        { filterSettings },
+        { filterSettings: _filterSettings },
         expect.any(Function)
       );
-      expect(consoleSpy.log).toHaveBeenCalledWith('Filter settings saved successfully');
+      expect(_consoleSpy.log).toHaveBeenCalledWith('Filter settings saved successfully');
     });
 
     test('should fallback to localStorage when Chrome storage is unavailable', async () => {
-      const originalChrome = global.chrome;
+      const __originalChrome = global.chrome;
       delete global.chrome.storage;
 
-      const filterSettings = {
+      const _filterSettings = {
         showErrors: true,
         showWarnings: false
       };
 
-      await saveFilterSettings(filterSettings);
+      await saveFilterSettings(_filterSettings);
 
-      expect(localStorageMock.setItem).toHaveBeenCalledWith(
+      expect(_localStorageMock.setItem).toHaveBeenCalledWith(
         'a11y-filter-settings',
-        JSON.stringify(filterSettings)
+        JSON.stringify(_filterSettings)
       );
-      expect(consoleSpy.log).toHaveBeenCalledWith('Filter settings saved to localStorage');
+      expect(_consoleSpy.log).toHaveBeenCalledWith('Filter settings saved to localStorage');
 
-      global.chrome = originalChrome;
+      global.chrome = _originalChrome;
     });
 
     test('should handle errors gracefully', async () => {
@@ -279,7 +279,7 @@ describe('Config Module Functions', () => {
 
       await saveFilterSettings({});
 
-      expect(consoleSpy.error).toHaveBeenCalledWith(
+      expect(_consoleSpy.error).toHaveBeenCalledWith(
         'Error saving filter settings:',
         expect.any(Error)
       );
@@ -292,9 +292,9 @@ describe('Config Module Functions', () => {
         callback();
       });
 
-      const result = await resetCustomRules();
+      const _result = await resetCustomRules();
 
-      expect(result).toEqual(DEFAULT_CUSTOM_RULES);
+      expect(_result).toEqual(DEFAULT_CUSTOM_RULES);
       expect(chrome.storage.local.set).toHaveBeenCalledWith(
         { customRules: DEFAULT_CUSTOM_RULES },
         expect.any(Function)
@@ -306,10 +306,10 @@ describe('Config Module Functions', () => {
         throw new Error('Storage error');
       });
 
-      const result = await resetCustomRules();
+      const _result = await resetCustomRules();
 
-      expect(result).toEqual(DEFAULT_CUSTOM_RULES);
-      expect(consoleSpy.error).toHaveBeenCalledWith(
+      expect(_result).toEqual(DEFAULT_CUSTOM_RULES);
+      expect(_consoleSpy.error).toHaveBeenCalledWith(
         'Error saving custom rules:',
         expect.any(Error)
       );
@@ -318,41 +318,41 @@ describe('Config Module Functions', () => {
 
   describe('mergeWithDefaults (indirectly tested)', () => {
     test('should merge user settings with defaults', async () => {
-      const userRules = {
+      const _userRules = {
         prohibitedAlts: ['custom1']
       };
 
       chrome.storage.local.get.mockImplementation((key, callback) => {
-        callback({ customRules: userRules });
+        callback({ customRules: _userRules });
       });
 
-      const result = await loadCustomRules();
+      const _result = await loadCustomRules();
 
       // Should have both user rules and any default properties
-      expect(result.prohibitedAlts).toContain('custom1');
+      expect(_result.prohibitedAlts).toContain('custom1');
       // Check that other default properties are preserved
-      expect(result).toHaveProperty('prohibitedTableSummaries');
-      expect(result).toHaveProperty('prohibitedLinks');
+      expect(_result).toHaveProperty('prohibitedTableSummaries');
+      expect(_result).toHaveProperty('prohibitedLinks');
     });
 
     test('should handle nested object merging', async () => {
-      const userSettings = {
+      const _userSettings = {
         categories: {
           images: false
         }
       };
 
       chrome.storage.local.get.mockImplementation((key, callback) => {
-        callback({ filterSettings: userSettings });
+        callback({ filterSettings: _userSettings });
       });
 
-      const result = await loadFilterSettings();
+      const _result = await loadFilterSettings();
 
       // User setting should override default
-      expect(result.categories.images).toBe(false);
+      expect(_result.categories.images).toBe(false);
       // Other defaults should be preserved
-      expect(result.categories).toHaveProperty('forms');
-      expect(result.categories).toHaveProperty('links');
+      expect(_result.categories).toHaveProperty('forms');
+      expect(_result.categories).toHaveProperty('links');
     });
   });
 });

@@ -48,7 +48,7 @@ describe('Chrome Extension Message Handling', () => {
     require('../src/contentScript.js');
 
     // Extract the message listener that was registered
-    const addListenerCalls = global.chrome.runtime.onMessage.addListener.mock.calls;
+    const _addListenerCalls = global.chrome.runtime.onMessage.addListener.mock.calls;
     if (addListenerCalls.length > 0) {
       messageListener = addListenerCalls[addListenerCalls.length - 1][0];
     }
@@ -70,46 +70,46 @@ describe('Chrome Extension Message Handling', () => {
   });
 
   test('should handle "toggleHighlight" message with enabled state', async () => {
-    const message = {
+    const _message = {
       action: 'toggleAccessibilityHighlight',
       isEnabled: true
     };
 
-    const result = messageListener(message, mockSender, mockSendResponse);
+    const _result = messageListener(message, mockSender, mockSendResponse);
 
     expect(global.toggleAccessibilityHighlight).toHaveBeenCalledWith(true);
     expect(mockSendResponse).toHaveBeenCalledWith('highlighted');
-    expect(result).toBe(true);
+    expect(_result).toBe(true);
   });
 
   test('should handle "toggleHighlight" message with disabled state', async () => {
-    const message = {
+    const _message = {
       action: 'toggleAccessibilityHighlight',
       isEnabled: false
     };
 
-    const result = messageListener(message, mockSender, mockSendResponse);
+    const _result = messageListener(message, mockSender, mockSendResponse);
 
     expect(global.toggleAccessibilityHighlight).toHaveBeenCalledWith(false);
     expect(mockSendResponse).toHaveBeenCalledWith('unhighlighted');
-    expect(result).toBe(true);
+    expect(_result).toBe(true);
   });
 
   test('should handle unknown message action gracefully', async () => {
-    const message = {
+    const _message = {
       action: 'unknownAction',
       someData: 'test'
     };
 
-    const result = messageListener(message, mockSender, mockSendResponse);
+    const _result = messageListener(message, mockSender, mockSendResponse);
 
     expect(global.toggleAccessibilityHighlight).not.toHaveBeenCalled();
     expect(mockSendResponse).not.toHaveBeenCalled();
-    expect(result).toBe(false);
+    expect(_result).toBe(false);
   });
 
   test('should handle invalid message format gracefully', async () => {
-    const invalidMessages = [
+    const _invalidMessages = [
       null,
       undefined,
       {},
@@ -120,8 +120,8 @@ describe('Chrome Extension Message Handling', () => {
     ];
 
     invalidMessages.forEach(message => {
-      const result = messageListener(message, mockSender, mockSendResponse);
-      expect(result).toBe(false);
+      const _result = messageListener(message, mockSender, mockSendResponse);
+      expect(_result).toBe(false);
     });
 
     expect(global.toggleAccessibilityHighlight).not.toHaveBeenCalled();
@@ -129,15 +129,15 @@ describe('Chrome Extension Message Handling', () => {
   });
 
   test('should handle message with missing isEnabled property', async () => {
-    const message = {
+    const _message = {
       action: 'toggleHighlight'
       // Missing isEnabled property
     };
 
-    const result = messageListener(message, mockSender, mockSendResponse);
+    const _result = messageListener(message, mockSender, mockSendResponse);
 
     // Should not crash but also should not perform actions
-    expect(result).toBe(false);
+    expect(_result).toBe(false);
     expect(global.toggleAccessibilityHighlight).not.toHaveBeenCalled();
   });
 
@@ -147,7 +147,7 @@ describe('Chrome Extension Message Handling', () => {
       throw new Error('Test error during accessibility highlight toggle');
     });
 
-    const message = {
+    const _message = {
       action: 'toggleAccessibilityHighlight',
       isEnabled: true
     };
@@ -166,7 +166,7 @@ describe('Chrome Extension Message Handling', () => {
       throw new Error('Test error during accessibility highlight disable');
     });
 
-    const message = {
+    const _message = {
       action: 'toggleAccessibilityHighlight',
       isEnabled: false
     };
@@ -180,24 +180,24 @@ describe('Chrome Extension Message Handling', () => {
   });
 
   test('should return true for async response handling', async () => {
-    const message = {
+    const _message = {
       action: 'toggleAccessibilityHighlight',
       isEnabled: true
     };
 
-    const result = messageListener(message, mockSender, mockSendResponse);
+    const _result = messageListener(message, mockSender, mockSendResponse);
 
     // Should return true to indicate async response
-    expect(result).toBe(true);
+    expect(_result).toBe(true);
   });
 
   test('should call sendResponse with success true for valid toggle requests', async () => {
-    const enableMessage = {
+    const _enableMessage = {
       action: 'toggleAccessibilityHighlight',
       isEnabled: true
     };
 
-    const disableMessage = {
+    const _disableMessage = {
       action: 'toggleAccessibilityHighlight',
       isEnabled: false
     };
@@ -212,17 +212,17 @@ describe('Chrome Extension Message Handling', () => {
   });
 
   test('should handle multiple rapid message calls', async () => {
-    const message1 = {
+    const _message1 = {
       action: 'toggleAccessibilityHighlight',
       isEnabled: true
     };
 
-    const message2 = {
+    const _message2 = {
       action: 'toggleAccessibilityHighlight',
       isEnabled: false
     };
 
-    const message3 = {
+    const _message3 = {
       action: 'toggleAccessibilityHighlight',
       isEnabled: true
     };
@@ -240,15 +240,15 @@ describe('Chrome Extension Message Handling', () => {
   });
 
   test('should preserve message listener context', async () => {
-    const message = {
+    const _message = {
       action: 'toggleAccessibilityHighlight',
       isEnabled: true
     };
 
     // Call with different context
-    const result = messageListener.call({}, message, mockSender, mockSendResponse);
+    const _result = messageListener.call({}, message, mockSender, mockSendResponse);
 
-    expect(result).toBe(true);
+    expect(_result).toBe(true);
     expect(mockSendResponse).toHaveBeenCalledWith('highlighted');
   });
 });

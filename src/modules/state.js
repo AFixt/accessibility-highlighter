@@ -1,12 +1,12 @@
 /**
  * @fileoverview State management module for Accessibility Highlighter
- * 
+ *
  * This module manages the global state of the accessibility highlighter including:
  * - Scan results and LOGS
  * - UI state (overlays, progress indicators)
  * - Keyboard navigation state
  * - Filter and configuration state
- * 
+ *
  * @author AFixt
  * @version 1.0.1
  */
@@ -294,25 +294,25 @@ export async function initializeState() {
 export function resetState() {
   // Reset LOGS
   clearLogs();
-  
+
   // Reset navigation state
   currentOverlayIndex = -1;
   keyboardNavigationActive = false;
-  
+
   // Reset progress indicator
   progressIndicator = null;
-  
+
   // Reset scan state
   isRunning = false;
   lastRunTime = 0;
-  
+
   // Reset incremental state
   resetIncrementalState();
-  
+
   // Reset filters and rules to defaults
   currentFilters = { ...DEFAULT_FILTERS };
   customRules = { ...DEFAULT_CUSTOM_RULES };
-  
+
   console.log('State reset to initial values');
 }
 

@@ -1,6 +1,6 @@
 /**
  * @fileoverview Accessibility Highlighter Configuration
- * 
+ *
  * Centralized configuration and constants for the extension. This file contains
  * all configurable settings including:
  * - Performance thresholds and timing settings
@@ -9,7 +9,7 @@
  * - CSS selectors for element identification
  * - Error and warning messages
  * - Feature flags for enabling/disabling checks
- * 
+ *
  * @author AFixt
  * @version 1.0.1
  */
@@ -21,7 +21,7 @@ export const PERFORMANCE_CONFIG = {
   THROTTLE_DELAY: 1000, // 1 second throttle delay
   FONT_SIZE_THRESHOLD: 12, // Minimum font size in pixels
   MAX_LOG_ELEMENT_LENGTH: 100, // Maximum length for element HTML in logs
-  Z_INDEX_OVERLAY: 2147483647, // Highest z-index for overlays
+  Z_INDEX_OVERLAY: 2147483647 // Highest z-index for overlays
 };
 
 /**
@@ -33,7 +33,7 @@ export const VISUAL_CONFIG = {
   OVERLAY_OPACITY: 0.4,
   BORDER_RADIUS: '5px',
   BORDER_WIDTH: '2px',
-  STRIPE_GRADIENT: 'repeating-linear-gradient(45deg, transparent, transparent 15px, rgba(255,255,255,.5) 15px, rgba(255,255,255,.5) 30px)',
+  STRIPE_GRADIENT: 'repeating-linear-gradient(45deg, transparent, transparent 15px, rgba(255,255,255,.5) 15px, rgba(255,255,255,.5) 30px)'
 };
 
 /**
@@ -47,7 +47,7 @@ export const CHECK_CONFIG = {
   ENABLE_LINK_CHECK: true,
   ENABLE_TABLE_CHECK: true,
   ENABLE_MEDIA_CHECK: true,
-  ENABLE_TABINDEX_CHECK: true,
+  ENABLE_TABINDEX_CHECK: true
 };
 
 /**
@@ -108,7 +108,7 @@ export const PROHIBITED_TABLE_SUMMARIES = [
   'Footer',
   'main layout',
   'tooltip',
-  'Logo',
+  'Logo'
 ];
 
 /**
@@ -133,7 +133,7 @@ export const PROHIBITED_ALT_VALUES = [
   'back',
   'bg',
   'img',
-  'alt',
+  'alt'
 ];
 
 /**
@@ -159,7 +159,7 @@ export const PROHIBITED_LINK_TEXT = [
   'show',
   'hide',
   'show more',
-  'show less',
+  'show less'
 ];
 
 /**
@@ -176,7 +176,7 @@ export const DEPRECATED_ELEMENTS = [
   'menu',
   's',
   'strike',
-  'u',
+  'u'
 ];
 
 /**
@@ -187,7 +187,7 @@ export const SELECTORS = {
   LANDMARK_ELEMENTS: 'header, aside, footer, main, nav, [role="banner"], [role="complementary"], [role="contentinfo"], [role="main"], [role="navigation"], [role="search"]',
   TEXT_ELEMENTS: ['p', 'span', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'td', 'th', 'label', 'a', 'button'],
   INTERACTIVE_ELEMENTS: ['a', 'area', 'button', 'input', 'select', 'textarea'],
-  OVERLAY_ELEMENTS: '.a11y-error, .a11y-warning, .overlay',
+  OVERLAY_ELEMENTS: '.a11y-error, .a11y-warning, .overlay'
 };
 
 /**
@@ -217,7 +217,7 @@ export const MESSAGES = {
   SMALL_FONT_SIZE: 'Text element with font size smaller than 12px',
   NO_LANDMARKS: 'No landmark elements found',
   THROTTLED: 'Accessibility checks throttled - please wait',
-  NO_ISSUES: 'No accessibility issues found.',
+  NO_ISSUES: 'No accessibility issues found.'
 };
 
 /**
@@ -226,7 +226,7 @@ export const MESSAGES = {
 export const CSS_CLASSES = {
   ERROR_OVERLAY: 'a11y-error',
   WARNING_OVERLAY: 'a11y-warning',
-  GENERIC_OVERLAY: 'overlay',
+  GENERIC_OVERLAY: 'overlay'
 };
 
 /**
@@ -235,7 +235,7 @@ export const CSS_CLASSES = {
 export const USER_CONFIG = {
   enabledChecks: { ...CHECK_CONFIG },
   visualSettings: { ...VISUAL_CONFIG },
-  performanceSettings: { ...PERFORMANCE_CONFIG },
+  performanceSettings: { ...PERFORMANCE_CONFIG }
 };
 
 /**
@@ -244,5 +244,5 @@ export const USER_CONFIG = {
 export const DEFAULT_CONFIG = {
   enabledChecks: { ...CHECK_CONFIG },
   visualSettings: { ...VISUAL_CONFIG },
-  performanceSettings: { ...PERFORMANCE_CONFIG },
+  performanceSettings: { ...PERFORMANCE_CONFIG }
 };

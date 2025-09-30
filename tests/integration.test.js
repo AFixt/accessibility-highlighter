@@ -85,8 +85,8 @@ describe('Accessibility Highlighter Integration Tests', () => {
 
       // Verify multiple issues were detected
       expect(console.log).toHaveBeenCalled();
-      const overlays = document.querySelectorAll('.overlay');
-      expect(overlays.length).toBeGreaterThan(5);
+      const _overlays = document.querySelectorAll('.overlay');
+      expect(_overlays.length).toBeGreaterThan(5);
 
       // Verify console.table was called with logs
       expect(console.table).toHaveBeenCalledWith(global.logs);
@@ -140,8 +140,8 @@ describe('Accessibility Highlighter Integration Tests', () => {
       global.runAccessibilityChecks();
 
       // Should have minimal or no issues
-      const overlays = document.querySelectorAll('.overlay');
-      expect(overlays.length).toBe(0);
+      const _overlays = document.querySelectorAll('.overlay');
+      expect(_overlays.length).toBe(0);
       expect(global.logs.length).toBe(0);
     });
 
@@ -156,14 +156,14 @@ describe('Accessibility Highlighter Integration Tests', () => {
       // Run checks to create overlays
       global.runAccessibilityChecks();
 
-      let overlays = document.querySelectorAll('.overlay');
-      expect(overlays.length).toBeGreaterThan(0);
+      const _overlays = document.querySelectorAll('.overlay');
+      expect(_overlays.length).toBeGreaterThan(0);
 
       // Remove all overlays
       global.removeAccessibilityOverlays();
 
-      overlays = document.querySelectorAll('.overlay');
-      expect(overlays.length).toBe(0);
+      const _overlaysAfter = document.querySelectorAll('.overlay');
+      expect(_overlaysAfter.length).toBe(0);
     });
 
     test('should handle throttled rapid successive calls', () => {
@@ -175,8 +175,8 @@ describe('Accessibility Highlighter Integration Tests', () => {
       global.runAccessibilityChecks();
 
       // Should not create multiple overlays for same element
-      const overlays = document.querySelectorAll('.overlay');
-      expect(overlays.length).toBe(1);
+      const _overlays = document.querySelectorAll('.overlay');
+      expect(_overlays.length).toBe(1);
     });
   });
 
@@ -189,26 +189,26 @@ describe('Accessibility Highlighter Integration Tests', () => {
       `;
 
       // Get message listener
-      const messageListener = global.chrome.runtime.onMessage.addListener.mock.calls[0][0];
-      const mockSendResponse = jest.fn();
-      const mockSender = { tab: { id: 123 } };
+      const _messageListener = global.chrome.runtime.onMessage.addListener.mock.calls[0][0];
+      const _mockSendResponse = jest.fn();
+      const _mockSender = { tab: { id: 123 } };
 
       // Enable highlighting
-      const enableMessage = {
+      const _enableMessage = {
         action: 'toggleAccessibilityHighlight',
         isEnabled: true
       };
 
-      messageListener(enableMessage, mockSender, mockSendResponse);
+      _messageListener(_enableMessage, _mockSender, _mockSendResponse);
 
-      let overlays = document.querySelectorAll('.overlay');
-      expect(overlays.length).toBeGreaterThan(0);
-      expect(mockSendResponse).toHaveBeenCalledWith('highlighted');
+      const _overlays = document.querySelectorAll('.overlay');
+      expect(_overlays.length).toBeGreaterThan(0);
+      expect(_mockSendResponse).toHaveBeenCalledWith('highlighted');
 
-      mockSendResponse.mockClear();
+      _mockSendResponse.mockClear();
 
       // Disable highlighting
-      const disableMessage = {
+      const _disableMessage = {
         action: 'toggleAccessibilityHighlight',
         isEnabled: false
       };
@@ -216,16 +216,16 @@ describe('Accessibility Highlighter Integration Tests', () => {
       messageListener(disableMessage, mockSender, mockSendResponse);
 
       overlays = document.querySelectorAll('.overlay');
-      expect(overlays.length).toBe(0);
-      expect(mockSendResponse).toHaveBeenCalledWith('unhighlighted');
+      expect(_overlays.length).toBe(0);
+      expect(_mockSendResponse).toHaveBeenCalledWith('unhighlighted');
     });
   });
 
   describe('Performance and Memory Tests', () => {
     test('should handle large DOM with many elements', () => {
       // Create a large DOM structure
-      let htmlContent = '';
-      for (let i = 0; i < 100; i++) {
+      const _htmlContent = '';
+      for (let _i = 0; i < 100; i++) {
         htmlContent += `
           <div>
             <img src="image${i}.jpg">
@@ -240,16 +240,16 @@ describe('Accessibility Highlighter Integration Tests', () => {
       }
       document.body.innerHTML = htmlContent;
 
-      const startTime = performance.now();
+      const _startTime = performance.now();
       global.runAccessibilityChecks();
-      const endTime = performance.now();
+      const _endTime = performance.now();
 
       // Should complete within reasonable time (adjust threshold as needed)
       expect(endTime - startTime).toBeLessThan(5000); // 5 seconds max
 
       // Should detect multiple issues
-      const overlays = document.querySelectorAll('.overlay');
-      expect(overlays.length).toBeGreaterThan(100);
+      const _overlays = document.querySelectorAll('.overlay');
+      expect(_overlays.length).toBeGreaterThan(100);
     });
 
     test('should not create memory leaks with repeated operations', () => {
@@ -259,14 +259,14 @@ describe('Accessibility Highlighter Integration Tests', () => {
       `;
 
       // Simulate repeated enable/disable cycles
-      for (let i = 0; i < 50; i++) {
+      for (let _i = 0; i < 50; i++) {
         global.runAccessibilityChecks();
         global.removeAccessibilityOverlays();
       }
 
       // Final state should be clean
-      const overlays = document.querySelectorAll('.overlay');
-      expect(overlays.length).toBe(0);
+      const _overlays = document.querySelectorAll('.overlay');
+      expect(_overlays.length).toBe(0);
 
       // Logs should still work
       global.runAccessibilityChecks();
@@ -278,11 +278,11 @@ describe('Accessibility Highlighter Integration Tests', () => {
       document.body.innerHTML = `<div id="container"></div>`;
 
       global.runAccessibilityChecks();
-      let overlays = document.querySelectorAll('.overlay');
-      expect(overlays.length).toBe(0);
+      const _overlays = document.querySelectorAll('.overlay');
+      expect(_overlays.length).toBe(0);
 
       // Add problematic content dynamically
-      const container = document.getElementById('container');
+      const _container = document.getElementById('container');
       container.innerHTML = `
         <img src="test.jpg">
         <button></button>
@@ -290,7 +290,7 @@ describe('Accessibility Highlighter Integration Tests', () => {
 
       global.runAccessibilityChecks();
       overlays = document.querySelectorAll('.overlay');
-      expect(overlays.length).toBeGreaterThan(0);
+      expect(_overlays.length).toBeGreaterThan(0);
 
       // Remove problematic content
       container.innerHTML = `
@@ -301,7 +301,7 @@ describe('Accessibility Highlighter Integration Tests', () => {
       global.removeAccessibilityOverlays();
       global.runAccessibilityChecks();
       overlays = document.querySelectorAll('.overlay');
-      expect(overlays.length).toBe(0);
+      expect(_overlays.length).toBe(0);
     });
   });
 
@@ -314,10 +314,10 @@ describe('Accessibility Highlighter Integration Tests', () => {
       `;
 
       // Mock one element to throw error during checking
-      const elements = document.querySelectorAll('*');
-      const problematicElement = elements[1]; // button
+      const _elements = document.querySelectorAll('*');
+      const _problematicElement = elements[1]; // button
 
-      const originalGetAttribute = problematicElement.getAttribute;
+      const _originalGetAttribute = problematicElement.getAttribute;
       problematicElement.getAttribute = jest.fn().mockImplementation(attr => {
         if (attr === 'aria-label') {
           throw new Error('DOM access error');
@@ -330,16 +330,16 @@ describe('Accessibility Highlighter Integration Tests', () => {
         global.runAccessibilityChecks();
       }).not.toThrow();
 
-      const overlays = document.querySelectorAll('.overlay');
-      expect(overlays.length).toBeGreaterThan(0); // Should still find issues in other elements
+      const _overlays = document.querySelectorAll('.overlay');
+      expect(_overlays.length).toBeGreaterThan(0); // Should still find issues in other elements
     });
 
     test('should handle corrupted overlay cleanup', () => {
       document.body.innerHTML = `<img src="test.jpg">`;
 
       global.runAccessibilityChecks();
-      const overlays = document.querySelectorAll('.overlay');
-      expect(overlays.length).toBeGreaterThan(0);
+      const _overlays = document.querySelectorAll('.overlay');
+      expect(_overlays.length).toBeGreaterThan(0);
 
       // Corrupt one overlay by removing its remove method
       if (overlays.length > 0) {
@@ -373,11 +373,11 @@ describe('Accessibility Highlighter Integration Tests', () => {
       global.runAccessibilityChecks();
 
       // Verify different message types are used
-      const messageTypes = global.logs.map(log => log.Message);
+      const _messageTypes = global.logs.map(log => log.Message);
       expect(messageTypes.length).toBeGreaterThan(0);
 
       // Should include various message types from config
-      const hasImageMessage = messageTypes.some(msg =>
+      const _hasImageMessage = messageTypes.some(msg =>
         msg.includes(global.A11Y_CONFIG.MESSAGES.MISSING_ALT) ||
         msg.includes('alt attribute')
       );
@@ -388,10 +388,10 @@ describe('Accessibility Highlighter Integration Tests', () => {
   describe('Cross-Browser Compatibility Simulation', () => {
     test('should handle different getBoundingClientRect implementations', () => {
       document.body.innerHTML = `<img src="test.jpg">`;
-      const img = document.querySelector('img');
+      const _img = document.querySelector('img');
 
       // Simulate different getBoundingClientRect behaviors
-      const mockRects = [
+      const _mockRects = [
         { width: 100, height: 50, top: 10, left: 20, right: 120, bottom: 60 },
         { width: 0, height: 0, top: 0, left: 0, right: 0, bottom: 0 }, // Hidden element
         { width: -1, height: -1, top: 0, left: 0, right: -1, bottom: -1 } // Edge case
@@ -407,11 +407,11 @@ describe('Accessibility Highlighter Integration Tests', () => {
     });
 
     test('should handle different textContent implementations', () => {
-      const button = document.createElement('button');
+      const _button = document.createElement('button');
       document.body.appendChild(button);
 
       // Test different textContent scenarios
-      const textScenarios = [
+      const _textScenarios = [
         null,
         undefined,
         '',

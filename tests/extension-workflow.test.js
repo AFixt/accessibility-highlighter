@@ -18,23 +18,23 @@ describe('Setup test', () => {
 
 describe('Extension Workflow Tests', () => {
   let mockChrome;
-  let mockDocument;
-  let mockConsole;
-  let mockTabs;
-  let mockStorage;
+  let _mockDocument;
+  let _mockConsole;
+  let _mockTabs;
+  let _mockStorage;
 
   beforeEach(() => {
     // Mock console
-    mockConsole = {
+    _mockConsole = {
       log: jest.fn(),
       warn: jest.fn(),
       error: jest.fn(),
       table: jest.fn()
     };
-    global.console = mockConsole;
+    global.console = _mockConsole;
 
     // Mock storage
-    mockStorage = {
+    _mockStorage = {
       local: {
         get: jest.fn(() => Promise.resolve({ isEnabled: false })),
         set: jest.fn(() => Promise.resolve())
@@ -42,15 +42,15 @@ describe('Extension Workflow Tests', () => {
     };
 
     // Mock tabs API
-    mockTabs = {
+    _mockTabs = {
       query: jest.fn(() => Promise.resolve([{ id: 1, url: 'https://example.com' }])),
       sendMessage: jest.fn(() => Promise.resolve('response'))
     };
 
     // Mock Chrome APIs
     mockChrome = {
-      storage: mockStorage,
-      tabs: mockTabs,
+      storage: _mockStorage,
+      tabs: _mockTabs,
       action: {
         setIcon: jest.fn(() => Promise.resolve()),
         onClicked: {
@@ -68,7 +68,7 @@ describe('Extension Workflow Tests', () => {
     global.chrome = mockChrome;
 
     // Mock document
-    mockDocument = {
+    _mockDocument = {
       body: {
         innerHTML: '',
         appendChild: jest.fn(),
@@ -77,7 +77,7 @@ describe('Extension Workflow Tests', () => {
         querySelectorAll: jest.fn(() => [])
       },
       createElement: jest.fn(tag => {
-        const element = {
+        const _element = {
           tagName: tag.toUpperCase(),
           innerHTML: '',
           className: '',
@@ -101,8 +101,8 @@ describe('Extension Workflow Tests', () => {
       querySelectorAll: jest.fn(() => []),
       querySelector: jest.fn(() => null)
     };
-    
-    global.document = mockDocument;
+
+    global.document = _mockDocument;
   });
 
   afterEach(() => {
@@ -112,106 +112,106 @@ describe('Extension Workflow Tests', () => {
   describe('Background ↔ Content Script Communication', () => {
     test('should handle extension toggle message from background to content script', async () => {
       // Mock content script message handler
-      const messageHandler = (message, sender, sendResponse) => {
+      const _messageHandler = (_message, _sender, _sendResponse) => {
         try {
           if (message.action === 'toggleAccessibilityHighlight') {
-            const isEnabled = message.isEnabled;
-            
+            const _isEnabled = message.isEnabled;
+
             if (isEnabled) {
               // Simulate running accessibility checks
-              mockConsole.log('Starting accessibility scan...');
+              _mockConsole.log('Starting accessibility scan...');
               sendResponse('highlighted');
             } else {
               // Simulate removing overlays
-              mockConsole.log('Removing accessibility overlays...');
+              _mockConsole.log('Removing accessibility overlays...');
               sendResponse('unhighlighted');
             }
             return true;
           }
           return false;
         } catch (error) {
-          mockConsole.error('Error handling message:', error);
+          _mockConsole.error('Error handling message:', error);
           return false;
         }
       };
 
       // Test enable message
-      const enableMessage = {
+      const _enableMessage = {
         action: 'toggleAccessibilityHighlight',
         isEnabled: true
       };
 
-      const enableResponse = jest.fn();
-      const enableResult = messageHandler(enableMessage, null, enableResponse);
+      const _enableResponse = jest.fn();
+      const _enableResult = messageHandler(enableMessage, null, enableResponse);
 
       expect(enableResult).toBe(true);
-      expect(mockConsole.log).toHaveBeenCalledWith('Starting accessibility scan...');
+      expect(_mockConsole.log).toHaveBeenCalledWith('Starting accessibility scan...');
       expect(enableResponse).toHaveBeenCalledWith('highlighted');
 
       // Test disable message
-      const disableMessage = {
+      const _disableMessage = {
         action: 'toggleAccessibilityHighlight',
         isEnabled: false
       };
 
-      const disableResponse = jest.fn();
-      const disableResult = messageHandler(disableMessage, null, disableResponse);
+      const _disableResponse = jest.fn();
+      const _disableResult = messageHandler(disableMessage, null, disableResponse);
 
       expect(disableResult).toBe(true);
-      expect(mockConsole.log).toHaveBeenCalledWith('Removing accessibility overlays...');
+      expect(_mockConsole.log).toHaveBeenCalledWith('Removing accessibility overlays...');
       expect(disableResponse).toHaveBeenCalledWith('unhighlighted');
     });
 
     test('should handle background script tab communication', async () => {
       // Mock background script functions
-      const getCurrentTab = async () => {
+      const _getCurrentTab = async () => {
         try {
-          const tabs = await mockChrome.tabs.query({ active: true, currentWindow: true });
+          const _tabs = await mockChrome.tabs.query({ active: true, currentWindow: true });
           return tabs[0];
         } catch (error) {
-          mockConsole.error('Error getting current tab:', error);
+          _mockConsole.error('Error getting current tab:', error);
           throw error;
         }
       };
 
-      const sendMessageToTab = async (tabId, message) => {
+      const _sendMessageToTab = async (tabId, message) => {
         try {
-          const response = await mockChrome.tabs.sendMessage(tabId, message);
+          const _response = await mockChrome.tabs.sendMessage(tabId, message);
           return response;
         } catch (error) {
-          mockConsole.error('Error sending message to tab:', error);
+          _mockConsole.error('Error sending message to tab:', error);
           throw error;
         }
       };
 
       // Test getting current tab
-      const currentTab = await getCurrentTab();
+      const _currentTab = await getCurrentTab();
       expect(currentTab.id).toBe(1);
       expect(currentTab.url).toBe('https://example.com');
       expect(mockChrome.tabs.query).toHaveBeenCalledWith({ active: true, currentWindow: true });
 
       // Test sending message to tab
-      const message = { action: 'toggleAccessibilityHighlight', isEnabled: true };
-      const response = await sendMessageToTab(currentTab.id, message);
-      
+      const _message = { action: 'toggleAccessibilityHighlight', isEnabled: true };
+      const _response = await sendMessageToTab(currentTab.id, message);
+
       expect(response).toBe('response');
       expect(mockChrome.tabs.sendMessage).toHaveBeenCalledWith(1, message);
     });
 
     test('should handle state synchronization between background and content script', async () => {
       // Mock state synchronization
-      const syncExtensionState = async () => {
+      const _syncExtensionState = async () => {
         try {
           // Get state from storage
-          const result = await mockChrome.storage.local.get(['isEnabled']);
-          const isEnabled = result.isEnabled || false;
+          const _result = await mockChrome.storage.local.get(['isEnabled']);
+          const _isEnabled = _result.isEnabled || false;
 
           // Update icon based on state
-          const iconPath = isEnabled ? 'icons/icon-active.png' : 'icons/icon-inactive.png';
+          const _iconPath = isEnabled ? 'icons/icon-active.png' : 'icons/icon-inactive.png';
           await mockChrome.action.setIcon({ path: iconPath });
 
           // Send state to content script
-          const currentTab = await mockChrome.tabs.query({ active: true, currentWindow: true });
+          const _currentTab = await mockChrome.tabs.query({ active: true, currentWindow: true });
           if (currentTab[0]) {
             await mockChrome.tabs.sendMessage(currentTab[0].id, {
               action: 'syncState',
@@ -221,12 +221,12 @@ describe('Extension Workflow Tests', () => {
 
           return isEnabled;
         } catch (error) {
-          mockConsole.error('Error syncing state:', error);
+          _mockConsole.error('Error syncing state:', error);
           return false;
         }
       };
 
-      const currentState = await syncExtensionState();
+      const _currentState = await syncExtensionState();
 
       expect(currentState).toBe(false); // Default state
       expect(mockChrome.storage.local.get).toHaveBeenCalledWith(['isEnabled']);
@@ -239,7 +239,7 @@ describe('Extension Workflow Tests', () => {
 
     test('should handle communication errors gracefully', async () => {
       // Mock communication error scenarios
-      const handleCommunicationError = async (operation) => {
+      const _handleCommunicationError = async operation => {
         try {
           switch (operation) {
             case 'tab_query_error':
@@ -256,22 +256,22 @@ describe('Extension Workflow Tests', () => {
               break;
           }
         } catch (error) {
-          mockConsole.error('Communication error:', error.message);
+          _mockConsole.error('Communication error:', error.message);
           return error.message;
         }
       };
 
       // Test tab query error
-      const tabError = await handleCommunicationError('tab_query_error');
+      const _tabError = await handleCommunicationError('tab_query_error');
       expect(tabError).toBe('Tab query failed');
-      expect(mockConsole.error).toHaveBeenCalledWith('Communication error:', 'Tab query failed');
+      expect(_mockConsole.error).toHaveBeenCalledWith('Communication error:', 'Tab query failed');
 
       // Test message send error
-      const messageError = await handleCommunicationError('message_send_error');
+      const _messageError = await handleCommunicationError('message_send_error');
       expect(messageError).toBe('Message send failed');
 
       // Test storage error
-      const storageError = await handleCommunicationError('storage_error');
+      const _storageError = await handleCommunicationError('storage_error');
       expect(storageError).toBe('Storage access failed');
     });
   });
@@ -279,31 +279,31 @@ describe('Extension Workflow Tests', () => {
   describe('End-to-End User Scenarios', () => {
     test('should handle complete extension activation workflow', async () => {
       // Mock complete workflow from user click to content script execution
-      const completeActivationWorkflow = async () => {
-        const steps = [];
+      const _completeActivationWorkflow = async () => {
+        const _steps = [];
 
         try {
           // Step 1: User clicks extension icon
           steps.push('user_clicked_icon');
 
           // Step 2: Background script gets current tab
-          const tabs = await mockChrome.tabs.query({ active: true, currentWindow: true });
-          const currentTab = tabs[0];
+          const _tabs = await mockChrome.tabs.query({ active: true, currentWindow: true });
+          const _currentTab = tabs[0];
           steps.push('got_current_tab');
 
           // Step 3: Background script toggles state
-          const currentState = await mockChrome.storage.local.get(['isEnabled']);
-          const newState = !currentState.isEnabled;
+          const _currentState = await mockChrome.storage.local.get(['isEnabled']);
+          const _newState = !currentState.isEnabled;
           await mockChrome.storage.local.set({ isEnabled: newState });
           steps.push('toggled_state');
 
           // Step 4: Background script updates icon
-          const iconPath = newState ? 'icons/icon-active.png' : 'icons/icon-inactive.png';
+          const _iconPath = newState ? 'icons/icon-active.png' : 'icons/icon-inactive.png';
           await mockChrome.action.setIcon({ path: iconPath });
           steps.push('updated_icon');
 
           // Step 5: Background script sends message to content script
-          const response = await mockChrome.tabs.sendMessage(currentTab.id, {
+          const _response = await mockChrome.tabs.sendMessage(currentTab.id, {
             action: 'toggleAccessibilityHighlight',
             isEnabled: newState
           });
@@ -329,23 +329,23 @@ describe('Extension Workflow Tests', () => {
         }
       };
 
-      const result = await completeActivationWorkflow();
+      const _result = await completeActivationWorkflow();
 
-      expect(result.success).toBe(true);
-      expect(result.steps).toContain('user_clicked_icon');
-      expect(result.steps).toContain('got_current_tab');
-      expect(result.steps).toContain('toggled_state');
-      expect(result.steps).toContain('updated_icon');
-      expect(result.steps).toContain('sent_message_to_content');
-      expect(result.steps).toContain('content_script_responded');
-      expect(result.newState).toBe(true);
-      expect(result.response).toBe('response');
+      expect(_result.success).toBe(true);
+      expect(_result.steps).toContain('user_clicked_icon');
+      expect(_result.steps).toContain('got_current_tab');
+      expect(_result.steps).toContain('toggled_state');
+      expect(_result.steps).toContain('updated_icon');
+      expect(_result.steps).toContain('sent_message_to_content');
+      expect(_result.steps).toContain('content_script_responded');
+      expect(_result.newState).toBe(true);
+      expect(_result.response).toBe('response');
     });
 
     test('should handle accessibility scan user journey', async () => {
       // Mock user journey for running accessibility scan
-      const accessibilityScanJourney = async () => {
-        const journey = {
+      const _accessibilityScanJourney = async () => {
+        const _journey = {
           steps: [],
           findings: [],
           errors: []
@@ -357,10 +357,10 @@ describe('Extension Workflow Tests', () => {
 
           // Step 2: Content script starts scan
           journey.steps.push('scan_started');
-          mockConsole.log('Starting accessibility scan...');
+          _mockConsole.log('Starting accessibility scan...');
 
           // Step 3: Scan finds issues (mock findings)
-          const mockIssues = [
+          const _mockIssues = [
             { type: 'image', message: 'Missing alt attribute', element: '<img src="test.jpg">' },
             { type: 'link', message: 'Uninformative link text', element: '<a href="#">click here</a>' },
             { type: 'form', message: 'Missing label', element: '<input type="text">' }
@@ -371,15 +371,15 @@ describe('Extension Workflow Tests', () => {
 
           // Step 4: Create overlays for issues
           mockIssues.forEach(issue => {
-            const overlay = mockDocument.createElement('div');
+            const _overlay = _mockDocument.createElement('div');
             overlay.className = 'a11y-highlight-overlay';
             overlay.setAttribute('data-a11ymessage', issue.message);
-            mockDocument.body.appendChild(overlay);
+            _mockDocument.body.appendChild(overlay);
           });
           journey.steps.push('overlays_created');
 
           // Step 5: Log results to console
-          mockConsole.table(mockIssues);
+          _mockConsole.table(mockIssues);
           journey.steps.push('results_logged');
 
           // Step 6: User can navigate through issues
@@ -392,7 +392,7 @@ describe('Extension Workflow Tests', () => {
         }
       };
 
-      const journey = await accessibilityScanJourney();
+      const _journey = await accessibilityScanJourney();
 
       expect(journey.steps).toContain('extension_activated');
       expect(journey.steps).toContain('scan_started');
@@ -402,14 +402,14 @@ describe('Extension Workflow Tests', () => {
       expect(journey.steps).toContain('navigation_ready');
       expect(journey.findings).toHaveLength(3);
       expect(journey.errors).toHaveLength(0);
-      expect(mockConsole.log).toHaveBeenCalledWith('Starting accessibility scan...');
-      expect(mockConsole.table).toHaveBeenCalledWith(journey.findings);
+      expect(_mockConsole.log).toHaveBeenCalledWith('Starting accessibility scan...');
+      expect(_mockConsole.table).toHaveBeenCalledWith(journey.findings);
     });
 
     test('should handle keyboard navigation user scenario', async () => {
       // Mock keyboard navigation scenario
-      const keyboardNavigationScenario = async () => {
-        const scenario = {
+      const _keyboardNavigationScenario = async () => {
+        const _scenario = {
           overlays: [],
           currentIndex: -1,
           navigationActive: false,
@@ -417,16 +417,16 @@ describe('Extension Workflow Tests', () => {
         };
 
         // Create mock overlays
-        for (let i = 0; i < 3; i++) {
-          const overlay = mockDocument.createElement('div');
+        for (let _i = 0; i < 3; i++) {
+          const _overlay = _mockDocument.createElement('div');
           overlay.className = 'a11y-highlight-overlay';
           overlay.setAttribute('data-a11ymessage', `Issue ${i + 1}`);
-          mockDocument.body.appendChild(overlay);
+          _mockDocument.body.appendChild(overlay);
           scenario.overlays.push(overlay);
         }
 
         // Mock keyboard navigation handler
-        const handleKeyboardEvent = (event) => {
+        const _handleKeyboardEvent = event => {
           scenario.events.push(event.key);
 
           // Alt+Shift+N to start navigation
@@ -437,7 +437,7 @@ describe('Extension Workflow Tests', () => {
             return 'navigation_started';
           }
 
-          if (!scenario.navigationActive) return 'not_navigating';
+          if (!scenario.navigationActive) {return 'not_navigating';}
 
           switch (event.key) {
             case 'ArrowDown':
@@ -469,7 +469,7 @@ describe('Extension Workflow Tests', () => {
         };
 
         // Simulate user interactions
-        const interactions = [
+        const _interactions = [
           { key: 'N', altKey: true, shiftKey: true, preventDefault: jest.fn() },
           { key: 'ArrowDown', preventDefault: jest.fn() },
           { key: 'ArrowDown', preventDefault: jest.fn() },
@@ -478,7 +478,7 @@ describe('Extension Workflow Tests', () => {
           { key: 'Escape', preventDefault: jest.fn() }
         ];
 
-        const results = interactions.map(interaction => handleKeyboardEvent(interaction));
+        const _results = interactions.map(interaction => handleKeyboardEvent(interaction));
 
         return {
           scenario,
@@ -510,8 +510,8 @@ describe('Extension Workflow Tests', () => {
 
     test('should handle extension deactivation user journey', async () => {
       // Mock deactivation workflow
-      const deactivationWorkflow = async () => {
-        const workflow = {
+      const _deactivationWorkflow = async () => {
+        const _workflow = {
           steps: [],
           cleanupActions: [],
           finalState: null
@@ -530,7 +530,7 @@ describe('Extension Workflow Tests', () => {
           workflow.steps.push('icon_updated');
 
           // Step 4: Send message to content script
-          const currentTab = await mockChrome.tabs.query({ active: true, currentWindow: true });
+          const _currentTab = await mockChrome.tabs.query({ active: true, currentWindow: true });
           await mockChrome.tabs.sendMessage(currentTab[0].id, {
             action: 'toggleAccessibilityHighlight',
             isEnabled: false
@@ -539,9 +539,9 @@ describe('Extension Workflow Tests', () => {
 
           // Step 5: Content script cleanup
           // Mock overlay removal
-          const overlays = mockDocument.querySelectorAll('.a11y-highlight-overlay');
+          const _overlays = _mockDocument.querySelectorAll('.a11y-highlight-overlay');
           overlays.forEach(overlay => {
-            mockDocument.body.removeChild(overlay);
+            _mockDocument.body.removeChild(overlay);
             workflow.cleanupActions.push('removed_overlay');
           });
           workflow.steps.push('overlays_removed');
@@ -562,7 +562,7 @@ describe('Extension Workflow Tests', () => {
         }
       };
 
-      const workflow = await deactivationWorkflow();
+      const _workflow = await deactivationWorkflow();
 
       expect(workflow.steps).toContain('user_requested_deactivation');
       expect(workflow.steps).toContain('state_updated');
@@ -582,7 +582,7 @@ describe('Extension Workflow Tests', () => {
   describe('State Synchronization', () => {
     test('should maintain state consistency across extension components', async () => {
       // Mock state management system
-      const stateManager = {
+      const _stateManager = {
         state: {
           isEnabled: false,
           currentOverlayIndex: -1,
@@ -593,13 +593,13 @@ describe('Extension Workflow Tests', () => {
 
         async updateState(updates) {
           this.state = { ...this.state, ...updates };
-          
+
           // Persist to storage
           await mockChrome.storage.local.set(this.state);
-          
+
           // Notify content script of state changes
           try {
-            const tabs = await mockChrome.tabs.query({ active: true, currentWindow: true });
+            const _tabs = await mockChrome.tabs.query({ active: true, currentWindow: true });
             if (tabs[0]) {
               await mockChrome.tabs.sendMessage(tabs[0].id, {
                 action: 'stateUpdate',
@@ -607,7 +607,7 @@ describe('Extension Workflow Tests', () => {
               });
             }
           } catch (error) {
-            mockConsole.warn('Failed to notify content script of state change:', error);
+            _mockConsole.warn('Failed to notify content script of state change:', error);
           }
 
           return this.state;
@@ -615,11 +615,11 @@ describe('Extension Workflow Tests', () => {
 
         async loadState() {
           try {
-            const stored = await mockChrome.storage.local.get(Object.keys(this.state));
+            const _stored = await mockChrome.storage.local.get(Object.keys(this.state));
             this.state = { ...this.state, ...stored };
             return this.state;
           } catch (error) {
-            mockConsole.error('Failed to load state:', error);
+            _mockConsole.error('Failed to load state:', error);
             return this.state;
           }
         },
@@ -634,7 +634,7 @@ describe('Extension Workflow Tests', () => {
       expect(stateManager.getState().isEnabled).toBe(false);
 
       // Test state update
-      const newState = await stateManager.updateState({
+      const _newState = await stateManager.updateState({
         isEnabled: true,
         scanInProgress: true,
         lastScanTime: Date.now()
@@ -651,12 +651,12 @@ describe('Extension Workflow Tests', () => {
 
     test('should handle state synchronization during concurrent operations', async () => {
       // Mock concurrent state operations
-      const concurrentStateOperations = async () => {
-        const operations = [];
-        const results = [];
+      const _concurrentStateOperations = async () => {
+        const _operations = [];
+        const _results = [];
 
         // Simulate multiple concurrent operations
-        const promises = [
+        const _promises = [
           // Operation 1: Toggle extension
           (async () => {
             operations.push('toggle_start');
@@ -685,7 +685,7 @@ describe('Extension Workflow Tests', () => {
           })()
         ];
 
-        const operationResults = await Promise.all(promises);
+        const _operationResults = await Promise.all(promises);
         results.push(...operationResults);
 
         return { operations, results };
@@ -710,8 +710,8 @@ describe('Extension Workflow Tests', () => {
 
     test('should recover from state synchronization failures', async () => {
       // Mock state recovery mechanism
-      const stateRecovery = async () => {
-        const recovery = {
+      const _stateRecovery = async () => {
+        const _recovery = {
           attempts: [],
           success: false,
           finalState: null
@@ -724,13 +724,13 @@ describe('Extension Workflow Tests', () => {
           await mockChrome.storage.local.get(['isEnabled']);
         } catch (error) {
           recovery.attempts.push('attempt_1_failed');
-          mockConsole.warn('State recovery attempt 1 failed:', error.message);
+          _mockConsole.warn('State recovery attempt 1 failed:', error.message);
         }
 
         // Attempt 2: Fallback to defaults
         try {
           recovery.attempts.push('attempt_2_fallback');
-          const defaultState = { isEnabled: false, scanInProgress: false };
+          const _defaultState = { isEnabled: false, scanInProgress: false };
           recovery.finalState = defaultState;
           recovery.success = true;
           recovery.attempts.push('attempt_2_success');
@@ -741,7 +741,7 @@ describe('Extension Workflow Tests', () => {
         return recovery;
       };
 
-      const recovery = await stateRecovery();
+      const _recovery = await stateRecovery();
 
       expect(recovery.attempts).toContain('attempt_1');
       expect(recovery.attempts).toContain('attempt_1_failed');
@@ -749,7 +749,7 @@ describe('Extension Workflow Tests', () => {
       expect(recovery.attempts).toContain('attempt_2_success');
       expect(recovery.success).toBe(true);
       expect(recovery.finalState).toEqual({ isEnabled: false, scanInProgress: false });
-      expect(mockConsole.warn).toHaveBeenCalledWith('State recovery attempt 1 failed:', 'Storage unavailable');
+      expect(_mockConsole.warn).toHaveBeenCalledWith('State recovery attempt 1 failed:', 'Storage unavailable');
     });
   });
 });

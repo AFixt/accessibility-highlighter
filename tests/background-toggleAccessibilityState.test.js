@@ -64,14 +64,14 @@ describe('Background Script - toggleAccessibilityState() Function', () => {
 
   describe('State toggling from disabled to enabled', () => {
     test('should toggle from disabled to enabled', async () => {
-      const mockTab = { id: 123, url: 'https://example.com', active: true };
+      const _mockTab = { id: 123, url: 'https://example.com', active: true };
 
       // Mock storage returning disabled state
       chrome.storage.local.get.mockResolvedValue({ isEnabled: false });
       chrome.storage.local.set.mockResolvedValue();
-      chrome.tabs.query.mockResolvedValue([mockTab]);
-      chrome.tabs.sendMessage.mockImplementation((tabId, message, callback) => {
-        callback('success');
+      chrome.tabs.query.mockResolvedValue([_mockTab]);
+      chrome.tabs.sendMessage.mockImplementation((_tabId, _message, _callback) => {
+        _callback('success');
       });
 
       // Call the function through the global export
@@ -111,14 +111,14 @@ describe('Background Script - toggleAccessibilityState() Function', () => {
     });
 
     test('should toggle from enabled to disabled', async () => {
-      const mockTab = { id: 123, url: 'https://example.com', active: true };
+      const _mockTab = { id: 123, url: 'https://example.com', active: true };
 
       // Mock storage returning enabled state
       chrome.storage.local.get.mockResolvedValue({ isEnabled: true });
       chrome.storage.local.set.mockResolvedValue();
-      chrome.tabs.query.mockResolvedValue([mockTab]);
-      chrome.tabs.sendMessage.mockImplementation((tabId, message, callback) => {
-        callback('success');
+      chrome.tabs.query.mockResolvedValue([_mockTab]);
+      chrome.tabs.sendMessage.mockImplementation((_tabId, _message, _callback) => {
+        _callback('success');
       });
 
       await global.toggleAccessibilityState();
@@ -156,14 +156,14 @@ describe('Background Script - toggleAccessibilityState() Function', () => {
 
   describe('Default state handling', () => {
     test('should default to false when isEnabled is undefined', async () => {
-      const mockTab = { id: 123, url: 'https://example.com', active: true };
+      const _mockTab = { id: 123, url: 'https://example.com', active: true };
 
       // Mock storage returning empty result
       chrome.storage.local.get.mockResolvedValue({});
       chrome.storage.local.set.mockResolvedValue();
-      chrome.tabs.query.mockResolvedValue([mockTab]);
-      chrome.tabs.sendMessage.mockImplementation((tabId, message, callback) => {
-        callback('success');
+      chrome.tabs.query.mockResolvedValue([_mockTab]);
+      chrome.tabs.sendMessage.mockImplementation((_tabId, _message, _callback) => {
+        _callback('success');
       });
 
       await global.toggleAccessibilityState();
@@ -175,14 +175,14 @@ describe('Background Script - toggleAccessibilityState() Function', () => {
     });
 
     test('should handle non-boolean isEnabled values', async () => {
-      const mockTab = { id: 123, url: 'https://example.com', active: true };
+      const _mockTab = { id: 123, url: 'https://example.com', active: true };
 
       // Mock storage returning non-boolean value
       chrome.storage.local.get.mockResolvedValue({ isEnabled: 'true' });
       chrome.storage.local.set.mockResolvedValue();
-      chrome.tabs.query.mockResolvedValue([mockTab]);
-      chrome.tabs.sendMessage.mockImplementation((tabId, message, callback) => {
-        callback('success');
+      chrome.tabs.query.mockResolvedValue([_mockTab]);
+      chrome.tabs.sendMessage.mockImplementation((_tabId, _message, _callback) => {
+        _callback('success');
       });
 
       await global.toggleAccessibilityState();
@@ -195,33 +195,33 @@ describe('Background Script - toggleAccessibilityState() Function', () => {
 
   describe('Error handling', () => {
     test('should handle storage.get errors', async () => {
-      const mockError = new Error('Storage get failed');
-      chrome.storage.local.get.mockRejectedValue(mockError);
+      const _mockError = new Error('Storage get failed');
+      chrome.storage.local.get.mockRejectedValue(_mockError);
 
       await global.toggleAccessibilityState();
       await new Promise(resolve => setTimeout(resolve, 0));
 
-      expect(console.error).toHaveBeenCalledWith('Error getting storage:', mockError);
+      expect(console.error).toHaveBeenCalledWith('Error getting storage:', _mockError);
     });
 
     test('should handle storage.set errors', async () => {
-      const mockError = new Error('Storage set failed');
+      const _mockError = new Error('Storage set failed');
       chrome.storage.local.get.mockResolvedValue({ isEnabled: false });
-      chrome.storage.local.set.mockRejectedValue(mockError);
+      chrome.storage.local.set.mockRejectedValue(_mockError);
 
       await global.toggleAccessibilityState();
       await new Promise(resolve => setTimeout(resolve, 0));
 
-      expect(console.error).toHaveBeenCalledWith('Error setting storage:', mockError);
+      expect(console.error).toHaveBeenCalledWith('Error setting storage:', _mockError);
     });
 
-    test('should handle invalid storage result', async () => {
+    test('should handle invalid storage _result', async () => {
       chrome.storage.local.get.mockResolvedValue(null);
 
       await global.toggleAccessibilityState();
       await new Promise(resolve => setTimeout(resolve, 0));
 
-      expect(console.error).toHaveBeenCalledWith('Invalid storage result:', null);
+      expect(console.error).toHaveBeenCalledWith('Invalid storage _result:', null);
     });
 
     test('should handle getCurrentTab errors', async () => {
@@ -238,30 +238,30 @@ describe('Background Script - toggleAccessibilityState() Function', () => {
     });
 
     test('should handle invalid tab ID', async () => {
-      const mockTab = { id: 'invalid', url: 'https://example.com', active: true };
+      const _mockTab = { id: 'invalid', url: 'https://example.com', active: true };
 
       chrome.storage.local.get.mockResolvedValue({ isEnabled: false });
       chrome.storage.local.set.mockResolvedValue();
-      chrome.tabs.query.mockResolvedValue([mockTab]);
+      chrome.tabs.query.mockResolvedValue([_mockTab]);
 
       await global.toggleAccessibilityState();
       await new Promise(resolve => setTimeout(resolve, 0));
 
       // getCurrentTab() validates the tab first and logs the error
-      expect(console.error).toHaveBeenCalledWith('Invalid tab object:', mockTab);
+      expect(console.error).toHaveBeenCalledWith('Invalid tab object:', _mockTab);
 
       // Since getCurrentTab returns null for invalid tabs, we should also see the "No active tab found" warning
       expect(console.warn).toHaveBeenCalledWith('No active tab found');
     });
 
     test('should handle negative tab ID', async () => {
-      const mockTab = { id: -5, url: 'https://example.com', active: true };
+      const _mockTab = { id: -5, url: 'https://example.com', active: true };
 
       chrome.storage.local.get.mockResolvedValue({ isEnabled: false });
       chrome.storage.local.set.mockResolvedValue();
-      chrome.tabs.query.mockResolvedValue([mockTab]);
-      chrome.tabs.sendMessage.mockImplementation((tabId, message, callback) => {
-        callback('success');
+      chrome.tabs.query.mockResolvedValue([_mockTab]);
+      chrome.tabs.sendMessage.mockImplementation((_tabId, _message, _callback) => {
+        _callback('success');
       });
 
       await global.toggleAccessibilityState();
@@ -274,14 +274,14 @@ describe('Background Script - toggleAccessibilityState() Function', () => {
     });
 
     test('should handle sendMessage errors', async () => {
-      const mockTab = { id: 123, url: 'https://example.com', active: true };
+      const _mockTab = { id: 123, url: 'https://example.com', active: true };
 
       chrome.storage.local.get.mockResolvedValue({ isEnabled: false });
       chrome.storage.local.set.mockResolvedValue();
-      chrome.tabs.query.mockResolvedValue([mockTab]);
+      chrome.tabs.query.mockResolvedValue([_mockTab]);
 
       // Mock runtime error during sendMessage
-      chrome.tabs.sendMessage.mockImplementation((tabId, message, callback) => {
+      chrome.tabs.sendMessage.mockImplementation((_tabId, _message, _callback) => {
         global.chrome.runtime.lastError = { message: 'Could not establish connection' };
         callback();
       });
@@ -297,12 +297,12 @@ describe('Background Script - toggleAccessibilityState() Function', () => {
 
   describe('Tab communication', () => {
     test('should handle successful message response', async () => {
-      const mockTab = { id: 123, url: 'https://example.com', active: true };
+      const _mockTab = { id: 123, url: 'https://example.com', active: true };
 
       chrome.storage.local.get.mockResolvedValue({ isEnabled: false });
       chrome.storage.local.set.mockResolvedValue();
-      chrome.tabs.query.mockResolvedValue([mockTab]);
-      chrome.tabs.sendMessage.mockImplementation((tabId, message, callback) => {
+      chrome.tabs.query.mockResolvedValue([_mockTab]);
+      chrome.tabs.sendMessage.mockImplementation((_tabId, _message, _callback) => {
         callback('Message received successfully');
       });
 
@@ -337,13 +337,13 @@ describe('Background Script - toggleAccessibilityState() Function', () => {
 
   describe('State logging', () => {
     test('should log state transitions', async () => {
-      const mockTab = { id: 123, url: 'https://example.com', active: true };
+      const _mockTab = { id: 123, url: 'https://example.com', active: true };
 
       chrome.storage.local.get.mockResolvedValue({ isEnabled: false });
       chrome.storage.local.set.mockResolvedValue();
-      chrome.tabs.query.mockResolvedValue([mockTab]);
-      chrome.tabs.sendMessage.mockImplementation((tabId, message, callback) => {
-        callback('success');
+      chrome.tabs.query.mockResolvedValue([_mockTab]);
+      chrome.tabs.sendMessage.mockImplementation((_tabId, _message, _callback) => {
+        _callback('success');
       });
 
       await global.toggleAccessibilityState();

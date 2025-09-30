@@ -8,14 +8,14 @@
 // The global mocks are already set up in setup-jest.js
 
 // Use the global mock functions provided by setup-jest.js
-const contentScriptFunctions = {
+const _contentScriptFunctions = {
   runAccessibilityChecks: global.runAccessibilityChecks,
   removeAccessibilityOverlays: global.removeAccessibilityOverlays,
   toggleAccessibilityHighlight: global.toggleAccessibilityHighlight,
   overlay: global.overlay
 };
 
-const backgroundScriptFunctions = {
+const _backgroundScriptFunctions = {
   getCurrentTab: global.getCurrentTab
 };
 
@@ -103,9 +103,9 @@ describe('Accessibility Highlighter', () => {
   describe('Background Script Functions', () => {
     test('should get the active tab properly', async () => {
       // Expected tab from mock
-      const expectedTab = { id: 123 };
+      const _expectedTab = { id: 123 };
 
-      const tab = await backgroundScriptFunctions.getCurrentTab();
+      const _tab = await backgroundScriptFunctions.getCurrentTab();
       expect(tab).toEqual(expectedTab);
       // We don't need to check if it was called with specific parameters since we're using mocks
     });

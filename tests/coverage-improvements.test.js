@@ -39,26 +39,26 @@ describe('Coverage Improvements Tests', () => {
     expect(typeof global.checkRoleBasedElement).toBe('function');
 
     // Test with a mock element
-    const mockElement = {
+    const _mockElement = {
       hasAttribute: jest.fn().mockReturnValue(false),
       textContent: null
     };
 
     // Should not throw error
     expect(() => {
-      global.checkRoleBasedElement(mockElement, 'img');
+      global.checkRoleBasedElement(_mockElement, 'img');
     }).not.toThrow();
 
     expect(() => {
-      global.checkRoleBasedElement(mockElement, 'button');
+      global.checkRoleBasedElement(_mockElement, 'button');
     }).not.toThrow();
 
     expect(() => {
-      global.checkRoleBasedElement(mockElement, 'link');
+      global.checkRoleBasedElement(_mockElement, 'link');
     }).not.toThrow();
 
     expect(() => {
-      global.checkRoleBasedElement(mockElement, 'unknown');
+      global.checkRoleBasedElement(_mockElement, 'unknown');
     }).not.toThrow();
   });
 
@@ -99,28 +99,28 @@ describe('Coverage Improvements Tests', () => {
     expect(global.chrome.runtime.onMessage.addListener).toHaveBeenCalled();
 
     // Get the registered listener
-    const addListenerCalls = global.chrome.runtime.onMessage.addListener.mock.calls;
+    const _addListenerCalls = global.chrome.runtime.onMessage.addListener.mock.calls;
     expect(addListenerCalls.length).toBeGreaterThan(0);
 
-    const messageListener = addListenerCalls[0][0];
+    const _messageListener = addListenerCalls[0][0];
     expect(typeof messageListener).toBe('function');
 
     // Test message handling with valid message
-    const mockSendResponse = jest.fn();
-    const result = messageListener(
+    const _mockSendResponse = jest.fn();
+    const _result = messageListener(
       { action: 'toggleAccessibilityHighlight', isEnabled: true },
       {},
       mockSendResponse
     );
 
-    expect(result).toBe(true);
+    expect(_result).toBe(true);
     expect(mockSendResponse).toHaveBeenCalledWith('highlighted');
   });
 
   test('message listener handles invalid messages', () => {
-    const addListenerCalls = global.chrome.runtime.onMessage.addListener.mock.calls;
-    const messageListener = addListenerCalls[0][0];
-    const mockSendResponse = jest.fn();
+    const _addListenerCalls = global.chrome.runtime.onMessage.addListener.mock.calls;
+    const _messageListener = addListenerCalls[0][0];
+    const _mockSendResponse = jest.fn();
 
     // Test invalid messages
     expect(messageListener(null, {}, mockSendResponse)).toBe(false);
@@ -132,7 +132,7 @@ describe('Coverage Improvements Tests', () => {
   });
 
   test('overlay function handles various inputs', () => {
-    const mockElement = {
+    const _mockElement = {
       getBoundingClientRect: jest.fn().mockReturnValue({
         width: 100,
         height: 50,
@@ -145,11 +145,11 @@ describe('Coverage Improvements Tests', () => {
 
     // Should not throw with various inputs
     expect(() => {
-      global.overlay.call(mockElement, 'overlay', 'error', 'Test message');
+      global.overlay.call(_mockElement, 'overlay', 'error', 'Test message');
     }).not.toThrow();
 
     expect(() => {
-      global.overlay.call(mockElement, 'overlay', 'warning', 'Another message');
+      global.overlay.call(_mockElement, 'overlay', 'warning', 'Another message');
     }).not.toThrow();
   });
 

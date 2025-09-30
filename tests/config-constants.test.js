@@ -59,61 +59,61 @@ describe('A11Y_CONFIG Constants and Structure', () => {
     });
 
     test('should be a read-only object structure', () => {
-      const config = global.A11Y_CONFIG;
+      const _config = global.A11Y_CONFIG;
 
       // Should be an object
-      expect(typeof config).toBe('object');
-      expect(config).not.toBeNull();
+      expect(typeof _config).toBe('object');
+      expect(_config).not.toBeNull();
 
       // Should have enumerable properties
-      const keys = Object.keys(config);
-      expect(keys.length).toBeGreaterThan(0);
+      const _keys = Object.keys(_config);
+      expect(_keys.length).toBeGreaterThan(0);
     });
   });
 
   describe('PERFORMANCE configuration', () => {
     test('should have valid performance settings', () => {
-      const perf = global.A11Y_CONFIG.PERFORMANCE;
+      const _perf = global.A11Y_CONFIG.PERFORMANCE;
 
-      expect(typeof perf).toBe('object');
-      expect(perf.THROTTLE_DELAY).toBeDefined();
-      expect(perf.FONT_SIZE_THRESHOLD).toBeDefined();
-      expect(perf.MAX_LOG_ELEMENT_LENGTH).toBeDefined();
-      expect(perf.Z_INDEX_OVERLAY).toBeDefined();
+      expect(typeof _perf).toBe('object');
+      expect(__perf.THROTTLE_DELAY).toBeDefined();
+      expect(__perf.FONT_SIZE_THRESHOLD).toBeDefined();
+      expect(__perf.MAX_LOG_ELEMENT_LENGTH).toBeDefined();
+      expect(__perf.Z_INDEX_OVERLAY).toBeDefined();
     });
 
     test('should have numeric values for performance settings', () => {
-      const perf = global.A11Y_CONFIG.PERFORMANCE;
+      const _perf = global.A11Y_CONFIG.PERFORMANCE;
 
-      expect(typeof perf.THROTTLE_DELAY).toBe('number');
-      expect(typeof perf.FONT_SIZE_THRESHOLD).toBe('number');
-      expect(typeof perf.MAX_LOG_ELEMENT_LENGTH).toBe('number');
-      expect(typeof perf.Z_INDEX_OVERLAY).toBe('number');
+      expect(typeof __perf.THROTTLE_DELAY).toBe('number');
+      expect(typeof __perf.FONT_SIZE_THRESHOLD).toBe('number');
+      expect(typeof _perf.MAX_LOG_ELEMENT_LENGTH).toBe('number');
+      expect(typeof _perf.Z_INDEX_OVERLAY).toBe('number');
     });
 
     test('should have reasonable performance values', () => {
-      const perf = global.A11Y_CONFIG.PERFORMANCE;
+      const _perf = global.A11Y_CONFIG.PERFORMANCE;
 
       // Throttle delay should be reasonable (between 100ms and 10s)
-      expect(perf.THROTTLE_DELAY).toBeGreaterThan(100);
-      expect(perf.THROTTLE_DELAY).toBeLessThan(10000);
+      expect(_perf.THROTTLE_DELAY).toBeGreaterThan(100);
+      expect(_perf.THROTTLE_DELAY).toBeLessThan(10000);
 
       // Font size threshold should be reasonable (between 6 and 24 pixels)
-      expect(perf.FONT_SIZE_THRESHOLD).toBeGreaterThan(6);
-      expect(perf.FONT_SIZE_THRESHOLD).toBeLessThan(24);
+      expect(_perf.FONT_SIZE_THRESHOLD).toBeGreaterThan(6);
+      expect(_perf.FONT_SIZE_THRESHOLD).toBeLessThan(24);
 
       // Max log element length should be reasonable (between 50 and 1000)
-      expect(perf.MAX_LOG_ELEMENT_LENGTH).toBeGreaterThan(50);
-      expect(perf.MAX_LOG_ELEMENT_LENGTH).toBeLessThan(1000);
+      expect(_perf.MAX_LOG_ELEMENT_LENGTH).toBeGreaterThan(50);
+      expect(_perf.MAX_LOG_ELEMENT_LENGTH).toBeLessThan(1000);
 
       // Z-index should be high enough to be visible
-      expect(perf.Z_INDEX_OVERLAY).toBeGreaterThan(1000);
+      expect(_perf.Z_INDEX_OVERLAY).toBeGreaterThan(1000);
     });
   });
 
   describe('VISUAL configuration', () => {
     test('should have valid visual settings', () => {
-      const visual = global.A11Y_CONFIG.VISUAL;
+      const _visual = global.A11Y_CONFIG.VISUAL;
 
       expect(typeof visual).toBe('object');
       expect(visual.ERROR_COLOR).toBeDefined();
@@ -124,7 +124,7 @@ describe('A11Y_CONFIG Constants and Structure', () => {
     });
 
     test('should have valid color values', () => {
-      const visual = global.A11Y_CONFIG.VISUAL;
+      const _visual = global.A11Y_CONFIG.VISUAL;
 
       // Colors should be strings
       expect(typeof visual.ERROR_COLOR).toBe('string');
@@ -136,7 +136,7 @@ describe('A11Y_CONFIG Constants and Structure', () => {
     });
 
     test('should have valid opacity value', () => {
-      const visual = global.A11Y_CONFIG.VISUAL;
+      const _visual = global.A11Y_CONFIG.VISUAL;
 
       expect(typeof visual.OVERLAY_OPACITY).toBe('number');
       expect(visual.OVERLAY_OPACITY).toBeGreaterThan(0);
@@ -144,7 +144,7 @@ describe('A11Y_CONFIG Constants and Structure', () => {
     });
 
     test('should have valid CSS dimension values', () => {
-      const visual = global.A11Y_CONFIG.VISUAL;
+      const _visual = global.A11Y_CONFIG.VISUAL;
 
       expect(typeof visual.BORDER_RADIUS).toBe('string');
       expect(typeof visual.BORDER_WIDTH).toBe('string');
@@ -159,7 +159,7 @@ describe('A11Y_CONFIG Constants and Structure', () => {
   /*
   describe('PROHIBITED arrays', () => {
     test('should have prohibited table summaries array', () => {
-      const prohibited = global.A11Y_CONFIG.PROHIBITED_TABLE_SUMMARIES;
+      const _prohibited = global.A11Y_CONFIG.PROHIBITED_TABLE_SUMMARIES;
 
       expect(Array.isArray(prohibited)).toBe(true);
       expect(prohibited.length).toBeGreaterThan(0);
@@ -172,7 +172,7 @@ describe('A11Y_CONFIG Constants and Structure', () => {
     });
 
     test('should have prohibited alt values array', () => {
-      const prohibited = global.A11Y_CONFIG.PROHIBITED_ALT_VALUES;
+      const _prohibited = global.A11Y_CONFIG.PROHIBITED_ALT_VALUES;
 
       expect(Array.isArray(prohibited)).toBe(true);
       expect(prohibited.length).toBeGreaterThan(0);
@@ -185,7 +185,7 @@ describe('A11Y_CONFIG Constants and Structure', () => {
     });
 
     test('should have prohibited link text array', () => {
-      const prohibited = global.A11Y_CONFIG.PROHIBITED_LINK_TEXT;
+      const _prohibited = global.A11Y_CONFIG.PROHIBITED_LINK_TEXT;
 
       expect(Array.isArray(prohibited)).toBe(true);
       expect(prohibited.length).toBeGreaterThan(0);
@@ -218,7 +218,7 @@ describe('A11Y_CONFIG Constants and Structure', () => {
 
   describe('SELECTORS configuration', () => {
     test('should have valid selector strings', () => {
-      const selectors = global.A11Y_CONFIG.SELECTORS;
+      const _selectors = global.A11Y_CONFIG.SELECTORS;
 
       expect(typeof selectors).toBe('object');
       expect(typeof selectors.ALL_CHECKABLE_ELEMENTS).toBe('string');
@@ -232,7 +232,7 @@ describe('A11Y_CONFIG Constants and Structure', () => {
     });
 
     test('should have valid selector arrays', () => {
-      const selectors = global.A11Y_CONFIG.SELECTORS;
+      const _selectors = global.A11Y_CONFIG.SELECTORS;
 
       if (selectors.TEXT_ELEMENTS) {
         expect(Array.isArray(selectors.TEXT_ELEMENTS)).toBe(true);
@@ -252,7 +252,7 @@ describe('A11Y_CONFIG Constants and Structure', () => {
     });
 
     test('should contain expected elements in selectors', () => {
-      const selectors = global.A11Y_CONFIG.SELECTORS;
+      const _selectors = global.A11Y_CONFIG.SELECTORS;
 
       // ALL_CHECKABLE_ELEMENTS should contain common elements
       expect(selectors.ALL_CHECKABLE_ELEMENTS).toContain('img');
@@ -274,7 +274,7 @@ describe('A11Y_CONFIG Constants and Structure', () => {
 
   describe('MESSAGES configuration', () => {
     test('should have all required message constants', () => {
-      const messages = global.A11Y_CONFIG.MESSAGES;
+      const _messages = global.A11Y_CONFIG.MESSAGES;
 
       expect(typeof messages).toBe('object');
 
@@ -294,7 +294,7 @@ describe('A11Y_CONFIG Constants and Structure', () => {
     });
 
     test('should have string values for all messages', () => {
-      const messages = global.A11Y_CONFIG.MESSAGES;
+      const _messages = global.A11Y_CONFIG.MESSAGES;
 
       Object.entries(messages).forEach(([, message]) => {
         expect(typeof message).toBe('string');
@@ -304,7 +304,7 @@ describe('A11Y_CONFIG Constants and Structure', () => {
     });
 
     test('should have descriptive and clear messages', () => {
-      const messages = global.A11Y_CONFIG.MESSAGES;
+      const _messages = global.A11Y_CONFIG.MESSAGES;
 
       // Messages should be descriptive (reasonable length)
       Object.entries(messages).forEach(([, message]) => {
@@ -323,7 +323,7 @@ describe('A11Y_CONFIG Constants and Structure', () => {
   /*
   describe('CSS_CLASSES configuration', () => {
     test('should have valid CSS class names', () => {
-      const cssClasses = global.A11Y_CONFIG.CSS_CLASSES;
+      const _cssClasses = global.A11Y_CONFIG.CSS_CLASSES;
 
       expect(typeof cssClasses).toBe('object');
       expect(cssClasses.ERROR_OVERLAY).toBeDefined();
@@ -343,10 +343,10 @@ describe('A11Y_CONFIG Constants and Structure', () => {
     });
 
     test('should have distinct class names', () => {
-      const cssClasses = global.A11Y_CONFIG.CSS_CLASSES;
+      const _cssClasses = global.A11Y_CONFIG.CSS_CLASSES;
 
-      const classValues = Object.values(cssClasses);
-      const uniqueValues = [...new Set(classValues)];
+      const _classValues = Object.values(cssClasses);
+      const _uniqueValues = [...new Set(classValues)];
 
       // All class names should be unique
       expect(uniqueValues.length).toBe(classValues.length);
@@ -356,11 +356,11 @@ describe('A11Y_CONFIG Constants and Structure', () => {
 
   describe('Configuration integrity', () => {
     test('should not have null or undefined values', () => {
-      const config = global.A11Y_CONFIG;
+      const _config = global.A11Y_CONFIG;
 
       function checkForNullValues(obj, path = '') {
         Object.entries(obj).forEach(([key, value]) => {
-          const currentPath = path ? `${path}.${key}` : key;
+          const _currentPath = path ? `${path}.${key}` : key;
 
           expect(value).not.toBeNull();
           expect(value).not.toBeUndefined();
@@ -375,7 +375,7 @@ describe('A11Y_CONFIG Constants and Structure', () => {
     });
 
     test('should have consistent data types', () => {
-      const config = global.A11Y_CONFIG;
+      const _config = global.A11Y_CONFIG;
 
       // Performance values should all be numbers
       Object.values(config.PERFORMANCE).forEach(value => {
@@ -394,7 +394,7 @@ describe('A11Y_CONFIG Constants and Structure', () => {
     });
 
     test('should be immutable in production', () => {
-      const config = global.A11Y_CONFIG;
+      const _config = global.A11Y_CONFIG;
 
       // Should not be able to modify top-level properties
       expect(() => {
@@ -410,10 +410,10 @@ describe('A11Y_CONFIG Constants and Structure', () => {
 
   describe('Configuration completeness', () => {
     test('should have configuration for major accessibility checks', () => {
-      const messages = global.A11Y_CONFIG.MESSAGES;
+      const _messages = global.A11Y_CONFIG.MESSAGES;
 
       // Should have messages for different types of accessibility issues (contentScript.js version)
-      const availableMessages = {
+      const _availableMessages = {
         images: ['MISSING_ALT', 'UNINFORMATIVE_ALT'],
         forms: ['FORM_FIELD_NO_LABEL'],
         links: ['GENERIC_LINK_TEXT'],
@@ -432,10 +432,10 @@ describe('A11Y_CONFIG Constants and Structure', () => {
     // Note: SELECTORS test removed since they're not in contentScript.js A11Y_CONFIG
     /*
     test('should have selectors for all checkable elements', () => {
-      const selectors = global.A11Y_CONFIG.SELECTORS;
+      const _selectors = global.A11Y_CONFIG.SELECTORS;
 
       // Should include common interactive elements
-      const expectedElements = ['img', 'button', 'input', 'a', 'table', 'iframe'];
+      const _expectedElements = ['img', 'button', 'input', 'a', 'table', 'iframe'];
       expectedElements.forEach(element => {
         expect(selectors.ALL_CHECKABLE_ELEMENTS).toContain(element);
       });

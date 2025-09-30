@@ -43,7 +43,7 @@ Object.defineProperty(window, 'scrollY', { value: 0, writable: true });
 require('../src/contentScript.js');
 
 describe('Element Checker Functions - Real Code Coverage', () => {
-  let mockElement;
+  let _mockElement;
   let originalDocument;
 
   const ALL_CHECKABLE_ELEMENTS = 'img, button, [role="button"], a, [role="link"], fieldset, input, table, iframe, audio, video, [tabindex], [role="img"]';
@@ -57,19 +57,19 @@ describe('Element Checker Functions - Real Code Coverage', () => {
     });
 
     test('should flag role="img" element without aria-label or aria-labelledby', () => {
-      const imgDiv = document.createElement('div');
+      const _imgDiv = document.createElement('div');
       imgDiv.setAttribute('role', 'img');
       document.body.appendChild(imgDiv);
 
       global.checkRoleBasedElement(imgDiv, 'img');
 
       expect(console.log).toHaveBeenCalledWith(imgDiv);
-      const overlays = document.querySelectorAll('.overlay');
+      const _overlays = document.querySelectorAll('.overlay');
       expect(overlays.length).toBeGreaterThan(0);
     });
 
     test('should not flag role="img" element with aria-label', () => {
-      const imgDiv = document.createElement('div');
+      const _imgDiv = document.createElement('div');
       imgDiv.setAttribute('role', 'img');
       imgDiv.setAttribute('aria-label', 'A chart showing sales data');
       document.body.appendChild(imgDiv);
@@ -77,17 +77,17 @@ describe('Element Checker Functions - Real Code Coverage', () => {
       global.checkRoleBasedElement(imgDiv, 'img');
 
       expect(console.log).not.toHaveBeenCalled();
-      const overlays = document.querySelectorAll('.overlay');
+      const _overlays = document.querySelectorAll('.overlay');
       expect(overlays.length).toBe(0);
     });
 
     test('should not flag role="img" element with aria-labelledby', () => {
-      const caption = document.createElement('p');
+      const _caption = document.createElement('p');
       caption.id = 'img-caption';
       caption.textContent = 'Chart description';
       document.body.appendChild(caption);
 
-      const imgDiv = document.createElement('div');
+      const _imgDiv = document.createElement('div');
       imgDiv.setAttribute('role', 'img');
       imgDiv.setAttribute('aria-labelledby', 'img-caption');
       document.body.appendChild(imgDiv);
@@ -95,24 +95,24 @@ describe('Element Checker Functions - Real Code Coverage', () => {
       global.checkRoleBasedElement(imgDiv, 'img');
 
       expect(console.log).not.toHaveBeenCalled();
-      const overlays = document.querySelectorAll('.overlay');
+      const _overlays = document.querySelectorAll('.overlay');
       expect(overlays.length).toBe(0);
     });
 
     test('should flag role="button" element without label or text content', () => {
-      const buttonDiv = document.createElement('div');
+      const _buttonDiv = document.createElement('div');
       buttonDiv.setAttribute('role', 'button');
       document.body.appendChild(buttonDiv);
 
       global.checkRoleBasedElement(buttonDiv, 'button');
 
       expect(console.log).toHaveBeenCalledWith(buttonDiv);
-      const overlays = document.querySelectorAll('.overlay');
+      const _overlays = document.querySelectorAll('.overlay');
       expect(overlays.length).toBeGreaterThan(0);
     });
 
     test('should not flag role="button" element with text content', () => {
-      const buttonDiv = document.createElement('div');
+      const _buttonDiv = document.createElement('div');
       buttonDiv.setAttribute('role', 'button');
       buttonDiv.textContent = 'Click me';
       document.body.appendChild(buttonDiv);
@@ -120,12 +120,12 @@ describe('Element Checker Functions - Real Code Coverage', () => {
       global.checkRoleBasedElement(buttonDiv, 'button');
 
       expect(console.log).not.toHaveBeenCalled();
-      const overlays = document.querySelectorAll('.overlay');
+      const _overlays = document.querySelectorAll('.overlay');
       expect(overlays.length).toBe(0);
     });
 
     test('should not flag role="button" element with aria-label', () => {
-      const buttonDiv = document.createElement('div');
+      const _buttonDiv = document.createElement('div');
       buttonDiv.setAttribute('role', 'button');
       buttonDiv.setAttribute('aria-label', 'Submit form');
       document.body.appendChild(buttonDiv);
@@ -133,17 +133,17 @@ describe('Element Checker Functions - Real Code Coverage', () => {
       global.checkRoleBasedElement(buttonDiv, 'button');
 
       expect(console.log).not.toHaveBeenCalled();
-      const overlays = document.querySelectorAll('.overlay');
+      const _overlays = document.querySelectorAll('.overlay');
       expect(overlays.length).toBe(0);
     });
 
     test('should not flag role="button" element with aria-labelledby', () => {
-      const label = document.createElement('span');
+      const _label = document.createElement('span');
       label.id = 'btn-label';
       label.textContent = 'Save document';
       document.body.appendChild(label);
 
-      const buttonDiv = document.createElement('div');
+      const _buttonDiv = document.createElement('div');
       buttonDiv.setAttribute('role', 'button');
       buttonDiv.setAttribute('aria-labelledby', 'btn-label');
       document.body.appendChild(buttonDiv);
@@ -151,12 +151,12 @@ describe('Element Checker Functions - Real Code Coverage', () => {
       global.checkRoleBasedElement(buttonDiv, 'button');
 
       expect(console.log).not.toHaveBeenCalled();
-      const overlays = document.querySelectorAll('.overlay');
+      const _overlays = document.querySelectorAll('.overlay');
       expect(overlays.length).toBe(0);
     });
 
     test('should flag role="button" element with only whitespace text content', () => {
-      const buttonDiv = document.createElement('div');
+      const _buttonDiv = document.createElement('div');
       buttonDiv.setAttribute('role', 'button');
       buttonDiv.textContent = '   \n\t   ';
       document.body.appendChild(buttonDiv);
@@ -164,24 +164,24 @@ describe('Element Checker Functions - Real Code Coverage', () => {
       global.checkRoleBasedElement(buttonDiv, 'button');
 
       expect(console.log).toHaveBeenCalledWith(buttonDiv);
-      const overlays = document.querySelectorAll('.overlay');
+      const _overlays = document.querySelectorAll('.overlay');
       expect(overlays.length).toBeGreaterThan(0);
     });
 
     test('should flag role="link" element without label or text content', () => {
-      const linkDiv = document.createElement('div');
+      const _linkDiv = document.createElement('div');
       linkDiv.setAttribute('role', 'link');
       document.body.appendChild(linkDiv);
 
       global.checkRoleBasedElement(linkDiv, 'link');
 
       expect(console.log).toHaveBeenCalledWith(linkDiv);
-      const overlays = document.querySelectorAll('.overlay');
+      const _overlays = document.querySelectorAll('.overlay');
       expect(overlays.length).toBeGreaterThan(0);
     });
 
     test('should not flag role="link" element with text content', () => {
-      const linkDiv = document.createElement('div');
+      const _linkDiv = document.createElement('div');
       linkDiv.setAttribute('role', 'link');
       linkDiv.textContent = 'Visit our homepage';
       document.body.appendChild(linkDiv);
@@ -189,12 +189,12 @@ describe('Element Checker Functions - Real Code Coverage', () => {
       global.checkRoleBasedElement(linkDiv, 'link');
 
       expect(console.log).not.toHaveBeenCalled();
-      const overlays = document.querySelectorAll('.overlay');
+      const _overlays = document.querySelectorAll('.overlay');
       expect(overlays.length).toBe(0);
     });
 
     test('should not flag role="link" element with aria-label', () => {
-      const linkDiv = document.createElement('div');
+      const _linkDiv = document.createElement('div');
       linkDiv.setAttribute('role', 'link');
       linkDiv.setAttribute('aria-label', 'Go to home page');
       document.body.appendChild(linkDiv);
@@ -202,12 +202,12 @@ describe('Element Checker Functions - Real Code Coverage', () => {
       global.checkRoleBasedElement(linkDiv, 'link');
 
       expect(console.log).not.toHaveBeenCalled();
-      const overlays = document.querySelectorAll('.overlay');
+      const _overlays = document.querySelectorAll('.overlay');
       expect(overlays.length).toBe(0);
     });
 
     test('should handle undefined or unknown roles gracefully', () => {
-      const div = document.createElement('div');
+      const _div = document.createElement('div');
       div.setAttribute('role', 'unknown');
       document.body.appendChild(div);
 
@@ -216,12 +216,12 @@ describe('Element Checker Functions - Real Code Coverage', () => {
       }).not.toThrow();
 
       expect(console.log).not.toHaveBeenCalled();
-      const overlays = document.querySelectorAll('.overlay');
+      const _overlays = document.querySelectorAll('.overlay');
       expect(overlays.length).toBe(0);
     });
 
     test('should handle null textContent for role="button"', () => {
-      const buttonDiv = document.createElement('div');
+      const _buttonDiv = document.createElement('div');
       buttonDiv.setAttribute('role', 'button');
       Object.defineProperty(buttonDiv, 'textContent', {
         value: null,
@@ -232,12 +232,12 @@ describe('Element Checker Functions - Real Code Coverage', () => {
       global.checkRoleBasedElement(buttonDiv, 'button');
 
       expect(console.log).toHaveBeenCalledWith(buttonDiv);
-      const overlays = document.querySelectorAll('.overlay');
+      const _overlays = document.querySelectorAll('.overlay');
       expect(overlays.length).toBeGreaterThan(0);
     });
 
     test('should handle null textContent for role="link"', () => {
-      const linkDiv = document.createElement('div');
+      const _linkDiv = document.createElement('div');
       linkDiv.setAttribute('role', 'link');
       Object.defineProperty(linkDiv, 'textContent', {
         value: null,
@@ -248,7 +248,7 @@ describe('Element Checker Functions - Real Code Coverage', () => {
       global.checkRoleBasedElement(linkDiv, 'link');
 
       expect(console.log).toHaveBeenCalledWith(linkDiv);
-      const overlays = document.querySelectorAll('.overlay');
+      const _overlays = document.querySelectorAll('.overlay');
       expect(overlays.length).toBeGreaterThan(0);
     });
   });
@@ -265,7 +265,7 @@ describe('Element Checker Functions - Real Code Coverage', () => {
     }
 
     // Create a more sophisticated mock element that behaves like a real DOM element
-    mockElement = {
+    _mockElement = {
       tagName: 'DIV',
       getAttribute: jest.fn(),
       setAttribute: jest.fn(),
@@ -290,7 +290,7 @@ describe('Element Checker Functions - Real Code Coverage', () => {
     global.document = {
       ...originalDocument,
       createElement: jest.fn(tag => ({
-        ...mockElement,
+        ..._mockElement,
         tagName: tag.toUpperCase(),
         classList: {
           add: jest.fn(),
@@ -317,8 +317,8 @@ describe('Element Checker Functions - Real Code Coverage', () => {
 
   describe('checkImageElement function', () => {
     test('should detect image without alt attribute', () => {
-      const imgElement = {
-        ...mockElement,
+      const _imgElement = {
+        ..._mockElement,
         tagName: 'IMG',
         hasAttribute: jest.fn(attr => attr !== 'alt'),
         getAttribute: jest.fn(attr => {
@@ -346,8 +346,8 @@ describe('Element Checker Functions - Real Code Coverage', () => {
     });
 
     test('should detect uninformative alt text', () => {
-      const imgElement = {
-        ...mockElement,
+      const _imgElement = {
+        ..._mockElement,
         tagName: 'IMG',
         hasAttribute: jest.fn(() => true),
         getAttribute: jest.fn(attr => {
@@ -373,8 +373,8 @@ describe('Element Checker Functions - Real Code Coverage', () => {
     });
 
     test('should not flag images with good alt text', () => {
-      const imgElement = {
-        ...mockElement,
+      const _imgElement = {
+        ..._mockElement,
         tagName: 'IMG',
         hasAttribute: jest.fn(() => true),
         getAttribute: jest.fn(attr => {
@@ -397,8 +397,8 @@ describe('Element Checker Functions - Real Code Coverage', () => {
 
   describe('checkButtonElement function', () => {
     test('should detect button without label', () => {
-      const buttonElement = {
-        ...mockElement,
+      const _buttonElement = {
+        ..._mockElement,
         tagName: 'BUTTON',
         textContent: '',
         getAttribute: jest.fn(() => null),
@@ -416,8 +416,8 @@ describe('Element Checker Functions - Real Code Coverage', () => {
     });
 
     test('should not flag button with text content', () => {
-      const buttonElement = {
-        ...mockElement,
+      const _buttonElement = {
+        ..._mockElement,
         tagName: 'BUTTON',
         textContent: 'Click me',
         getAttribute: jest.fn(() => null),
@@ -435,8 +435,8 @@ describe('Element Checker Functions - Real Code Coverage', () => {
     });
 
     test('should not flag button with aria-label', () => {
-      const buttonElement = {
-        ...mockElement,
+      const _buttonElement = {
+        ..._mockElement,
         tagName: 'BUTTON',
         textContent: '',
         getAttribute: jest.fn(attr => attr === 'aria-label' ? 'Close dialog' : null),
@@ -456,8 +456,8 @@ describe('Element Checker Functions - Real Code Coverage', () => {
 
   describe('checkLinkElement function', () => {
     test('should detect generic link text', () => {
-      const linkElement = {
-        ...mockElement,
+      const _linkElement = {
+        ..._mockElement,
         tagName: 'A',
         textContent: 'click here',
         getAttribute: jest.fn(attr => {
@@ -478,8 +478,8 @@ describe('Element Checker Functions - Real Code Coverage', () => {
     });
 
     test('should detect empty link', () => {
-      const linkElement = {
-        ...mockElement,
+      const _linkElement = {
+        ..._mockElement,
         tagName: 'A',
         textContent: '',
         getAttribute: jest.fn(attr => {
@@ -500,8 +500,8 @@ describe('Element Checker Functions - Real Code Coverage', () => {
     });
 
     test('should not flag descriptive links', () => {
-      const linkElement = {
-        ...mockElement,
+      const _linkElement = {
+        ..._mockElement,
         tagName: 'A',
         textContent: 'Read our privacy policy',
         getAttribute: jest.fn(attr => {
@@ -527,8 +527,8 @@ describe('Element Checker Functions - Real Code Coverage', () => {
 
   describe('checkInputElement function', () => {
     test('should detect input without label', () => {
-      const inputElement = {
-        ...mockElement,
+      const _inputElement = {
+        ..._mockElement,
         tagName: 'INPUT',
         id: 'test-input',
         getAttribute: jest.fn(attr => {
@@ -552,8 +552,8 @@ describe('Element Checker Functions - Real Code Coverage', () => {
     });
 
     test('should detect input type=image without alt', () => {
-      const inputElement = {
-        ...mockElement,
+      const _inputElement = {
+        ..._mockElement,
         tagName: 'INPUT',
         getAttribute: jest.fn(attr => {
           if (attr === 'type') {return 'image';}
@@ -575,8 +575,8 @@ describe('Element Checker Functions - Real Code Coverage', () => {
 
   describe('checkTableElement function', () => {
     test('should detect table without headers', () => {
-      const tableElement = {
-        ...mockElement,
+      const _tableElement = {
+        ..._mockElement,
         tagName: 'TABLE',
         querySelector: jest.fn(() => null), // No th elements
         querySelectorAll: jest.fn(() => [])
@@ -593,9 +593,9 @@ describe('Element Checker Functions - Real Code Coverage', () => {
     });
 
     test('should detect nested tables', () => {
-      const nestedTable = { tagName: 'TABLE' };
-      const tableElement = {
-        ...mockElement,
+      const _nestedTable = { tagName: 'TABLE' };
+      const _tableElement = {
+        ..._mockElement,
         tagName: 'TABLE',
         querySelector: jest.fn(selector => {
           if (selector === 'th') {return { tagName: 'TH' };} // Has headers
@@ -620,8 +620,8 @@ describe('Element Checker Functions - Real Code Coverage', () => {
 
   describe('checkIframeElement function', () => {
     test('should detect iframe without title', () => {
-      const iframeElement = {
-        ...mockElement,
+      const _iframeElement = {
+        ..._mockElement,
         tagName: 'IFRAME',
         getAttribute: jest.fn(() => null),
         hasAttribute: jest.fn(() => false)
@@ -638,8 +638,8 @@ describe('Element Checker Functions - Real Code Coverage', () => {
     });
 
     test('should not flag iframe with title', () => {
-      const iframeElement = {
-        ...mockElement,
+      const _iframeElement = {
+        ..._mockElement,
         tagName: 'IFRAME',
         getAttribute: jest.fn(attr => attr === 'title' ? 'Content frame' : null),
         hasAttribute: jest.fn(attr => attr === 'title')
@@ -658,8 +658,8 @@ describe('Element Checker Functions - Real Code Coverage', () => {
 
   describe('checkFieldsetElement function', () => {
     test('should detect fieldset without legend', () => {
-      const fieldsetElement = {
-        ...mockElement,
+      const _fieldsetElement = {
+        ..._mockElement,
         tagName: 'FIELDSET',
         querySelector: jest.fn(() => null) // No legend
       };
@@ -677,8 +677,8 @@ describe('Element Checker Functions - Real Code Coverage', () => {
 
   describe('checkMediaElement function', () => {
     test('should detect autoplay media', () => {
-      const videoElement = {
-        ...mockElement,
+      const _videoElement = {
+        ..._mockElement,
         tagName: 'VIDEO',
         hasAttribute: jest.fn(attr => attr === 'autoplay'),
         getAttribute: jest.fn(() => null)
@@ -697,8 +697,8 @@ describe('Element Checker Functions - Real Code Coverage', () => {
 
   describe('checkTabIndexElement function', () => {
     test('should detect non-actionable element with positive tabindex', () => {
-      const divElement = {
-        ...mockElement,
+      const _divElement = {
+        ..._mockElement,
         tagName: 'DIV',
         getAttribute: jest.fn(attr => attr === 'tabindex' ? '1' : null),
         hasAttribute: jest.fn(attr => attr === 'tabindex'),
@@ -735,15 +735,15 @@ describe('Element Checker Functions - Real Code Coverage', () => {
   describe('Error handling', () => {
     test('should handle errors gracefully', () => {
       // Mock an element that throws an error
-      const errorElement = {
-        ...mockElement,
+      const _errorElement = {
+        ..._mockElement,
         tagName: 'IMG',
         getAttribute: jest.fn(() => {
           throw new Error('Test error');
         })
       };
 
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      const _consoleSpy = jest.spyOn(console, 'error').mockImplementation();
 
       global.document.querySelectorAll = jest.fn(selector => {
         if (selector.includes('img')) {return [errorElement];}
@@ -764,23 +764,23 @@ describe('Element Checker Functions - Real Code Coverage', () => {
 
   describe('Integration test with multiple elements', () => {
     test('should handle page with multiple different issues', () => {
-      const imgElement = {
-        ...mockElement,
+      const _imgElement = {
+        ..._mockElement,
         tagName: 'IMG',
         hasAttribute: jest.fn(() => false),
         getAttribute: jest.fn(() => null)
       };
 
-      const buttonElement = {
-        ...mockElement,
+      const _buttonElement = {
+        ..._mockElement,
         tagName: 'BUTTON',
         textContent: '',
         getAttribute: jest.fn(() => null),
         hasAttribute: jest.fn(() => false)
       };
 
-      const linkElement = {
-        ...mockElement,
+      const _linkElement = {
+        ..._mockElement,
         tagName: 'A',
         textContent: 'click here',
         getAttribute: jest.fn(attr => attr === 'href' ? '#' : null),

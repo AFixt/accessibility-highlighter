@@ -24,7 +24,7 @@ global.chrome = {
   },
   tabs: {
     query: jest.fn().mockResolvedValue([{ id: 123 }]),
-    sendMessage: jest.fn().mockImplementation((tabId, message, callback) => {
+    sendMessage: jest.fn().mockImplementation((_tabId, _message, _callback) => {
       if (callback) {callback('success');}
     })
   },
@@ -57,8 +57,8 @@ Object.defineProperty(global.document, 'querySelectorAll', {
       // Mock overlay elements
       return {
         forEach: jest.fn(callback => {
-          const mockElement = { parentNode: { removeChild: jest.fn() } };
-          callback(mockElement);
+          const _mockElement = { parentNode: { removeChild: jest.fn() } };
+          callback(_mockElement);
         })
       };
     }

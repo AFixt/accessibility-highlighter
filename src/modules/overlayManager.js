@@ -1,13 +1,13 @@
 /**
  * @fileoverview Overlay management module for Accessibility Highlighter
- * 
- * This module handles the creation, styling, positioning, and removal of 
+ *
+ * This module handles the creation, styling, positioning, and removal of
  * accessibility issue overlays on DOM elements. It provides functionality for:
  * - Creating visual overlays with proper styling
  * - Managing overlay visibility and filtering
  * - Categorizing accessibility issues
  * - Keyboard navigation highlighting
- * 
+ *
  * @author AFixt
  * @version 1.0.1
  */
@@ -18,7 +18,7 @@ import { addLogEntry, getCurrentFilters } from './state.js';
 /**
  * Provides the ability to overlay an element with a visual indicator of an accessibility issue.
  * @param {string} overlayClass - CSS class for the overlay
- * @param {'error'|'warning'} level - Error level (error/warning)
+ * @param {string} level - Error level (error/warning)
  * @param {string} msg - Error message
  * @this {Element} The DOM element to overlay
  * @returns {void}
@@ -48,7 +48,7 @@ export function overlay(overlayClass, level, msg) {
 
     // Skip if element is not visible
     if (rect.width === 0 || rect.height === 0) {
-      console.warn('Skipping overlay for zero-sized element:', elementInError);
+      console.log('Skipping overlay for zero-sized element:', elementInError);
       return;
     }
 
@@ -184,7 +184,7 @@ export function removeAccessibilityOverlays() {
 export function highlightCurrentOverlay(index) {
   try {
     const overlays = document.querySelectorAll(A11Y_CONFIG.SELECTORS.OVERLAY_ELEMENTS);
-    
+
     // Remove highlight from all overlays
     overlays.forEach(overlay => {
       overlay.style.outline = '';
@@ -196,7 +196,7 @@ export function highlightCurrentOverlay(index) {
       const currentOverlay = overlays[index];
       currentOverlay.style.outline = '3px solid #007cba';
       currentOverlay.style.outlineOffset = '2px';
-      
+
       // Scroll overlay into view
       currentOverlay.scrollIntoView({
         behavior: 'smooth',
@@ -329,7 +329,7 @@ export function getOverlayInfo(target) {
     const targetOverlay = Array.from(overlays).find(overlay => {
       const rect = target.getBoundingClientRect();
       const overlayRect = overlay.getBoundingClientRect();
-      
+
       // Check if overlay position matches target position (within tolerance)
       const tolerance = 5;
       return Math.abs(rect.top - overlayRect.top) < tolerance &&

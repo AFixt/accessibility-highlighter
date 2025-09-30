@@ -5,8 +5,8 @@
  * This tests the standalone config module by parsing and evaluating it as CommonJS.
  */
 
-const fs = require('fs');
-const path = require('path');
+const _fs = require('fs');
+const _path = require('path');
 
 // Set test environment
 process.env.NODE_ENV = 'test';
@@ -16,8 +16,8 @@ describe('src/config.js ES6 Module Tests', () => {
 
   beforeAll(() => {
     // Read and transform ES6 module to CommonJS for testing
-    const configPath = path.join(__dirname, '../src/config.js');
-    let configContent = fs.readFileSync(configPath, 'utf8');
+    const _configPath = path.join(__dirname, '../src/config.js');
+    const _configContent = fs.readFileSync(configPath, 'utf8');
 
     // Transform export statements to module.exports for testing
     configContent = configContent
@@ -26,7 +26,7 @@ describe('src/config.js ES6 Module Tests', () => {
       .replace(/^\/\*[\s\S]*?\*\/\s*/gm, ''); // Remove block comments
 
     // Add exports at the end
-    const exportStatements = [
+    const _exportStatements = [
       'PERFORMANCE_CONFIG',
       'VISUAL_CONFIG',
       'CHECK_CONFIG',
@@ -46,7 +46,7 @@ describe('src/config.js ES6 Module Tests', () => {
     configContent += '\n};\n';
 
     // Evaluate the transformed code
-    const module = { exports: {} };
+    const _module = { exports: {} };
     eval(configContent); // eslint-disable-line no-eval
     config = module.exports;
   });
@@ -304,7 +304,7 @@ describe('src/config.js ES6 Module Tests', () => {
   describe('Configuration integrity', () => {
     test('should not have null or undefined values in any export', () => {
       // Test all exports
-      const exports = [
+      const _exports = [
         'PERFORMANCE_CONFIG',
         'VISUAL_CONFIG',
         'CHECK_CONFIG',
@@ -320,7 +320,7 @@ describe('src/config.js ES6 Module Tests', () => {
       ];
 
       exports.forEach(exportName => {
-        const exportValue = config[exportName];
+        const _exportValue = config[exportName];
         expect(exportValue).toBeDefined();
         expect(exportValue).not.toBeNull();
       });

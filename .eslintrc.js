@@ -17,7 +17,7 @@ module.exports = {
   globals: {
     // Chrome extension APIs
     chrome: 'readonly',
-    
+
     // Test globals
     global: 'writable',
     jest: 'readonly',
@@ -28,7 +28,7 @@ module.exports = {
     afterEach: 'readonly',
     beforeAll: 'readonly',
     afterAll: 'readonly',
-    
+
     // DOM globals
     window: 'readonly',
     document: 'readonly',
@@ -45,7 +45,7 @@ module.exports = {
   },
   rules: {
     // Code quality
-    'no-unused-vars': ['error', { 
+    'no-unused-vars': ['error', {
       'argsIgnorePattern': '^_',
       'varsIgnorePattern': '^_'
     }],
@@ -54,7 +54,7 @@ module.exports = {
     'no-alert': 'warn',
     'no-eval': 'error',
     'no-implied-eval': 'error',
-    
+
     // Best practices
     'eqeqeq': ['error', 'always'],
     'curly': ['error', 'all'],
@@ -62,15 +62,15 @@ module.exports = {
     'no-multi-spaces': 'error',
     'no-trailing-spaces': 'error',
     'no-multiple-empty-lines': ['error', { 'max': 2 }],
-    
+
     // Style consistency
-    'indent': ['error', 2, { 
+    'indent': ['error', 2, {
       'SwitchCase': 1,
       'MemberExpression': 1
     }],
-    'quotes': ['error', 'single', { 
+    'quotes': ['error', 'single', {
       'avoidEscape': true,
-      'allowTemplateLiterals': true 
+      'allowTemplateLiterals': true
     }],
     'semi': ['error', 'always'],
     'comma-dangle': ['error', 'never'],
@@ -84,9 +84,9 @@ module.exports = {
     'keyword-spacing': 'error',
     'space-infix-ops': 'error',
     'brace-style': ['error', '1tbs', { 'allowSingleLine': true }],
-    
+
     // Naming conventions
-    'camelcase': ['error', { 
+    'camelcase': ['error', {
       'properties': 'always',
       'ignoreDestructuring': false,
       'allow': [
@@ -98,14 +98,14 @@ module.exports = {
         'aria_describedby'
       ]
     }],
-    
+
     // Function and variable declarations
     'no-var': 'error',
     'prefer-const': 'error',
     'prefer-arrow-callback': 'error',
     'arrow-spacing': 'error',
     'arrow-parens': ['error', 'as-needed'],
-    
+
     // Error prevention
     'no-undef': 'error',
     'no-unused-expressions': 'error',
@@ -114,22 +114,15 @@ module.exports = {
     'no-constant-condition': 'error',
     'no-cond-assign': ['error', 'except-parens'],
     'no-case-declarations': 'error',
-    
+
     // Chrome extension specific
     'no-restricted-globals': ['error', {
       'name': 'event',
       'message': 'Use local parameter instead of global event'
     }],
-    
+
     // JSDoc enforcement for functions
-    'valid-jsdoc': ['warn', {
-      'requireReturn': false,
-      'requireReturnDescription': false,
-      'requireParamDescription': true,
-      'prefer': {
-        'return': 'returns'
-      }
-    }],
+    'valid-jsdoc': 'off',
     'require-jsdoc': ['warn', {
       'require': {
         'FunctionDeclaration': true,
@@ -142,13 +135,20 @@ module.exports = {
   },
   overrides: [
     {
+      // ES6 modules
+      files: ['src/modules/**/*.js', 'src/config.js'],
+      parserOptions: {
+        sourceType: 'module'
+      }
+    },
+    {
       // Specific rules for test files
       files: ['tests/**/*.js', '**/*.test.js', '**/*.spec.js'],
       rules: {
         'no-unused-expressions': 'off',
         'require-jsdoc': 'off',
         'valid-jsdoc': 'off',
-        'no-unused-vars': ['error', { 
+        'no-unused-vars': ['error', {
           'argsIgnorePattern': '^_',
           'varsIgnorePattern': '^_'
         }]

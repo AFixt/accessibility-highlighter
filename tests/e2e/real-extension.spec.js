@@ -4,7 +4,7 @@
  */
 
 const { test, expect, chromium } = require('@playwright/test');
-const path = require('path');
+const _path = require('path');
 
 test.describe('Real Chrome Extension Tests', () => {
   let browser;
@@ -13,7 +13,7 @@ test.describe('Real Chrome Extension Tests', () => {
   let extensionId;
 
   test.beforeAll(async () => {
-    const pathToExtension = path.join(__dirname, '../../dist');
+    const _pathToExtension = path.join(__dirname, '../../dist');
 
     // Launch Chrome with the extension loaded
     browser = await chromium.launch({
@@ -35,11 +35,11 @@ test.describe('Real Chrome Extension Tests', () => {
     await page.waitForTimeout(1000);
 
     // Find the extension ID (usually visible in developer mode)
-    const extensionCards = await page.locator('.extension-list-item').all();
+    const _extensionCards = await page.locator('.extension-list-item').all();
     for (const card of extensionCards) {
-      const nameElement = await card.locator('.extension-name').textContent();
+      const _nameElement = await card.locator('.extension-name').textContent();
       if (nameElement && nameElement.includes('Accessibility Highlighter')) {
-        const idElement = await card.locator('.extension-id');
+        const _idElement = await card.locator('.extension-id');
         if (idElement) {
           extensionId = await idElement.textContent();
           break;
@@ -71,7 +71,7 @@ test.describe('Real Chrome Extension Tests', () => {
     await page.waitForTimeout(2000);
 
     // Check if content script functions are available
-    const hasContentScript = await page.evaluate(() => {
+    const _hasContentScript = await page.evaluate(() => {
       return typeof runAccessibilityChecks === 'function';
     });
 
@@ -82,7 +82,7 @@ test.describe('Real Chrome Extension Tests', () => {
     }
 
     // Verify content script functions exist
-    const functionsExist = await page.evaluate(() => {
+    const _functionsExist = await page.evaluate(() => {
       return {
         runAccessibilityChecks: typeof runAccessibilityChecks === 'function',
         removeAccessibilityOverlays: typeof removeAccessibilityOverlays === 'function',
@@ -140,7 +140,7 @@ test.describe('Real Chrome Extension Tests', () => {
     await page.waitForTimeout(1000);
 
     // Run the real accessibility checks
-    const results = await page.evaluate(() => {
+    const _results = await page.evaluate(() => {
       // Clear any existing logs
       if (typeof logs !== 'undefined' && logs.length) {
         logs.length = 0;
@@ -152,9 +152,9 @@ test.describe('Real Chrome Extension Tests', () => {
       // Wait a moment for async operations
       return new Promise(resolve => {
         setTimeout(() => {
-          const overlayCount = document.querySelectorAll('.overlay, .a11y-error, .a11y-warning').length;
-          const logCount = typeof logs !== 'undefined' ? logs.length : 0;
-          const logMessages = typeof logs !== 'undefined' ? logs.map(log => log.Message) : [];
+          const _overlayCount = document.querySelectorAll('.overlay, .a11y-error, .a11y-warning').length;
+          const _logCount = typeof logs !== 'undefined' ? logs.length : 0;
+          const _logMessages = typeof logs !== 'undefined' ? logs.map(log => log.Message) : [];
 
           resolve({
             overlayCount,
@@ -188,7 +188,7 @@ test.describe('Real Chrome Extension Tests', () => {
     expect(results.overlayCount).toBeGreaterThan(0);
 
     // Check specific issue types were found
-    const messages = results.logMessages.join(' ');
+    const _messages = results.logMessages.join(' ');
     expect(messages).toContain('img does not have an alt attribute');
     expect(messages).toContain('Form field without a corresponding label');
     expect(messages).toContain('Button without aria-label');
@@ -218,16 +218,16 @@ test.describe('Real Chrome Extension Tests', () => {
     await page.waitForTimeout(1000);
 
     // Get positions of image and overlay
-    const positions = await page.evaluate(() => {
-      const img = document.querySelector('img');
-      const overlay = document.querySelector('.overlay');
+    const _positions = await page.evaluate(() => {
+      const _img = document.querySelector('img');
+      const _overlay = document.querySelector('.overlay');
 
       if (!img || !overlay) {
         return { error: 'Missing elements', img: !!img, overlay: !!overlay };
       }
 
-      const imgRect = img.getBoundingClientRect();
-      const overlayRect = overlay.getBoundingClientRect();
+      const _imgRect = img.getBoundingClientRect();
+      const _overlayRect = overlay.getBoundingClientRect();
 
       return {
         img: {
@@ -286,7 +286,7 @@ test.describe('Real Chrome Extension Tests', () => {
     await page.waitForTimeout(1000);
 
     // Verify overlays exist
-    const overlayCountBefore = await page.locator('.overlay, .a11y-error, .a11y-warning').count();
+    const _overlayCountBefore = await page.locator('.overlay, .a11y-error, .a11y-warning').count();
     expect(overlayCountBefore).toBeGreaterThan(0);
 
     // Remove overlays
@@ -297,11 +297,11 @@ test.describe('Real Chrome Extension Tests', () => {
     await page.waitForTimeout(500);
 
     // Verify overlays are removed
-    const overlayCountAfter = await page.locator('.overlay, .a11y-error, .a11y-warning').count();
+    const _overlayCountAfter = await page.locator('.overlay, .a11y-error, .a11y-warning').count();
     expect(overlayCountAfter).toBe(0);
 
     // Verify logs are cleared
-    const logCount = await page.evaluate(() => {
+    const _logCount = await page.evaluate(() => {
       return typeof logs !== 'undefined' ? logs.length : -1;
     });
     expect(logCount).toBe(0);
@@ -326,7 +326,7 @@ test.describe('Real Chrome Extension Tests', () => {
     });
 
     await page.waitForTimeout(1000);
-    const overlaysOn = await page.locator('.overlay').count();
+    const _overlaysOn = await page.locator('.overlay').count();
     expect(overlaysOn).toBeGreaterThan(0);
 
     // Toggle off
@@ -335,7 +335,7 @@ test.describe('Real Chrome Extension Tests', () => {
     });
 
     await page.waitForTimeout(500);
-    const overlaysOff = await page.locator('.overlay').count();
+    const _overlaysOff = await page.locator('.overlay').count();
     expect(overlaysOff).toBe(0);
   });
 
@@ -407,7 +407,7 @@ test.describe('Real Chrome Extension Tests', () => {
     await page.waitForTimeout(1000);
 
     // Run comprehensive checks
-    const results = await page.evaluate(() => {
+    const _results = await page.evaluate(() => {
       if (typeof logs !== 'undefined') {
         logs.length = 0;
       }
@@ -416,8 +416,8 @@ test.describe('Real Chrome Extension Tests', () => {
 
       return new Promise(resolve => {
         setTimeout(() => {
-          const overlays = document.querySelectorAll('.overlay, .a11y-error, .a11y-warning');
-          const logMessages = typeof logs !== 'undefined' ? logs.map(log => log.Message) : [];
+          const _overlays = document.querySelectorAll('.overlay, .a11y-error, .a11y-warning');
+          const _logMessages = typeof logs !== 'undefined' ? logs.map(log => log.Message) : [];
 
           resolve({
             overlayCount: overlays.length,
@@ -436,7 +436,7 @@ test.describe('Real Chrome Extension Tests', () => {
     expect(results.logCount).toBeGreaterThan(3);
 
     // Check for various issue types
-    const allMessages = [...results.logMessages, ...results.overlayMessages].join(' ');
+    const _allMessages = [...results.logMessages, ...results.overlayMessages].join(' ');
 
     // Should find image issues
     expect(allMessages).toMatch(/img does not have an alt attribute|Uninformative alt attribute/);

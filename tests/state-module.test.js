@@ -1,7 +1,7 @@
 /**
  * State Module Tests
  * Tests for src/modules/state.js state management functions
- * 
+ *
  * Note: This tests the core state management logic by creating
  * a simplified test version of the state functions
  */
@@ -47,27 +47,27 @@ describe('State Module Functionality Tests', () => {
   };
 
   // State management functions (simplified versions of the actual functions)
-  const addLogEntry = (logEntry) => LOGS.push(logEntry);
-  const clearLogs = () => LOGS.length = 0;
-  const getLogs = () => LOGS;
-  const getLogCount = () => LOGS.length;
+  const _addLogEntry = logEntry => LOGS.push(logEntry);
+  const _clearLogs = () => LOGS.length = 0;
+  const _getLogs = () => LOGS;
+  const _getLogCount = () => LOGS.length;
 
-  const setCurrentOverlayIndex = (index) => currentOverlayIndex = index;
-  const getCurrentOverlayIndex = () => currentOverlayIndex;
+  const _setCurrentOverlayIndex = index => currentOverlayIndex = index;
+  const _getCurrentOverlayIndex = () => currentOverlayIndex;
 
-  const setKeyboardNavigationActive = (active) => keyboardNavigationActive = active;
-  const isKeyboardNavigationActive = () => keyboardNavigationActive;
+  const _setKeyboardNavigationActive = active => keyboardNavigationActive = active;
+  const _isKeyboardNavigationActive = () => keyboardNavigationActive;
 
-  const setProgressIndicator = (element) => progressIndicator = element;
-  const getProgressIndicator = () => progressIndicator;
+  const _setProgressIndicator = element => progressIndicator = element;
+  const _getProgressIndicator = () => progressIndicator;
 
-  const setIsRunning = (running) => isRunning = running;
-  const getIsRunning = () => isRunning;
+  const _setIsRunning = running => isRunning = running;
+  const _getIsRunning = () => isRunning;
 
-  const setLastRunTime = (time) => lastRunTime = time;
-  const getLastRunTime = () => lastRunTime;
+  const _setLastRunTime = time => lastRunTime = time;
+  const _getLastRunTime = () => lastRunTime;
 
-  const updateCurrentFilters = (newFilters) => {
+  const _updateCurrentFilters = newFilters => {
     Object.keys(newFilters).forEach(key => {
       if (typeof newFilters[key] === 'object' && newFilters[key] !== null) {
         currentFilters[key] = { ...currentFilters[key], ...newFilters[key] };
@@ -76,9 +76,9 @@ describe('State Module Functionality Tests', () => {
       }
     });
   };
-  const getCurrentFilters = () => currentFilters;
+  const _getCurrentFilters = () => currentFilters;
 
-  const updateCustomRules = (newRules) => {
+  const _updateCustomRules = newRules => {
     Object.keys(newRules).forEach(key => {
       if (typeof newRules[key] === 'object' && newRules[key] !== null) {
         customRules[key] = { ...customRules[key], ...newRules[key] };
@@ -87,12 +87,12 @@ describe('State Module Functionality Tests', () => {
       }
     });
   };
-  const getCustomRules = () => customRules;
+  const _getCustomRules = () => customRules;
 
-  const updateIncrementalState = (newState) => Object.assign(incrementalState, newState);
-  const getIncrementalState = () => incrementalState;
-  
-  const resetIncrementalState = () => {
+  const _updateIncrementalState = newState => Object.assign(incrementalState, newState);
+  const _getIncrementalState = () => incrementalState;
+
+  const _resetIncrementalState = () => {
     incrementalState = {
       isActive: false,
       currentIndex: 0,
@@ -104,7 +104,7 @@ describe('State Module Functionality Tests', () => {
     };
   };
 
-  const resetState = () => {
+  const _resetState = () => {
     clearLogs();
     currentOverlayIndex = -1;
     keyboardNavigationActive = false;
@@ -116,7 +116,7 @@ describe('State Module Functionality Tests', () => {
     customRules = { ...DEFAULT_CUSTOM_RULES };
   };
 
-  const getStateSummary = () => {
+  const _getStateSummary = () => {
     return {
       logCount: LOGS.length,
       currentOverlayIndex,
@@ -153,27 +153,27 @@ describe('State Module Functionality Tests', () => {
 
   describe('LOGS Management', () => {
     test('should add log entry correctly', () => {
-      const logEntry = {
+      const _logEntry = {
         Level: 'error',
         Message: 'Missing alt attribute',
         Element: '<img src="test.jpg">'
       };
 
       addLogEntry(logEntry);
-      
+
       expect(getLogs()).toHaveLength(1);
       expect(getLogs()[0]).toEqual(logEntry);
       expect(getLogCount()).toBe(1);
     });
 
     test('should add multiple log entries', () => {
-      const logEntry1 = {
+      const _logEntry1 = {
         Level: 'error',
         Message: 'Missing alt attribute',
         Element: '<img src="test.jpg">'
       };
-      
-      const logEntry2 = {
+
+      const _logEntry2 = {
         Level: 'warning',
         Message: 'Uninformative link text',
         Element: '<a href="#">click here</a>'
@@ -181,7 +181,7 @@ describe('State Module Functionality Tests', () => {
 
       addLogEntry(logEntry1);
       addLogEntry(logEntry2);
-      
+
       expect(getLogs()).toHaveLength(2);
       expect(getLogCount()).toBe(2);
       expect(getLogs()[0]).toEqual(logEntry1);
@@ -189,7 +189,7 @@ describe('State Module Functionality Tests', () => {
     });
 
     test('should clear logs correctly', () => {
-      const logEntry = {
+      const _logEntry = {
         Level: 'error',
         Message: 'Missing alt attribute',
         Element: '<img src="test.jpg">'
@@ -197,7 +197,7 @@ describe('State Module Functionality Tests', () => {
 
       addLogEntry(logEntry);
       expect(getLogCount()).toBe(1);
-      
+
       clearLogs();
       expect(getLogCount()).toBe(0);
       expect(getLogs()).toHaveLength(0);
@@ -206,7 +206,7 @@ describe('State Module Functionality Tests', () => {
     test('should handle empty logs array', () => {
       expect(getLogs()).toHaveLength(0);
       expect(getLogCount()).toBe(0);
-      
+
       // Clearing empty logs should not throw
       clearLogs();
       expect(getLogCount()).toBe(0);
@@ -216,20 +216,20 @@ describe('State Module Functionality Tests', () => {
   describe('Navigation State Management', () => {
     test('should set and get current overlay index', () => {
       expect(getCurrentOverlayIndex()).toBe(-1);
-      
+
       setCurrentOverlayIndex(5);
       expect(getCurrentOverlayIndex()).toBe(5);
-      
+
       setCurrentOverlayIndex(0);
       expect(getCurrentOverlayIndex()).toBe(0);
     });
 
     test('should set and get keyboard navigation active state', () => {
       expect(isKeyboardNavigationActive()).toBe(false);
-      
+
       setKeyboardNavigationActive(true);
       expect(isKeyboardNavigationActive()).toBe(true);
-      
+
       setKeyboardNavigationActive(false);
       expect(isKeyboardNavigationActive()).toBe(false);
     });
@@ -238,18 +238,18 @@ describe('State Module Functionality Tests', () => {
       // Start navigation
       setKeyboardNavigationActive(true);
       setCurrentOverlayIndex(0);
-      
+
       expect(isKeyboardNavigationActive()).toBe(true);
       expect(getCurrentOverlayIndex()).toBe(0);
-      
+
       // Navigate to next
       setCurrentOverlayIndex(1);
       expect(getCurrentOverlayIndex()).toBe(1);
-      
+
       // End navigation
       setKeyboardNavigationActive(false);
       setCurrentOverlayIndex(-1);
-      
+
       expect(isKeyboardNavigationActive()).toBe(false);
       expect(getCurrentOverlayIndex()).toBe(-1);
     });
@@ -258,34 +258,34 @@ describe('State Module Functionality Tests', () => {
   describe('Progress Indicator Management', () => {
     test('should set and get progress indicator element', () => {
       expect(getProgressIndicator()).toBeNull();
-      
-      const mockElement = document.createElement('div');
-      mockElement.id = 'progress-indicator';
-      
-      setProgressIndicator(mockElement);
-      expect(getProgressIndicator()).toBe(mockElement);
+
+      const _mockElement = document.createElement('div');
+      _mockElement.id = 'progress-indicator';
+
+      setProgressIndicator(_mockElement);
+      expect(getProgressIndicator()).toBe(_mockElement);
       expect(getProgressIndicator().id).toBe('progress-indicator');
     });
 
     test('should handle null progress indicator', () => {
-      const mockElement = document.createElement('div');
-      setProgressIndicator(mockElement);
-      expect(getProgressIndicator()).toBe(mockElement);
-      
+      const _mockElement = document.createElement('div');
+      setProgressIndicator(_mockElement);
+      expect(getProgressIndicator()).toBe(_mockElement);
+
       setProgressIndicator(null);
       expect(getProgressIndicator()).toBeNull();
     });
 
     test('should manage progress indicator lifecycle', () => {
       // Show progress
-      const progressElement = document.createElement('div');
+      const _progressElement = document.createElement('div');
       progressElement.className = 'progress-indicator';
       progressElement.textContent = 'Scanning...';
-      
+
       setProgressIndicator(progressElement);
       expect(getProgressIndicator()).toBe(progressElement);
       expect(getProgressIndicator().textContent).toBe('Scanning...');
-      
+
       // Hide progress
       setProgressIndicator(null);
       expect(getProgressIndicator()).toBeNull();
@@ -295,37 +295,37 @@ describe('State Module Functionality Tests', () => {
   describe('Running State Management', () => {
     test('should set and get running state', () => {
       expect(getIsRunning()).toBe(false);
-      
+
       setIsRunning(true);
       expect(getIsRunning()).toBe(true);
-      
+
       setIsRunning(false);
       expect(getIsRunning()).toBe(false);
     });
 
     test('should set and get last run time', () => {
       expect(getLastRunTime()).toBe(0);
-      
-      const timestamp = Date.now();
+
+      const _timestamp = Date.now();
       setLastRunTime(timestamp);
       expect(getLastRunTime()).toBe(timestamp);
     });
 
     test('should handle scan lifecycle', () => {
-      const startTime = Date.now();
-      
+      const _startTime = Date.now();
+
       // Start scan
       setIsRunning(true);
       setLastRunTime(startTime);
-      
+
       expect(getIsRunning()).toBe(true);
       expect(getLastRunTime()).toBe(startTime);
-      
+
       // End scan
-      const endTime = Date.now();
+      const _endTime = Date.now();
       setIsRunning(false);
       setLastRunTime(endTime);
-      
+
       expect(getIsRunning()).toBe(false);
       expect(getLastRunTime()).toBe(endTime);
       expect(getLastRunTime()).toBeGreaterThanOrEqual(startTime);
@@ -334,7 +334,7 @@ describe('State Module Functionality Tests', () => {
 
   describe('Filter Management', () => {
     test('should get current filters', () => {
-      const filters = getCurrentFilters();
+      const _filters = getCurrentFilters();
       expect(filters).toHaveProperty('categories');
       expect(filters).toHaveProperty('levels');
       expect(filters.categories.images).toBe(true);
@@ -342,16 +342,16 @@ describe('State Module Functionality Tests', () => {
     });
 
     test('should update current filters', () => {
-      const newFilters = {
+      const _newFilters = {
         categories: {
           images: false,
           links: true
         }
       };
-      
+
       updateCurrentFilters(newFilters);
-      const filters = getCurrentFilters();
-      
+      const _filters = getCurrentFilters();
+
       expect(filters.categories.images).toBe(false);
       expect(filters.categories.links).toBe(true);
       // Other properties should remain unchanged
@@ -364,16 +364,16 @@ describe('State Module Functionality Tests', () => {
       updateCurrentFilters({
         categories: { images: false }
       });
-      
-      let filters = getCurrentFilters();
+
+      const _filters = getCurrentFilters();
       expect(filters.categories.images).toBe(false);
       expect(filters.levels.error).toBe(true); // Should remain unchanged
-      
+
       // Update only levels
       updateCurrentFilters({
         levels: { warning: false }
       });
-      
+
       filters = getCurrentFilters();
       expect(filters.categories.images).toBe(false); // Should remain from previous update
       expect(filters.levels.warning).toBe(false);
@@ -385,11 +385,11 @@ describe('State Module Functionality Tests', () => {
       updateCurrentFilters({
         categories: { images: false, links: false }
       });
-      
+
       // Reset state
       resetState();
-      
-      const filters = getCurrentFilters();
+
+      const _filters = getCurrentFilters();
       expect(filters.categories.images).toBe(true);
       expect(filters.categories.links).toBe(true);
     });
@@ -397,20 +397,20 @@ describe('State Module Functionality Tests', () => {
 
   describe('Custom Rules Management', () => {
     test('should get current custom rules', () => {
-      const rules = getCustomRules();
+      const _rules = getCustomRules();
       expect(rules).toHaveProperty('contrastRule');
       expect(rules).toHaveProperty('altTextRule');
       expect(rules.contrastRule.enabled).toBe(true);
     });
 
     test('should update custom rules', () => {
-      const newRules = {
+      const _newRules = {
         contrastRule: { enabled: false, threshold: 3.0 }
       };
-      
+
       updateCustomRules(newRules);
-      const rules = getCustomRules();
-      
+      const _rules = getCustomRules();
+
       expect(rules.contrastRule.enabled).toBe(false);
       expect(rules.contrastRule.threshold).toBe(3.0);
       // Other rules should remain unchanged
@@ -421,8 +421,8 @@ describe('State Module Functionality Tests', () => {
       updateCustomRules({
         contrastRule: { threshold: 7.0 }
       });
-      
-      const rules = getCustomRules();
+
+      const _rules = getCustomRules();
       expect(rules.contrastRule.threshold).toBe(7.0);
       expect(rules.contrastRule.enabled).toBe(true); // Should remain unchanged
     });
@@ -430,7 +430,7 @@ describe('State Module Functionality Tests', () => {
 
   describe('Incremental State Management', () => {
     test('should get initial incremental state', () => {
-      const state = getIncrementalState();
+      const _state = getIncrementalState();
       expect(state.isActive).toBe(false);
       expect(state.currentIndex).toBe(0);
       expect(state.elements).toEqual([]);
@@ -439,17 +439,17 @@ describe('State Module Functionality Tests', () => {
     });
 
     test('should update incremental state', () => {
-      const newState = {
+      const _newState = {
         isActive: true,
         currentIndex: 5,
         elements: ['div', 'img', 'a'],
         processedCount: 3,
         totalCount: 10
       };
-      
+
       updateIncrementalState(newState);
-      const state = getIncrementalState();
-      
+      const _state = getIncrementalState();
+
       expect(state.isActive).toBe(true);
       expect(state.currentIndex).toBe(5);
       expect(state.elements).toEqual(['div', 'img', 'a']);
@@ -466,11 +466,11 @@ describe('State Module Functionality Tests', () => {
         processedCount: 2,
         totalCount: 5
       });
-      
+
       // Reset
       resetIncrementalState();
-      const state = getIncrementalState();
-      
+      const _state = getIncrementalState();
+
       expect(state.isActive).toBe(false);
       expect(state.currentIndex).toBe(0);
       expect(state.elements).toEqual([]);
@@ -489,10 +489,10 @@ describe('State Module Functionality Tests', () => {
       setIsRunning(true);
       setLastRunTime(Date.now());
       updateCurrentFilters({ categories: { images: false } });
-      
+
       // Reset state
       resetState();
-      
+
       // Verify all state is reset
       expect(getLogCount()).toBe(0);
       expect(getCurrentOverlayIndex()).toBe(-1);
@@ -511,12 +511,12 @@ describe('State Module Functionality Tests', () => {
       setKeyboardNavigationActive(true);
       setProgressIndicator(document.createElement('div'));
       setIsRunning(true);
-      const timestamp = Date.now();
+      const _timestamp = Date.now();
       setLastRunTime(timestamp);
       updateIncrementalState({ isActive: true });
-      
-      const summary = getStateSummary();
-      
+
+      const _summary = getStateSummary();
+
       expect(summary.logCount).toBe(2);
       expect(summary.currentOverlayIndex).toBe(2);
       expect(summary.keyboardNavigationActive).toBe(true);
@@ -533,10 +533,10 @@ describe('State Module Functionality Tests', () => {
     test('should have initialization capability', () => {
       // Test that state can be initialized with default values
       resetState();
-      
-      const filters = getCurrentFilters();
-      const rules = getCustomRules();
-      
+
+      const _filters = getCurrentFilters();
+      const _rules = getCustomRules();
+
       expect(filters.categories.images).toBe(true);
       expect(rules.contrastRule.enabled).toBe(true);
     });
@@ -546,11 +546,11 @@ describe('State Module Functionality Tests', () => {
       updateCurrentFilters({
         categories: { images: false }
       });
-      
+
       updateCustomRules({
         contrastRule: { threshold: 7.0 }
       });
-      
+
       // Verify state is updated
       expect(getCurrentFilters().categories.images).toBe(false);
       expect(getCustomRules().contrastRule.threshold).toBe(7.0);

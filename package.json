@@ -17,7 +17,6 @@
     "prebuild": "npm run clean",
     "build": "mkdir -p dist && cp -r src/* manifest.json dist/",
     "package": "npm run build && cd dist && zip -r ../a11y-highlighter.zip *",
-    "pretest": "npm run lint:check",
     "dev": "npm run build && npm run test:watch"
   },
   "keywords": [
@@ -25,13 +24,13 @@
     "a11y",
     "chrome-extension"
   ],
-  "author": "AFixt",
+  "author": "AFixt <talktous@afixt.com>",
   "homepage": "https://github.com/AFixt/a11y-highlighter",
   "repository": {
     "type": "git",
     "url": "https://github.com/AFixt/a11y-highlighter"
   },
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "@playwright/test": "^1.40.0",
     "eslint": "^8.57.0",

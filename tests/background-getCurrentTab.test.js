@@ -57,77 +57,77 @@ describe('Background Script - getCurrentTab() Function', () => {
 
   describe('Successful tab retrieval', () => {
     test('should return active tab when query succeeds', async () => {
-      const mockTab = {
+      const __mockTab = {
         id: 123,
         url: 'https://example.com',
         title: 'Test Page',
         active: true
       };
 
-      chrome.tabs.query.mockResolvedValue([mockTab]);
+      chrome.tabs.query.mockResolvedValue([__mockTab]);
 
       // Access the function from global scope (it's defined in background.js)
-      const result = await global.getCurrentTab();
+      const __result = await global.getCurrentTab();
 
       expect(chrome.tabs.query).toHaveBeenCalledWith({
         active: true,
         lastFocusedWindow: true
       });
-      expect(result).toEqual(mockTab);
+      expect(__result).toEqual(__mockTab);
       expect(console.warn).not.toHaveBeenCalled();
       expect(console.error).not.toHaveBeenCalled();
     });
 
     test('should return first tab when multiple tabs returned', async () => {
-      const mockTabs = [
+      const __mockTabs = [
         { id: 123, url: 'https://example.com', title: 'Test Page 1', active: true },
         { id: 124, url: 'https://example2.com', title: 'Test Page 2', active: false }
       ];
 
-      chrome.tabs.query.mockResolvedValue(mockTabs);
+      chrome.tabs.query.mockResolvedValue(__mockTabs);
 
-      const result = await global.getCurrentTab();
+      const __result = await global.getCurrentTab();
 
-      expect(result).toEqual(mockTabs[0]);
-      expect(result.id).toBe(123);
+      expect(__result).toEqual(__mockTabs[0]);
+      expect(__result.id).toBe(123);
     });
   });
 
   describe('Error handling', () => {
     test('should handle chrome.tabs.query rejection', async () => {
-      const mockError = new Error('Chrome API error');
-      chrome.tabs.query.mockRejectedValue(mockError);
+      const __mockError = new Error('Chrome API error');
+      chrome.tabs.query.mockRejectedValue(__mockError);
 
-      const result = await global.getCurrentTab();
+      const __result = await global.getCurrentTab();
 
-      expect(result).toBeNull();
-      expect(console.error).toHaveBeenCalledWith('Error querying tabs:', mockError);
+      expect(__result).toBeNull();
+      expect(console.error).toHaveBeenCalledWith('Error querying tabs:', __mockError);
     });
 
     test('should handle empty tabs array', async () => {
       chrome.tabs.query.mockResolvedValue([]);
 
-      const result = await global.getCurrentTab();
+      const __result = await global.getCurrentTab();
 
-      expect(result).toBeNull();
+      expect(__result).toBeNull();
       expect(console.warn).toHaveBeenCalledWith('No active tabs found');
     });
 
     test('should handle null tabs response', async () => {
       chrome.tabs.query.mockResolvedValue(null);
 
-      const result = await global.getCurrentTab();
+      const __result = await global.getCurrentTab();
 
-      expect(result).toBeNull();
+      expect(__result).toBeNull();
       expect(console.warn).toHaveBeenCalledWith('No active tabs found');
     });
 
     test('should handle undefined tabs response', async () => {
       chrome.tabs.query.mockResolvedValue(undefined);
 
-      const result = await global.getCurrentTab();
+      const __result = await global.getCurrentTab();
 
-      expect(result).toBeNull();
+      expect(__result).toBeNull();
       expect(console.warn).toHaveBeenCalledWith('No active tabs found');
     });
   });
@@ -136,84 +136,84 @@ describe('Background Script - getCurrentTab() Function', () => {
     test('should reject null tab object', async () => {
       chrome.tabs.query.mockResolvedValue([null]);
 
-      const result = await global.getCurrentTab();
+      const __result = await global.getCurrentTab();
 
-      expect(result).toBeNull();
+      expect(__result).toBeNull();
       expect(console.error).toHaveBeenCalledWith('Invalid tab object:', null);
     });
 
     test('should reject tab with missing id', async () => {
-      const invalidTab = {
+      const __invalidTab = {
         url: 'https://example.com',
         title: 'Test Page',
         active: true
         // id is missing
       };
 
-      chrome.tabs.query.mockResolvedValue([invalidTab]);
+      chrome.tabs.query.mockResolvedValue([__invalidTab]);
 
-      const result = await global.getCurrentTab();
+      const __result = await global.getCurrentTab();
 
-      expect(result).toBeNull();
-      expect(console.error).toHaveBeenCalledWith('Invalid tab object:', invalidTab);
+      expect(__result).toBeNull();
+      expect(console.error).toHaveBeenCalledWith('Invalid tab object:', __invalidTab);
     });
 
     test('should reject tab with non-number id', async () => {
-      const invalidTab = {
+      const __invalidTab = {
         id: '123', // string instead of number
         url: 'https://example.com',
         title: 'Test Page',
         active: true
       };
 
-      chrome.tabs.query.mockResolvedValue([invalidTab]);
+      chrome.tabs.query.mockResolvedValue([__invalidTab]);
 
-      const result = await global.getCurrentTab();
+      const __result = await global.getCurrentTab();
 
-      expect(result).toBeNull();
-      expect(console.error).toHaveBeenCalledWith('Invalid tab object:', invalidTab);
+      expect(__result).toBeNull();
+      expect(console.error).toHaveBeenCalledWith('Invalid tab object:', __invalidTab);
     });
 
     test('should reject non-object tab', async () => {
       chrome.tabs.query.mockResolvedValue(['not an object']);
 
-      const result = await global.getCurrentTab();
+      const __result = await global.getCurrentTab();
 
-      expect(result).toBeNull();
+      expect(__result).toBeNull();
       expect(console.error).toHaveBeenCalledWith('Invalid tab object:', 'not an object');
     });
   });
 
   describe('Edge cases', () => {
     test('should handle tab with id = 0 (valid)', async () => {
-      const mockTab = {
+      const __mockTab = {
         id: 0, // 0 is a valid tab ID
         url: 'https://example.com',
         title: 'Test Page',
         active: true
       };
 
-      chrome.tabs.query.mockResolvedValue([mockTab]);
+      chrome.tabs.query.mockResolvedValue([__mockTab]);
 
-      const result = await global.getCurrentTab();
+      const __result = await global.getCurrentTab();
 
-      expect(result).toEqual(mockTab);
+      expect(__result).toEqual(__mockTab);
       expect(console.error).not.toHaveBeenCalled();
     });
 
     test('should handle tab with negative id (valid for special tabs)', async () => {
-      const mockTab = {
+      const __mockTab = {
         id: -1, // negative IDs can be valid for special tabs
         url: 'chrome://newtab',
         title: 'New Tab',
         active: true
       };
 
-      chrome.tabs.query.mockResolvedValue([mockTab]);
+      chrome.tabs.query.mockResolvedValue([__mockTab]);
 
-      const result = await global.getCurrentTab();
+      const __result = await global.getCurrentTab();
 
-      expect(result).toEqual(mockTab);
+      expect(__result).toEqual(__mockTab);
       expect(console.error).not.toHaveBeenCalled();
     });
 
@@ -223,9 +223,9 @@ describe('Background Script - getCurrentTab() Function', () => {
         throw new Error('Synchronous Chrome error');
       });
 
-      const result = await global.getCurrentTab();
+      const __result = await global.getCurrentTab();
 
-      expect(result).toBeNull();
+      expect(__result).toBeNull();
       expect(console.error).toHaveBeenCalledWith(
         'Error querying tabs:',
         expect.any(Error)
@@ -235,8 +235,8 @@ describe('Background Script - getCurrentTab() Function', () => {
 
   describe('Query options validation', () => {
     test('should call chrome.tabs.query with correct options', async () => {
-      const mockTab = { id: 123, url: 'https://example.com', active: true };
-      chrome.tabs.query.mockResolvedValue([mockTab]);
+      const __mockTab = { id: 123, url: 'https://example.com', active: true };
+      chrome.tabs.query.mockResolvedValue([__mockTab]);
 
       await global.getCurrentTab();
 

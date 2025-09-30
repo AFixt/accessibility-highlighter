@@ -16,9 +16,9 @@ describe('Setup test', () => {
 });
 
 describe('Structure Functions Tests', () => {
-  let mockDocument;
+  let _mockDocument;
   let mockOverlay;
-  let mockConsole;
+  let _mockConsole;
   let checkForLandmarks;
 
   // Mock A11Y_CONFIG
@@ -33,19 +33,19 @@ describe('Structure Functions Tests', () => {
 
   beforeEach(() => {
     // Mock console
-    mockConsole = {
+    _mockConsole = {
       log: jest.fn(),
       warn: jest.fn(),
       error: jest.fn()
     };
-    global.console = mockConsole;
+    global.console = _mockConsole;
 
     // Mock overlay function
     mockOverlay = jest.fn();
     global.overlay = mockOverlay;
 
     // Mock document
-    mockDocument = {
+    _mockDocument = {
       body: {
         innerHTML: '',
         appendChild: jest.fn(),
@@ -79,16 +79,16 @@ describe('Structure Functions Tests', () => {
       querySelector: jest.fn(() => null)
     };
 
-    global.document = mockDocument;
+    global.document = _mockDocument;
     global.A11Y_CONFIG = A11Y_CONFIG;
 
     // Define checkForLandmarks function (simulating the real one)
     checkForLandmarks = () => {
-      const landmarks = mockDocument.querySelectorAll(A11Y_CONFIG.SELECTORS.LANDMARK_ELEMENTS);
+      const landmarks = _mockDocument.querySelectorAll(A11Y_CONFIG.SELECTORS.LANDMARK_ELEMENTS);
 
       if (landmarks.length === 0) {
-        mockConsole.log(mockDocument.body);
-        mockOverlay.call(mockDocument.body, 'overlay', 'error', A11Y_CONFIG.MESSAGES.NO_LANDMARKS);
+        _mockConsole.log(_mockDocument.body);
+        mockOverlay.call(_mockDocument.body, 'overlay', 'error', A11Y_CONFIG.MESSAGES.NO_LANDMARKS);
       }
     };
   });
@@ -100,12 +100,12 @@ describe('Structure Functions Tests', () => {
   describe('checkForLandmarks', () => {
     test('should detect missing landmarks and create error overlay', () => {
       // Mock no landmarks found
-      mockDocument.querySelectorAll.mockReturnValue([]);
+      _mockDocument.querySelectorAll.mockReturnValue([]);
 
       checkForLandmarks();
 
-      expect(mockDocument.querySelectorAll).toHaveBeenCalledWith(A11Y_CONFIG.SELECTORS.LANDMARK_ELEMENTS);
-      expect(mockConsole.log).toHaveBeenCalledWith(mockDocument.body);
+      expect(_mockDocument.querySelectorAll).toHaveBeenCalledWith(A11Y_CONFIG.SELECTORS.LANDMARK_ELEMENTS);
+      expect(_mockConsole.log).toHaveBeenCalledWith(_mockDocument.body);
       expect(mockOverlay).toHaveBeenCalledWith('overlay', 'error', A11Y_CONFIG.MESSAGES.NO_LANDMARKS);
     });
 
@@ -116,12 +116,12 @@ describe('Structure Functions Tests', () => {
         { tagName: 'NAV', role: null },
         { tagName: 'HEADER', role: null }
       ];
-      mockDocument.querySelectorAll.mockReturnValue(mockLandmarks);
+      _mockDocument.querySelectorAll.mockReturnValue(mockLandmarks);
 
       checkForLandmarks();
 
-      expect(mockDocument.querySelectorAll).toHaveBeenCalledWith(A11Y_CONFIG.SELECTORS.LANDMARK_ELEMENTS);
-      expect(mockConsole.log).not.toHaveBeenCalled();
+      expect(_mockDocument.querySelectorAll).toHaveBeenCalledWith(A11Y_CONFIG.SELECTORS.LANDMARK_ELEMENTS);
+      expect(_mockConsole.log).not.toHaveBeenCalled();
       expect(mockOverlay).not.toHaveBeenCalled();
     });
 
@@ -132,11 +132,11 @@ describe('Structure Functions Tests', () => {
         { tagName: 'DIV', role: 'navigation' },
         { tagName: 'DIV', role: 'banner' }
       ];
-      mockDocument.querySelectorAll.mockReturnValue(mockAriaLandmarks);
+      _mockDocument.querySelectorAll.mockReturnValue(mockAriaLandmarks);
 
       checkForLandmarks();
 
-      expect(mockDocument.querySelectorAll).toHaveBeenCalledWith(A11Y_CONFIG.SELECTORS.LANDMARK_ELEMENTS);
+      expect(_mockDocument.querySelectorAll).toHaveBeenCalledWith(A11Y_CONFIG.SELECTORS.LANDMARK_ELEMENTS);
       expect(mockOverlay).not.toHaveBeenCalled();
     });
 
@@ -145,7 +145,7 @@ describe('Structure Functions Tests', () => {
       const mockFormLandmarks = [
         { tagName: 'FORM', attributes: { 'aria-label': 'Search' } }
       ];
-      mockDocument.querySelectorAll.mockReturnValue(mockFormLandmarks);
+      _mockDocument.querySelectorAll.mockReturnValue(mockFormLandmarks);
 
       checkForLandmarks();
 
@@ -158,7 +158,7 @@ describe('Structure Functions Tests', () => {
         { tagName: 'DIV', role: 'region', attributes: { 'aria-label': 'Sidebar' } },
         { tagName: 'SECTION', role: 'region', attributes: { 'aria-labelledby': 'region-title' } }
       ];
-      mockDocument.querySelectorAll.mockReturnValue(mockRegionLandmarks);
+      _mockDocument.querySelectorAll.mockReturnValue(mockRegionLandmarks);
 
       checkForLandmarks();
 
@@ -170,7 +170,7 @@ describe('Structure Functions Tests', () => {
       const mockSingleLandmark = [
         { tagName: 'MAIN', role: null }
       ];
-      mockDocument.querySelectorAll.mockReturnValue(mockSingleLandmark);
+      _mockDocument.querySelectorAll.mockReturnValue(mockSingleLandmark);
 
       checkForLandmarks();
 
@@ -186,7 +186,7 @@ describe('Structure Functions Tests', () => {
         { tagName: 'FOOTER', role: null },
         { tagName: 'DIV', role: 'search' }
       ];
-      mockDocument.querySelectorAll.mockReturnValue(mockMixedLandmarks);
+      _mockDocument.querySelectorAll.mockReturnValue(mockMixedLandmarks);
 
       checkForLandmarks();
 
@@ -194,18 +194,18 @@ describe('Structure Functions Tests', () => {
     });
 
     test('should use correct selector for landmarks', () => {
-      mockDocument.querySelectorAll.mockReturnValue([]);
+      _mockDocument.querySelectorAll.mockReturnValue([]);
 
       checkForLandmarks();
 
       // Verify the exact selector is used
-      expect(mockDocument.querySelectorAll).toHaveBeenCalledWith(
+      expect(_mockDocument.querySelectorAll).toHaveBeenCalledWith(
         'main, nav, header, footer, section, article, aside, form[aria-label], form[aria-labelledby], [role="main"], [role="navigation"], [role="banner"], [role="contentinfo"], [role="complementary"], [role="search"], [role="region"][aria-label], [role="region"][aria-labelledby]'
       );
     });
 
     test('should use correct error message', () => {
-      mockDocument.querySelectorAll.mockReturnValue([]);
+      _mockDocument.querySelectorAll.mockReturnValue([]);
 
       checkForLandmarks();
 
@@ -223,12 +223,12 @@ describe('Structure Functions Tests', () => {
     beforeEach(() => {
       // Create heading hierarchy check function
       checkHeadingHierarchy = () => {
-        const headings = mockDocument.querySelectorAll('h1, h2, h3, h4, h5, h6');
-        const issues = [];
-        let previousLevel = 0;
+        const _headings = _mockDocument.querySelectorAll('h1, h2, h3, h4, h5, h6');
+        const _issues = [];
+        const _previousLevel = 0;
 
         headings.forEach((heading, index) => {
-          const level = parseInt(heading.tagName.charAt(1));
+          const _level = parseInt(heading.tagName.charAt(1));
 
           // Check for skipped heading levels
           if (previousLevel > 0 && level > previousLevel + 1) {
@@ -241,7 +241,7 @@ describe('Structure Functions Tests', () => {
 
           // Check for multiple h1s
           if (level === 1 && index > 0) {
-            const h1Count = Array.from(headings).filter(h => h.tagName === 'H1').length;
+            const _h1Count = Array.from(headings).filter(h => h.tagName === 'H1').length;
             if (h1Count > 1) {
               issues.push({
                 element: heading,
@@ -259,20 +259,20 @@ describe('Structure Functions Tests', () => {
     });
 
     test('should detect skipped heading levels', () => {
-      const mockHeadings = [
+      const _mockHeadings = [
         { tagName: 'H1', textContent: 'Title' },
         { tagName: 'H3', textContent: 'Subtitle' }, // Skips H2
         { tagName: 'H2', textContent: 'Section' }
       ];
 
-      mockDocument.querySelectorAll.mockImplementation(selector => {
+      _mockDocument.querySelectorAll.mockImplementation(selector => {
         if (selector === 'h1, h2, h3, h4, h5, h6') {
           return mockHeadings;
         }
         return [];
       });
 
-      const issues = checkHeadingHierarchy();
+      const _issues = checkHeadingHierarchy();
 
       expect(issues).toHaveLength(1);
       expect(issues[0].message).toContain('Heading level skipped: h1 to h3');
@@ -280,20 +280,20 @@ describe('Structure Functions Tests', () => {
     });
 
     test('should detect multiple h1 elements', () => {
-      const mockHeadings = [
+      const _mockHeadings = [
         { tagName: 'H1', textContent: 'First Title' },
         { tagName: 'H1', textContent: 'Second Title' },
         { tagName: 'H2', textContent: 'Subtitle' }
       ];
 
-      mockDocument.querySelectorAll.mockImplementation(selector => {
+      _mockDocument.querySelectorAll.mockImplementation(selector => {
         if (selector === 'h1, h2, h3, h4, h5, h6') {
           return mockHeadings;
         }
         return [];
       });
 
-      const issues = checkHeadingHierarchy();
+      const _issues = checkHeadingHierarchy();
 
       expect(issues).toHaveLength(1);
       expect(issues[0].message).toContain('Multiple h1 elements found');
@@ -301,7 +301,7 @@ describe('Structure Functions Tests', () => {
     });
 
     test('should validate correct heading hierarchy', () => {
-      const mockHeadings = [
+      const _mockHeadings = [
         { tagName: 'H1', textContent: 'Title' },
         { tagName: 'H2', textContent: 'Section 1' },
         { tagName: 'H3', textContent: 'Subsection 1.1' },
@@ -309,45 +309,45 @@ describe('Structure Functions Tests', () => {
         { tagName: 'H2', textContent: 'Section 2' }
       ];
 
-      mockDocument.querySelectorAll.mockImplementation(selector => {
+      _mockDocument.querySelectorAll.mockImplementation(selector => {
         if (selector === 'h1, h2, h3, h4, h5, h6') {
           return mockHeadings;
         }
         return [];
       });
 
-      const issues = checkHeadingHierarchy();
+      const _issues = checkHeadingHierarchy();
 
       expect(issues).toHaveLength(0);
     });
 
     test('should handle pages with no headings', () => {
-      mockDocument.querySelectorAll.mockImplementation(selector => {
+      _mockDocument.querySelectorAll.mockImplementation(selector => {
         if (selector === 'h1, h2, h3, h4, h5, h6') {
           return [];
         }
         return [];
       });
 
-      const issues = checkHeadingHierarchy();
+      const _issues = checkHeadingHierarchy();
 
       expect(issues).toHaveLength(0);
     });
 
     test('should detect large heading level jumps', () => {
-      const mockHeadings = [
+      const _mockHeadings = [
         { tagName: 'H1', textContent: 'Title' },
         { tagName: 'H5', textContent: 'Deep Section' } // Jumps from H1 to H5
       ];
 
-      mockDocument.querySelectorAll.mockImplementation(selector => {
+      _mockDocument.querySelectorAll.mockImplementation(selector => {
         if (selector === 'h1, h2, h3, h4, h5, h6') {
           return mockHeadings;
         }
         return [];
       });
 
-      const issues = checkHeadingHierarchy();
+      const _issues = checkHeadingHierarchy();
 
       expect(issues).toHaveLength(1);
       expect(issues[0].message).toContain('Heading level skipped: h1 to h5');
@@ -360,10 +360,10 @@ describe('Structure Functions Tests', () => {
     beforeEach(() => {
       // Create semantic structure check function
       checkSemanticStructure = () => {
-        const issues = [];
+        const _issues = [];
 
         // Check for proper main element usage
-        const mainElements = mockDocument.querySelectorAll('main, [role="main"]');
+        const _mainElements = _mockDocument.querySelectorAll('main, [role="main"]');
         if (mainElements.length > 1) {
           issues.push({
             message: 'Multiple main elements detected. Use only one main element per page.',
@@ -372,7 +372,7 @@ describe('Structure Functions Tests', () => {
         }
 
         // Check for nav without accessible name
-        const navElements = mockDocument.querySelectorAll('nav, [role="navigation"]');
+        const _navElements = _mockDocument.querySelectorAll('nav, [role="navigation"]');
         navElements.forEach(nav => {
           if (!nav.getAttribute('aria-label') && !nav.getAttribute('aria-labelledby')) {
             issues.push({
@@ -384,7 +384,7 @@ describe('Structure Functions Tests', () => {
         });
 
         // Check for complementary regions without labels
-        const asideElements = mockDocument.querySelectorAll('aside, [role="complementary"]');
+        const _asideElements = _mockDocument.querySelectorAll('aside, [role="complementary"]');
         asideElements.forEach(aside => {
           if (!aside.getAttribute('aria-label') && !aside.getAttribute('aria-labelledby')) {
             issues.push({
@@ -400,19 +400,19 @@ describe('Structure Functions Tests', () => {
     });
 
     test('should detect multiple main elements', () => {
-      const mockMainElements = [
+      const _mockMainElements = [
         { tagName: 'MAIN' },
         { tagName: 'DIV', role: 'main' }
       ];
 
-      mockDocument.querySelectorAll.mockImplementation(selector => {
+      _mockDocument.querySelectorAll.mockImplementation(selector => {
         if (selector === 'main, [role="main"]') {
           return mockMainElements;
         }
         return [];
       });
 
-      const issues = checkSemanticStructure();
+      const _issues = checkSemanticStructure();
 
       expect(issues).toHaveLength(1);
       expect(issues[0].message).toContain('Multiple main elements detected');
@@ -420,7 +420,7 @@ describe('Structure Functions Tests', () => {
     });
 
     test('should detect nav elements without accessible names', () => {
-      const mockNavElements = [
+      const _mockNavElements = [
         {
           tagName: 'NAV',
           getAttribute: jest.fn(() => null) // No aria-label or aria-labelledby
@@ -431,7 +431,7 @@ describe('Structure Functions Tests', () => {
         }
       ];
 
-      mockDocument.querySelectorAll.mockImplementation(selector => {
+      _mockDocument.querySelectorAll.mockImplementation(selector => {
         if (selector === 'nav, [role="navigation"]') {
           return mockNavElements;
         }
@@ -444,7 +444,7 @@ describe('Structure Functions Tests', () => {
         return [];
       });
 
-      const issues = checkSemanticStructure();
+      const _issues = checkSemanticStructure();
 
       expect(issues).toHaveLength(1);
       expect(issues[0].message).toContain('Navigation element missing accessible name');
@@ -452,14 +452,14 @@ describe('Structure Functions Tests', () => {
     });
 
     test('should detect aside elements without accessible names', () => {
-      const mockAsideElements = [
+      const _mockAsideElements = [
         {
           tagName: 'ASIDE',
           getAttribute: jest.fn(() => null) // No aria-label or aria-labelledby
         }
       ];
 
-      mockDocument.querySelectorAll.mockImplementation(selector => {
+      _mockDocument.querySelectorAll.mockImplementation(selector => {
         if (selector === 'aside, [role="complementary"]') {
           return mockAsideElements;
         }
@@ -472,7 +472,7 @@ describe('Structure Functions Tests', () => {
         return [];
       });
 
-      const issues = checkSemanticStructure();
+      const _issues = checkSemanticStructure();
 
       expect(issues).toHaveLength(1);
       expect(issues[0].message).toContain('Complementary region missing accessible name');
@@ -480,25 +480,25 @@ describe('Structure Functions Tests', () => {
     });
 
     test('should validate correct semantic structure', () => {
-      const mockMainElements = [
+      const _mockMainElements = [
         { tagName: 'MAIN' }
       ];
 
-      const mockNavElements = [
+      const _mockNavElements = [
         {
           tagName: 'NAV',
           getAttribute: jest.fn(attr => attr === 'aria-label' ? 'Main Navigation' : null)
         }
       ];
 
-      const mockAsideElements = [
+      const _mockAsideElements = [
         {
           tagName: 'ASIDE',
           getAttribute: jest.fn(attr => attr === 'aria-labelledby' ? 'sidebar-title' : null)
         }
       ];
 
-      mockDocument.querySelectorAll.mockImplementation(selector => {
+      _mockDocument.querySelectorAll.mockImplementation(selector => {
         if (selector === 'main, [role="main"]') {
           return mockMainElements;
         }
@@ -511,15 +511,15 @@ describe('Structure Functions Tests', () => {
         return [];
       });
 
-      const issues = checkSemanticStructure();
+      const _issues = checkSemanticStructure();
 
       expect(issues).toHaveLength(0);
     });
 
     test('should handle pages with no semantic elements', () => {
-      mockDocument.querySelectorAll.mockImplementation(() => []);
+      _mockDocument.querySelectorAll.mockImplementation(() => []);
 
-      const issues = checkSemanticStructure();
+      const _issues = checkSemanticStructure();
 
       expect(issues).toHaveLength(0);
     });

@@ -6,7 +6,7 @@
  */
 
 const { test, expect, chromium } = require('@playwright/test');
-const path = require('path');
+const _path = require('path');
 
 test.describe('Accessibility Scenarios E2E Tests', () => {
   let browser;
@@ -15,7 +15,7 @@ test.describe('Accessibility Scenarios E2E Tests', () => {
   let extensionId;
 
   test.beforeAll(async () => {
-    const pathToExtension = path.join(__dirname, '../../dist');
+    const _pathToExtension = path.join(__dirname, '../../dist');
 
     // Launch Chrome with the extension loaded
     browser = await chromium.launch({
@@ -31,13 +31,13 @@ test.describe('Accessibility Scenarios E2E Tests', () => {
     context = await browser.newContext();
 
     // Get all pages and find the background page to get extension ID
-    const backgrounds = context.backgroundPages();
+    const _backgrounds = context.backgroundPages();
     if (backgrounds.length > 0) {
-      const backgroundPage = backgrounds[0];
+      const _backgroundPage = backgrounds[0];
       extensionId = backgroundPage.url().split('/')[2];
     } else {
       // Wait for background page if not immediately available
-      const backgroundPage = await context.waitForEvent('backgroundpage');
+      const _backgroundPage = await context.waitForEvent('backgroundpage');
       extensionId = backgroundPage.url().split('/')[2];
     }
 
@@ -58,7 +58,7 @@ test.describe('Accessibility Scenarios E2E Tests', () => {
 
   test('should detect missing alt attributes on images', async () => {
     // Create a test page with images missing alt attributes
-    const htmlContent = `
+    const _htmlContent = `
       <!DOCTYPE html>
       <html>
       <head><title>Image Alt Test</title></head>
@@ -81,17 +81,17 @@ test.describe('Accessibility Scenarios E2E Tests', () => {
     await page.waitForTimeout(2000);
 
     // Check for overlays on problematic images
-    const overlays = await page.locator('.a11y-error, .overlay').count();
+    const _overlays = await page.locator('.a11y-error, .overlay').count();
     expect(overlays).toBeGreaterThan(0);
 
     // Check console for logged issues
-    const logs = await page.evaluate(() => {
+    const _logs = await page.evaluate(() => {
       return window.console._logs || [];
     });
   });
 
   test('should detect form fields without labels', async () => {
-    const htmlContent = `
+    const _htmlContent = `
       <!DOCTYPE html>
       <html>
       <head><title>Form Label Test</title></head>
@@ -116,12 +116,12 @@ test.describe('Accessibility Scenarios E2E Tests', () => {
     await page.waitForTimeout(2000);
 
     // Should find issues with unlabeled inputs
-    const overlays = await page.locator('.a11y-error, .overlay').count();
+    const _overlays = await page.locator('.a11y-error, .overlay').count();
     expect(overlays).toBeGreaterThan(0);
   });
 
   test('should detect tables without headers', async () => {
-    const htmlContent = `
+    const _htmlContent = `
       <!DOCTYPE html>
       <html>
       <head><title>Table Header Test</title></head>
@@ -148,12 +148,12 @@ test.describe('Accessibility Scenarios E2E Tests', () => {
     await page.waitForTimeout(2000);
 
     // Should detect the table without headers
-    const overlays = await page.locator('.a11y-error, .overlay').count();
+    const _overlays = await page.locator('.a11y-error, .overlay').count();
     expect(overlays).toBeGreaterThan(0);
   });
 
   test('should detect buttons without accessible names', async () => {
-    const htmlContent = `
+    const _htmlContent = `
       <!DOCTYPE html>
       <html>
       <head><title>Button Accessibility Test</title></head>
@@ -176,12 +176,12 @@ test.describe('Accessibility Scenarios E2E Tests', () => {
     await page.waitForTimeout(2000);
 
     // Should detect buttons without accessible names
-    const overlays = await page.locator('.a11y-error, .overlay').count();
+    const _overlays = await page.locator('.a11y-error, .overlay').count();
     expect(overlays).toBeGreaterThan(0);
   });
 
   test('should detect small font sizes', async () => {
-    const htmlContent = `
+    const _htmlContent = `
       <!DOCTYPE html>
       <html>
       <head>
@@ -210,12 +210,12 @@ test.describe('Accessibility Scenarios E2E Tests', () => {
     await page.waitForTimeout(2000);
 
     // Should detect small font sizes
-    const overlays = await page.locator('.a11y-error, .overlay').count();
+    const _overlays = await page.locator('.a11y-error, .overlay').count();
     expect(overlays).toBeGreaterThan(0);
   });
 
   test('should detect missing landmark elements', async () => {
-    const htmlContent = `
+    const _htmlContent = `
       <!DOCTYPE html>
       <html>
       <head><title>Landmark Test</title></head>
@@ -235,12 +235,12 @@ test.describe('Accessibility Scenarios E2E Tests', () => {
     await page.waitForTimeout(2000);
 
     // Should detect missing landmarks
-    const overlays = await page.locator('.a11y-error, .overlay').count();
+    const _overlays = await page.locator('.a11y-error, .overlay').count();
     expect(overlays).toBeGreaterThan(0);
   });
 
   test('should handle complex page with multiple issues', async () => {
-    const htmlContent = `
+    const _htmlContent = `
       <!DOCTYPE html>
       <html>
       <head>
@@ -275,12 +275,12 @@ test.describe('Accessibility Scenarios E2E Tests', () => {
     await page.waitForTimeout(3000);
 
     // Should detect multiple issues
-    const overlays = await page.locator('.a11y-error, .overlay').count();
+    const _overlays = await page.locator('.a11y-error, .overlay').count();
     expect(overlays).toBeGreaterThan(3); // Multiple issues should be found
   });
 
   test('should toggle highlighting on and off', async () => {
-    const htmlContent = `
+    const _htmlContent = `
       <!DOCTYPE html>
       <html>
       <head><title>Toggle Test</title></head>
@@ -299,7 +299,7 @@ test.describe('Accessibility Scenarios E2E Tests', () => {
     await page.waitForTimeout(2000);
 
     // Should have overlays
-    let overlays = await page.locator('.a11y-error, .overlay').count();
+    const _overlays = await page.locator('.a11y-error, .overlay').count();
     expect(overlays).toBeGreaterThan(0);
 
     // Click extension icon again to toggle off
@@ -314,7 +314,7 @@ test.describe('Accessibility Scenarios E2E Tests', () => {
   });
 
   test('should handle dynamic content changes', async () => {
-    const htmlContent = `
+    const _htmlContent = `
       <!DOCTYPE html>
       <html>
       <head><title>Dynamic Content Test</title></head>
@@ -325,7 +325,7 @@ test.describe('Accessibility Scenarios E2E Tests', () => {
         <button onclick="addBadImage()">Add Bad Image</button>
         <script>
           function addBadImage() {
-            const img = document.createElement('img');
+            const _img = document.createElement('img');
             img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
             img.width = 100;
             img.height = 100;
@@ -345,8 +345,8 @@ test.describe('Accessibility Scenarios E2E Tests', () => {
 
     await page.waitForTimeout(2000);
 
-    let overlays = await page.locator('.a11y-error, .overlay').count();
-    const initialOverlays = overlays;
+    const _overlays = await page.locator('.a11y-error, .overlay').count();
+    const _initialOverlays = overlays;
 
     // Add problematic content dynamically
     await page.click('button');

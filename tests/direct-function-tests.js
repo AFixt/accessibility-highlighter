@@ -79,15 +79,15 @@ describe('Direct Function Tests for Real Code Coverage', () => {
   describe('Overlay Function Tests', () => {
     test('should create overlay with proper styling', () => {
       document.body.innerHTML = '<img src="test.jpg" id="test-img">';
-      const testElement = document.getElementById('test-img');
+      const _testElement = document.getElementById('test-img');
 
       // Call overlay function directly
       global.overlay.call(testElement, 'overlay', 'error', 'Test message');
 
-      const overlays = document.querySelectorAll('.overlay');
+      const _overlays = document.querySelectorAll('.overlay');
       expect(overlays.length).toBe(1);
 
-      const overlay = overlays[0];
+      const _overlay = overlays[0];
       expect(overlay.style.position).toBe('absolute');
       expect(overlay.style.width).toBe('100px');
       expect(overlay.style.height).toBe('50px');
@@ -96,12 +96,12 @@ describe('Direct Function Tests for Real Code Coverage', () => {
 
     test('should sanitize messages properly', () => {
       document.body.innerHTML = '<div id="test-div"></div>';
-      const testElement = document.getElementById('test-div');
+      const _testElement = document.getElementById('test-div');
 
       global.overlay.call(testElement, 'overlay', 'error', 'Message with <script>alert("xss")</script> content');
 
-      const overlay = document.querySelector('.overlay');
-      const message = overlay.getAttribute('data-a11ymessage');
+      const _overlay = document.querySelector('.overlay');
+      const _message = overlay.getAttribute('data-a11ymessage');
       expect(message).not.toContain('<');
       expect(message).not.toContain('>');
       expect(message).toBe('Message with scriptalert("xss")/script content');
@@ -135,7 +135,7 @@ describe('Direct Function Tests for Real Code Coverage', () => {
       expect(global.logs.length).toBeGreaterThan(0);
 
       // Check specific issues were found
-      const logMessages = global.logs.map(log => log.Message);
+      const _logMessages = global.logs.map(log => log.Message);
       expect(logMessages.some(msg => msg.includes('img does not have an alt attribute'))).toBe(true);
       expect(logMessages.some(msg => msg.includes('Button without aria-label'))).toBe(true);
       expect(logMessages.some(msg => msg.includes('Link element with matching text content'))).toBe(true);

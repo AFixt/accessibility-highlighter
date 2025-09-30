@@ -90,11 +90,11 @@ describe('Chrome API Error Handling', () => {
       require('../src/background.js');
 
       // Simulate action click
-      const clickHandler = global.chrome.action.onClicked.addListener.mock.calls[0][0];
+      const _clickHandler = global.chrome.action.onClicked.addListener.mock.calls[0][0];
 
       // Should not crash when storage.get fails
       expect(() => {
-        clickHandler();
+        _clickHandler();
       }).not.toThrow();
     });
 
@@ -122,11 +122,11 @@ describe('Chrome API Error Handling', () => {
       delete require.cache[require.resolve('../src/background.js')];
       require('../src/background.js');
 
-      const clickHandler = global.chrome.action.onClicked.addListener.mock.calls[0][0];
+      const _clickHandler = global.chrome.action.onClicked.addListener.mock.calls[0][0];
 
       // Should not crash when storage.set fails
       expect(() => {
-        clickHandler();
+        _clickHandler();
       }).not.toThrow();
     });
 
@@ -156,11 +156,11 @@ describe('Chrome API Error Handling', () => {
       delete require.cache[require.resolve('../src/background.js')];
       require('../src/background.js');
 
-      const clickHandler = global.chrome.action.onClicked.addListener.mock.calls[0][0];
+      const _clickHandler = global.chrome.action.onClicked.addListener.mock.calls[0][0];
 
       // Should not crash when setIcon fails
       expect(() => {
-        clickHandler();
+        _clickHandler();
       }).not.toThrow();
     });
 
@@ -168,13 +168,13 @@ describe('Chrome API Error Handling', () => {
       global.chrome = {
         tabs: {
           query: jest.fn().mockResolvedValue([{ id: 123 }]),
-          sendMessage: jest.fn().mockImplementation((tabId, message, callback) => {
-            const error = new Error('Tab communication failed');
-            if (callback) {
-              global.chrome.runtime.lastError = error;
-              callback();
+          sendMessage: jest.fn().mockImplementation((_tabId, _message, _callback) => {
+            const _error = new Error('Tab communication failed');
+            if (_callback) {
+              global.chrome.runtime.lastError = _error;
+              _callback();
             }
-            throw error;
+            throw _error;
           })
         },
         action: {
@@ -196,11 +196,11 @@ describe('Chrome API Error Handling', () => {
       delete require.cache[require.resolve('../src/background.js')];
       require('../src/background.js');
 
-      const clickHandler = global.chrome.action.onClicked.addListener.mock.calls[0][0];
+      const _clickHandler = global.chrome.action.onClicked.addListener.mock.calls[0][0];
 
       // Should not crash when sendMessage fails
       expect(() => {
-        clickHandler();
+        _clickHandler();
       }).not.toThrow();
     });
 
@@ -229,8 +229,8 @@ describe('Chrome API Error Handling', () => {
       require('../src/background.js');
 
       // getCurrentTab should handle empty array gracefully
-      const tab = await global.getCurrentTab();
-      expect(tab).toBeUndefined();
+      const _tab = await global.getCurrentTab();
+      expect(_tab).toBeUndefined();
     });
   });
 
@@ -281,18 +281,18 @@ describe('Chrome API Error Handling', () => {
       require('../src/contentScript.js');
 
       // Get the message listener
-      const messageListener = global.chrome.runtime.onMessage.addListener.mock.calls[0][0];
+      const _messageListener = global.chrome.runtime.onMessage.addListener.mock.calls[0][0];
 
-      const message = {
+      const _message = {
         action: 'toggleHighlight',
         isEnabled: true
       };
 
-      const mockSendResponse = jest.fn();
+      const _mockSendResponse = jest.fn();
 
       // Should handle runtime errors gracefully
       expect(() => {
-        messageListener(message, {}, mockSendResponse);
+        _messageListener(_message, {}, _mockSendResponse);
       }).not.toThrow();
     });
 
@@ -314,7 +314,7 @@ describe('Chrome API Error Handling', () => {
       Object.defineProperty(window, 'scrollY', { value: 0, writable: true });
 
       // Mock querySelectorAll to throw error
-      const originalQuerySelectorAll = document.querySelectorAll;
+      const _originalQuerySelectorAll = document.querySelectorAll;
       document.querySelectorAll = jest.fn().mockImplementation(() => {
         throw new Error('DOM query failed');
       });
@@ -328,7 +328,7 @@ describe('Chrome API Error Handling', () => {
       }).not.toThrow();
 
       // Restore original function
-      document.querySelectorAll = originalQuerySelectorAll;
+      document.querySelectorAll = _originalQuerySelectorAll;
     });
 
     test('should handle getBoundingClientRect errors', async () => {
@@ -349,18 +349,18 @@ describe('Chrome API Error Handling', () => {
       Object.defineProperty(window, 'scrollY', { value: 0, writable: true });
 
       // Create element with problematic getBoundingClientRect
-      const problemElement = document.createElement('div');
-      problemElement.getBoundingClientRect = jest.fn().mockImplementation(() => {
+      const _problemElement = document.createElement('div');
+      _problemElement.getBoundingClientRect = jest.fn().mockImplementation(() => {
         throw new Error('Cannot get bounding rect');
       });
-      document.body.appendChild(problemElement);
+      document.body.appendChild(_problemElement);
 
       delete require.cache[require.resolve('../src/contentScript.js')];
       require('../src/contentScript.js');
 
       // Should handle getBoundingClientRect errors
       expect(() => {
-        global.overlay.call(problemElement, 'overlay', 'error', 'Test message');
+        global.overlay.call(_problemElement, 'overlay', 'error', 'Test message');
       }).not.toThrow();
     });
 
@@ -382,7 +382,7 @@ describe('Chrome API Error Handling', () => {
       Object.defineProperty(window, 'scrollY', { value: 0, writable: true });
 
       // Mock getComputedStyle to throw
-      const originalGetComputedStyle = window.getComputedStyle;
+      const _originalGetComputedStyle = window.getComputedStyle;
       window.getComputedStyle = jest.fn().mockImplementation(() => {
         throw new Error('Cannot compute style');
       });
@@ -396,7 +396,7 @@ describe('Chrome API Error Handling', () => {
       }).not.toThrow();
 
       // Restore original function
-      window.getComputedStyle = originalGetComputedStyle;
+      window.getComputedStyle = _originalGetComputedStyle;
     });
   });
 
@@ -430,13 +430,13 @@ describe('Chrome API Error Handling', () => {
     });
 
     test('should handle rapid successive API calls', async () => {
-      let callCount = 0;
+      let _callCount = 0;
       global.chrome = {
         storage: {
           local: {
             get: jest.fn().mockImplementation(() => {
-              callCount++;
-              if (callCount > 3) {
+              _callCount++;
+              if (_callCount > 3) {
                 throw new Error('Too many API calls');
               }
               return Promise.resolve({ isEnabled: true });
@@ -457,9 +457,9 @@ describe('Chrome API Error Handling', () => {
       require('../src/contentScript.js');
 
       // Make multiple rapid calls
-      const promises = [];
-      for (let i = 0; i < 5; i++) {
-        promises.push(
+      const _promises = [];
+      for (let _i = 0; _i < 5; _i++) {
+        _promises.push(
           new Promise(resolve => {
             try {
               global.runAccessibilityChecks();
@@ -471,11 +471,11 @@ describe('Chrome API Error Handling', () => {
         );
       }
 
-      const results = await Promise.all(promises);
+      const _results = await Promise.all(_promises);
 
       // Some calls should succeed, some might fail, but should not crash
-      expect(results).toHaveLength(5);
-      expect(results.every(result => result === 'success' || result === 'error')).toBe(true);
+      expect(_results).toHaveLength(5);
+      expect(_results.every(_result => _result === 'success' || _result === 'error')).toBe(true);
     });
   });
 });
