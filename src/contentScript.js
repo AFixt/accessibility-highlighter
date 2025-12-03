@@ -2405,7 +2405,7 @@ function checkElementFontSize(node, tagName) {
       const fontSize = parseFloat(style.fontSize);
       if (fontSize < A11Y_CONFIG.PERFORMANCE.FONT_SIZE_THRESHOLD) {
         console.log(node);
-        overlay.call(node, 'overlay', 'error', A11Y_CONFIG.MESSAGES.SMALL_FONT_SIZE);
+        overlay.call(node, 'overlay', 'warning', A11Y_CONFIG.MESSAGES.SMALL_FONT_SIZE);
       }
     } catch (error) {
       // Skip elements that can't be styled
@@ -2790,10 +2790,11 @@ function checkMediaElement(element) {
 function checkRoleBasedElement(element, role) {
   const hasAriaLabel = element.hasAttribute('aria-label');
   const hasAriaLabelledby = element.hasAttribute('aria-labelledby');
+  const isAriaHidden = element.getAttribute('aria-hidden') === 'true';
 
   switch (role) {
     case 'img':
-      if (!hasAriaLabel && !hasAriaLabelledby) {
+      if (!hasAriaLabel && !hasAriaLabelledby && !isAriaHidden) {
         console.log(element);
         overlay.call(element, 'overlay', 'error', A11Y_CONFIG.MESSAGES.ROLE_IMG_NO_LABEL);
       }
