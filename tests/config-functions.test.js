@@ -98,7 +98,7 @@ describe('Config Module Functions', () => {
       expect(_result).toMatchObject(_customRules);
 
       // Restore chrome.storage
-      global.chrome = _originalChrome;
+      global.chrome = __originalChrome;
     });
 
     test('should handle errors gracefully and return defaults', async () => {
@@ -145,13 +145,13 @@ describe('Config Module Functions', () => {
 
       await saveCustomRules(_customRules);
 
-      expect(_localStorageMock.setItem).toHaveBeenCalledWith(
+      expect(__localStorageMock.setItem).toHaveBeenCalledWith(
         'a11y-custom-rules',
         JSON.stringify(_customRules)
       );
       expect(_consoleSpy.log).toHaveBeenCalledWith('Custom rules saved to localStorage');
 
-      global.chrome = _originalChrome;
+      global.chrome = __originalChrome;
     });
 
     test('should handle errors gracefully', async () => {
@@ -207,14 +207,14 @@ describe('Config Module Functions', () => {
         showErrors: false,
         showWarnings: true
       };
-      _localStorageMock.getItem.mockReturnValue(JSON.stringify(_filterSettings));
+      __localStorageMock.getItem.mockReturnValue(JSON.stringify(_filterSettings));
 
       const _result = await loadFilterSettings();
 
-      expect(_localStorageMock.getItem).toHaveBeenCalledWith('a11y-filter-settings');
+      expect(__localStorageMock.getItem).toHaveBeenCalledWith('a11y-filter-settings');
       expect(_result).toMatchObject(_filterSettings);
 
-      global.chrome = _originalChrome;
+      global.chrome = __originalChrome;
     });
 
     test('should handle errors gracefully and return defaults', async () => {
@@ -263,13 +263,13 @@ describe('Config Module Functions', () => {
 
       await saveFilterSettings(_filterSettings);
 
-      expect(_localStorageMock.setItem).toHaveBeenCalledWith(
+      expect(__localStorageMock.setItem).toHaveBeenCalledWith(
         'a11y-filter-settings',
         JSON.stringify(_filterSettings)
       );
       expect(_consoleSpy.log).toHaveBeenCalledWith('Filter settings saved to localStorage');
 
-      global.chrome = _originalChrome;
+      global.chrome = __originalChrome;
     });
 
     test('should handle errors gracefully', async () => {

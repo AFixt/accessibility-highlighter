@@ -39,89 +39,89 @@ describe('Content Script Extended Functionality Tests', () => {
   describe('Keyboard Navigation Logic', () => {
     test('should handle keyboard navigation state management', () => {
       // Test keyboard navigation state logic (simplified)
-      const _keyboardNavigationActive = false;
-      const _currentOverlayIndex = -1;
+      let _keyboardNavigationActive = false;
+      let _currentOverlayIndex = -1;
       const _overlayCount = 3;
 
       const _handleNavigationKey = (key, altKey = false, shiftKey = false) => {
         // Alt + Shift + N: Start navigation
         if (altKey && shiftKey && key === 'N') {
-          keyboardNavigationActive = true;
-          currentOverlayIndex = 0;
-          return { activated: true, index: currentOverlayIndex };
+          _keyboardNavigationActive = true;
+          _currentOverlayIndex = 0;
+          return { activated: true, index: _currentOverlayIndex };
         }
 
-        if (!keyboardNavigationActive) {
-          return { activated: false, index: currentOverlayIndex };
+        if (!_keyboardNavigationActive) {
+          return { activated: false, index: _currentOverlayIndex };
         }
 
         switch (key) {
           case 'ArrowDown':
           case 'ArrowRight':
-            currentOverlayIndex = Math.min(currentOverlayIndex + 1, overlayCount - 1);
+            _currentOverlayIndex = Math.min(_currentOverlayIndex + 1, _overlayCount - 1);
             break;
           case 'ArrowUp':
           case 'ArrowLeft':
-            currentOverlayIndex = Math.max(currentOverlayIndex - 1, 0);
+            _currentOverlayIndex = Math.max(_currentOverlayIndex - 1, 0);
             break;
           case 'Home':
-            currentOverlayIndex = 0;
+            _currentOverlayIndex = 0;
             break;
           case 'End':
-            currentOverlayIndex = overlayCount - 1;
+            _currentOverlayIndex = _overlayCount - 1;
             break;
           case 'Escape':
-            keyboardNavigationActive = false;
-            currentOverlayIndex = -1;
+            _keyboardNavigationActive = false;
+            _currentOverlayIndex = -1;
             break;
         }
 
-        return { activated: keyboardNavigationActive, index: currentOverlayIndex };
+        return { activated: _keyboardNavigationActive, index: _currentOverlayIndex };
       };
 
       // Test activation
-      const _result = handleNavigationKey('N', true, true);
+      let _result = _handleNavigationKey('N', true, true);
       expect(_result.activated).toBe(true);
       expect(_result.index).toBe(0);
 
       // Test navigation forward
-      _result = handleNavigationKey('ArrowDown');
+      _result = _handleNavigationKey('ArrowDown');
       expect(_result.index).toBe(1);
 
-      _result = handleNavigationKey('ArrowRight');
+      _result = _handleNavigationKey('ArrowRight');
       expect(_result.index).toBe(2);
 
       // Test boundary - shouldn't go beyond last
-      _result = handleNavigationKey('ArrowDown');
+      _result = _handleNavigationKey('ArrowDown');
       expect(_result.index).toBe(2);
 
       // Test navigation backward
-      _result = handleNavigationKey('ArrowUp');
+      _result = _handleNavigationKey('ArrowUp');
       expect(_result.index).toBe(1);
 
-      _result = handleNavigationKey('ArrowLeft');
+      _result = _handleNavigationKey('ArrowLeft');
       expect(_result.index).toBe(0);
 
       // Test boundary - shouldn't go below 0
-      _result = handleNavigationKey('ArrowUp');
+      _result = _handleNavigationKey('ArrowUp');
       expect(_result.index).toBe(0);
 
       // Test Home key
-      _result = handleNavigationKey('ArrowDown');
-      _result = handleNavigationKey('Home');
+      _result = _handleNavigationKey('ArrowDown');
+      _result = _handleNavigationKey('Home');
       expect(_result.index).toBe(0);
 
       // Test End key
-      _result = handleNavigationKey('End');
+      _result = _handleNavigationKey('End');
       expect(_result.index).toBe(2);
 
       // Test escape
-      _result = handleNavigationKey('Escape');
+      _result = _handleNavigationKey('Escape');
       expect(_result.activated).toBe(false);
       expect(_result.index).toBe(-1);
 
       // Test inactive state
-      _result = handleNavigationKey('ArrowDown');
+      _result = _handleNavigationKey('ArrowDown');
       expect(_result.activated).toBe(false);
       expect(_result.index).toBe(-1);
     });
@@ -131,14 +131,14 @@ describe('Content Script Extended Functionality Tests', () => {
       const _overlayCount = 0;
 
       const _handleNavigationWithNoOverlays = (key, _altKey = false, _shiftKey = false) => {
-        if (overlayCount === 0) {
+        if (_overlayCount === 0) {
           return { activated: false, index: -1, error: 'No overlays available' };
         }
         // Normal logic would go here
         return { activated: true, index: 0 };
       };
 
-      const _result = handleNavigationWithNoOverlays('N', true, true);
+      const _result = _handleNavigationWithNoOverlays('N', true, true);
       expect(_result.activated).toBe(false);
       expect(_result.error).toBe('No overlays available');
     });
@@ -146,14 +146,14 @@ describe('Content Script Extended Functionality Tests', () => {
 
   describe('Message Handler Logic', () => {
     test('should handle toggle accessibility messages', () => {
-      const _isEnabled = false;
+      let _isEnabled = false;
 
       const _toggleAccessibilityHighlight = enabled => {
-        isEnabled = enabled;
+        _isEnabled = enabled;
         return enabled ? 'highlighted' : 'unhighlighted';
       };
 
-      const _messageHandler = (message, _sender, sendResponse) => {
+      const _messageHandler = (message, _sender, _sendResponse) => {
         try {
           console.log('Message received', message);
 
@@ -168,13 +168,13 @@ describe('Content Script Extended Functionality Tests', () => {
               return false;
             }
 
-            const _result = toggleAccessibilityHighlight(message.isEnabled);
-            sendResponse(_result);
+            const _result = _toggleAccessibilityHighlight(message.isEnabled);
+            _sendResponse(_result);
             return true;
           }
 
           if (message.action === 'getStatus') {
-            sendResponse({ isActive: isEnabled, overlayCount: 5 });
+            _sendResponse({ isActive: _isEnabled, overlayCount: 5 });
             return true;
           }
 
@@ -187,68 +187,68 @@ describe('Content Script Extended Functionality Tests', () => {
 
       // Test enable message
       const _sendResponse = jest.fn();
-      const _result = messageHandler(
+      let _result = _messageHandler(
         { action: 'toggleAccessibilityHighlight', isEnabled: true },
         null,
-        sendResponse
+        _sendResponse
       );
 
       expect(_result).toBe(true);
-      expect(sendResponse).toHaveBeenCalledWith('highlighted');
-      expect(isEnabled).toBe(true);
+      expect(_sendResponse).toHaveBeenCalledWith('highlighted');
+      expect(_isEnabled).toBe(true);
 
       // Test disable message
-      sendResponse.mockClear();
-      _result = messageHandler(
+      _sendResponse.mockClear();
+      _result = _messageHandler(
         { action: 'toggleAccessibilityHighlight', isEnabled: false },
         null,
-        sendResponse
+        _sendResponse
       );
 
       expect(_result).toBe(true);
-      expect(sendResponse).toHaveBeenCalledWith('unhighlighted');
-      expect(isEnabled).toBe(false);
+      expect(_sendResponse).toHaveBeenCalledWith('unhighlighted');
+      expect(_isEnabled).toBe(false);
 
       // Test status message
-      sendResponse.mockClear();
-      _result = messageHandler(
+      _sendResponse.mockClear();
+      _result = _messageHandler(
         { action: 'getStatus' },
         null,
-        sendResponse
+        _sendResponse
       );
 
       expect(_result).toBe(true);
-      expect(sendResponse).toHaveBeenCalledWith({ isActive: false, overlayCount: 5 });
+      expect(_sendResponse).toHaveBeenCalledWith({ isActive: false, overlayCount: 5 });
 
       // Test invalid message
-      sendResponse.mockClear();
-      _result = messageHandler(null, null, sendResponse);
+      _sendResponse.mockClear();
+      _result = _messageHandler(null, null, _sendResponse);
 
       expect(_result).toBe(false);
       expect(console.warn).toHaveBeenCalledWith('Invalid message received:', null);
-      expect(sendResponse).not.toHaveBeenCalled();
+      expect(_sendResponse).not.toHaveBeenCalled();
 
       // Test invalid isEnabled
-      sendResponse.mockClear();
-      _result = messageHandler(
+      _sendResponse.mockClear();
+      _result = _messageHandler(
         { action: 'toggleAccessibilityHighlight', isEnabled: 'invalid' },
         null,
-        sendResponse
+        _sendResponse
       );
 
       expect(_result).toBe(false);
       expect(console.warn).toHaveBeenCalledWith('Invalid isEnabled value:', 'invalid');
 
       // Test unknown action
-      sendResponse.mockClear();
-      _result = messageHandler(
+      _sendResponse.mockClear();
+      _result = _messageHandler(
         { action: 'unknownAction' },
         null,
-        sendResponse
+        _sendResponse
       );
 
       expect(_result).toBe(false);
-      expect(sendResponse).not.toHaveBeenCalled();
+      expect(_sendResponse).not.toHaveBeenCalled();
     });
   });
 
@@ -267,10 +267,10 @@ describe('Content Script Extended Functionality Tests', () => {
       };
 
       const _sendResponse = jest.fn();
-      const _result = errorHandler(
+      const _result = _errorHandler(
         { action: 'toggleAccessibilityHighlight', isEnabled: true },
         null,
-        sendResponse
+        _sendResponse
       );
 
       expect(_result).toBe(false);
@@ -291,7 +291,7 @@ describe('Content Script Extended Functionality Tests', () => {
           }
 
           const _overlay = overlays[index];
-          if (!overlay) {
+          if (!_overlay) {
             console.warn('Overlay element not found at index:', index);
             return false;
           }
@@ -304,23 +304,23 @@ describe('Content Script Extended Functionality Tests', () => {
       };
 
       // Test with no overlays
-      const _result = validateOverlayOperation([], 0);
+      let _result = _validateOverlayOperation([], 0);
       expect(_result).toBe(false);
       expect(console.warn).toHaveBeenCalledWith('No overlays found to highlight');
 
       // Test with valid operation
       const _mockOverlays = [{ id: 1 }, { id: 2 }, { id: 3 }];
-      _result = validateOverlayOperation(mockOverlays, 1);
+      _result = _validateOverlayOperation(_mockOverlays, 1);
       expect(_result).toBe(true);
 
       // Test with invalid index
-      _result = validateOverlayOperation(mockOverlays, 5);
+      _result = _validateOverlayOperation(_mockOverlays, 5);
       expect(_result).toBe(false);
       expect(console.warn).toHaveBeenCalledWith('Invalid overlay index:', 5);
 
       // Test with null overlay at index
       const _overlaysWithNull = [{ id: 1 }, null, { id: 3 }];
-      _result = validateOverlayOperation(overlaysWithNull, 1);
+      _result = _validateOverlayOperation(_overlaysWithNull, 1);
       expect(_result).toBe(false);
       expect(console.warn).toHaveBeenCalledWith('Overlay element not found at index:', 1);
     });
@@ -343,18 +343,18 @@ describe('Content Script Extended Functionality Tests', () => {
 
       // Test with Chrome available
       global.chrome.runtime.sendMessage = jest.fn();
-      const _result = sendMessageSafely({ test: 'message' });
+      let _result = _sendMessageSafely({ test: 'message' });
       expect(_result).toBe(true);
 
       // Test with Chrome unavailable
       const _originalChrome = global.chrome;
       global.chrome = undefined;
-      _result = sendMessageSafely({ test: 'message' });
+      _result = _sendMessageSafely({ test: 'message' });
       expect(_result).toBe(false);
       expect(console.warn).toHaveBeenCalledWith('Chrome runtime not available');
 
       // Restore
-      global.chrome = originalChrome;
+      global.chrome = _originalChrome;
     });
   });
 
@@ -362,24 +362,24 @@ describe('Content Script Extended Functionality Tests', () => {
     test('should handle overlay creation logic', () => {
       const _createOverlayData = (_element, _message, _level) => {
         try {
-          if (!element) {
+          if (!_element) {
             console.warn('Invalid element for overlay creation');
             return null;
           }
 
           const _overlayData = {
             id: Date.now(),
-            message: message,
-            level: level,
-            elementId: element.id || 'unknown',
-            position: element.rect || { top: 0, left: 0, width: 0, height: 0 },
+            message: _message,
+            level: _level,
+            elementId: _element.id || 'unknown',
+            position: _element.rect || { top: 0, left: 0, width: 0, height: 0 },
             styles: {
-              border: level === 'error' ? '2px solid #ff0000' : '2px solid #ffa500',
+              border: _level === 'error' ? '2px solid #ff0000' : '2px solid #ffa500',
               zIndex: 10000
             }
           };
 
-          return overlayData;
+          return _overlayData;
         } catch (error) {
           console.error('Error creating overlay:', error);
           return null;
@@ -392,21 +392,21 @@ describe('Content Script Extended Functionality Tests', () => {
         rect: { top: 100, left: 200, width: 150, height: 100 }
       };
 
-      const _overlayData = createOverlayData(testElement, 'Missing alt attribute', 'error');
+      const _overlayData = _createOverlayData(_testElement, 'Missing alt attribute', 'error');
 
-      expect(overlayData).not.toBeNull();
-      expect(overlayData.message).toBe('Missing alt attribute');
-      expect(overlayData.level).toBe('error');
-      expect(overlayData.elementId).toBe('test-img');
-      expect(overlayData.styles.border).toBe('2px solid #ff0000');
+      expect(_overlayData).not.toBeNull();
+      expect(_overlayData.message).toBe('Missing alt attribute');
+      expect(_overlayData.level).toBe('error');
+      expect(_overlayData.elementId).toBe('test-img');
+      expect(_overlayData.styles.border).toBe('2px solid #ff0000');
 
       // Test warning level
-      const _warningOverlay = createOverlayData(testElement, 'Generic link text', 'warning');
-      expect(warningOverlay.styles.border).toBe('2px solid #ffa500');
+      const _warningOverlay = _createOverlayData(_testElement, 'Generic link text', 'warning');
+      expect(_warningOverlay.styles.border).toBe('2px solid #ffa500');
 
       // Test invalid element
-      const _invalidOverlay = createOverlayData(null, 'Test message', 'error');
-      expect(invalidOverlay).toBeNull();
+      const _invalidOverlay = _createOverlayData(null, 'Test message', 'error');
+      expect(_invalidOverlay).toBeNull();
       expect(console.warn).toHaveBeenCalledWith('Invalid element for overlay creation');
     });
 
@@ -417,17 +417,17 @@ describe('Content Script Extended Functionality Tests', () => {
             return [];
           }
 
-          const _filtered = overlays;
+          let _filtered = overlays;
 
           if (criteria.level) {
-            filtered = filtered.filter(overlay => overlay.level === criteria.level);
+            _filtered = _filtered.filter(overlay => overlay.level === criteria.level);
           }
 
           if (criteria.category) {
-            filtered = filtered.filter(overlay => overlay.category === criteria.category);
+            _filtered = _filtered.filter(overlay => overlay.category === criteria.category);
           }
 
-          return filtered;
+          return _filtered;
         } catch (error) {
           console.error('Error filtering overlays:', error);
           return [];
@@ -442,27 +442,27 @@ describe('Content Script Extended Functionality Tests', () => {
       ];
 
       // Filter by level
-      const _filtered = filterOverlays(mockOverlays, { level: 'error' });
-      expect(filtered).toHaveLength(2);
-      expect(filtered.every(o => o.level === 'error')).toBe(true);
+      let _filtered = _filterOverlays(_mockOverlays, { level: 'error' });
+      expect(_filtered).toHaveLength(2);
+      expect(_filtered.every(o => o.level === 'error')).toBe(true);
 
       // Filter by category
-      filtered = filterOverlays(mockOverlays, { category: 'images' });
-      expect(filtered).toHaveLength(2);
-      expect(filtered.every(o => o.category === 'images')).toBe(true);
+      _filtered = _filterOverlays(_mockOverlays, { category: 'images' });
+      expect(_filtered).toHaveLength(2);
+      expect(_filtered.every(o => o.category === 'images')).toBe(true);
 
       // Filter by both
-      filtered = filterOverlays(mockOverlays, { level: 'warning', category: 'images' });
-      expect(filtered).toHaveLength(1);
-      expect(filtered[0].id).toBe(4);
+      _filtered = _filterOverlays(_mockOverlays, { level: 'warning', category: 'images' });
+      expect(_filtered).toHaveLength(1);
+      expect(_filtered[0].id).toBe(4);
 
       // Test empty array
-      filtered = filterOverlays([], { level: 'error' });
-      expect(filtered).toHaveLength(0);
+      _filtered = _filterOverlays([], { level: 'error' });
+      expect(_filtered).toHaveLength(0);
 
       // Test null overlays
-      filtered = filterOverlays(null, { level: 'error' });
-      expect(filtered).toHaveLength(0);
+      _filtered = _filterOverlays(null, { level: 'error' });
+      expect(_filtered).toHaveLength(0);
     });
 
     test('should handle overlay removal logic', () => {
@@ -472,19 +472,19 @@ describe('Content Script Extended Functionality Tests', () => {
             return { removed: 0, remaining: [] };
           }
 
-          const _removedCount = 0;
+          let _removedCount = 0;
           const _remaining = [];
 
           overlays.forEach(overlay => {
             if (predicate && predicate(overlay)) {
-              removedCount++;
+              _removedCount++;
             } else {
-              remaining.push(overlay);
+              _remaining.push(overlay);
             }
           });
 
-          console.log(`Removed ${removedCount} overlays`);
-          return { removed: removedCount, remaining };
+          console.log(`Removed ${_removedCount} overlays`);
+          return { removed: _removedCount, remaining: _remaining };
         } catch (error) {
           console.error('Error removing overlays:', error);
           return { removed: 0, remaining: overlays || [] };
@@ -498,16 +498,16 @@ describe('Content Script Extended Functionality Tests', () => {
       ];
 
       // Remove all error overlays
-      const _result = removeOverlays(mockOverlays, overlay => overlay.level === 'error');
+      const _result = _removeOverlays(_mockOverlays, overlay => overlay.level === 'error');
       expect(_result.removed).toBe(2);
       expect(_result.remaining).toHaveLength(1);
       expect(_result.remaining[0].level).toBe('warning');
       expect(console.log).toHaveBeenCalledWith('Removed 2 overlays');
 
       // Remove all overlays (no predicate means remove all)
-      const _removeAllResult = removeOverlays(mockOverlays, () => true);
-      expect(removeAllResult.removed).toBe(3);
-      expect(removeAllResult.remaining).toHaveLength(0);
+      const _removeAllResult = _removeOverlays(_mockOverlays, () => true);
+      expect(_removeAllResult.removed).toBe(3);
+      expect(_removeAllResult.remaining).toHaveLength(0);
     });
   });
 
@@ -520,29 +520,29 @@ describe('Content Script Extended Functionality Tests', () => {
           }
 
           const _issues = [];
-          const _previousLevel = 0;
+          let _previousLevel = 0;
 
           headings.forEach((heading, index) => {
             const _currentLevel = parseInt(heading.level);
 
-            if (index === 0 && currentLevel !== 1) {
-              issues.push({
+            if (index === 0 && _currentLevel !== 1) {
+              _issues.push({
                 type: 'missing-h1',
                 message: 'Page should start with h1',
                 element: heading
               });
-            } else if (previousLevel > 0 && currentLevel > previousLevel + 1) {
-              issues.push({
+            } else if (_previousLevel > 0 && _currentLevel > _previousLevel + 1) {
+              _issues.push({
                 type: 'skipped-level',
-                message: `Heading level skipped from h${previousLevel} to h${currentLevel}`,
+                message: `Heading level skipped from h${_previousLevel} to h${_currentLevel}`,
                 element: heading
               });
             }
 
-            previousLevel = currentLevel;
+            _previousLevel = _currentLevel;
           });
 
-          return { valid: issues.length === 0, issues };
+          return { valid: _issues.length === 0, issues: _issues };
         } catch (error) {
           console.error('Error validating heading hierarchy:', error);
           return { valid: false, issues: [{ type: 'validation-error', message: error.message }] };
@@ -557,7 +557,7 @@ describe('Content Script Extended Functionality Tests', () => {
         { level: '2', text: 'Another Section' }
       ];
 
-      const _result = validateHeadingHierarchy(validHeadings);
+      let _result = _validateHeadingHierarchy(_validHeadings);
       expect(_result.valid).toBe(true);
       expect(_result.issues).toHaveLength(0);
 
@@ -567,7 +567,7 @@ describe('Content Script Extended Functionality Tests', () => {
         { level: '3', text: 'Subsection' }
       ];
 
-      _result = validateHeadingHierarchy(missingH1);
+      _result = _validateHeadingHierarchy(_missingH1);
       expect(_result.valid).toBe(false);
       expect(_result.issues).toHaveLength(1);
       expect(_result.issues[0].type).toBe('missing-h1');
@@ -578,13 +578,13 @@ describe('Content Script Extended Functionality Tests', () => {
         { level: '3', text: 'Subsection' } // Skipped h2
       ];
 
-      _result = validateHeadingHierarchy(skippedLevel);
+      _result = _validateHeadingHierarchy(_skippedLevel);
       expect(_result.valid).toBe(false);
       expect(_result.issues).toHaveLength(1);
       expect(_result.issues[0].type).toBe('skipped-level');
 
       // Test empty array
-      _result = validateHeadingHierarchy([]);
+      _result = _validateHeadingHierarchy([]);
       expect(_result.valid).toBe(true);
       expect(_result.issues).toHaveLength(0);
     });
@@ -601,25 +601,25 @@ describe('Content Script Extended Functionality Tests', () => {
 
           landmarks.forEach(landmark => {
             const _type = landmark.role || landmark.tagName.toLowerCase();
-            landmarkTypes[type] = (landmarkTypes[type] || 0) + 1;
+            _landmarkTypes[_type] = (_landmarkTypes[_type] || 0) + 1;
 
-            if (!landmark.label && (type === 'navigation' || type === 'region')) {
-              issues.push({
+            if (!landmark.label && (_type === 'navigation' || _type === 'region')) {
+              _issues.push({
                 type: 'missing-label',
-                message: `${type} landmark should have aria-label or aria-labelledby`,
+                message: `${_type} landmark should have aria-label or aria-labelledby`,
                 element: landmark
               });
             }
           });
 
-          if (!landmarkTypes.main) {
-            issues.push({
+          if (!_landmarkTypes.main) {
+            _issues.push({
               type: 'missing-main',
               message: 'Page should have a main landmark'
             });
           }
 
-          return { valid: issues.length === 0, issues, landmarkCounts: landmarkTypes };
+          return { valid: _issues.length === 0, issues: _issues, landmarkCounts: _landmarkTypes };
         } catch (error) {
           console.error('Error validating landmarks:', error);
           return { valid: false, issues: [{ type: 'validation-error', message: error.message }] };
@@ -633,7 +633,7 @@ describe('Content Script Extended Functionality Tests', () => {
         { tagName: 'ASIDE', role: 'complementary', label: null }
       ];
 
-      const _result = validateLandmarks(validLandmarks);
+      let _result = _validateLandmarks(_validLandmarks);
       expect(_result.valid).toBe(true);
       expect(_result.landmarkCounts).toHaveProperty('main'); // Should be 'main' (lowercase)
       expect(_result.landmarkCounts).toHaveProperty('navigation');
@@ -643,7 +643,7 @@ describe('Content Script Extended Functionality Tests', () => {
         { tagName: 'NAV', role: 'navigation', label: 'Main navigation' }
       ];
 
-      _result = validateLandmarks(noMain);
+      _result = _validateLandmarks(_noMain);
       expect(_result.valid).toBe(false);
       expect(_result.issues.some(issue => issue.type === 'missing-main')).toBe(true);
 
@@ -653,12 +653,12 @@ describe('Content Script Extended Functionality Tests', () => {
         { tagName: 'NAV', role: 'navigation', label: null } // Missing label
       ];
 
-      _result = validateLandmarks(missingLabel);
+      _result = _validateLandmarks(_missingLabel);
       expect(_result.valid).toBe(false);
       expect(_result.issues.some(issue => issue.type === 'missing-label')).toBe(true);
 
       // Test no landmarks
-      _result = validateLandmarks([]);
+      _result = _validateLandmarks([]);
       expect(_result.valid).toBe(false);
       expect(_result.issues[0].type).toBe('no-landmarks');
     });

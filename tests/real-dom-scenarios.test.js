@@ -72,18 +72,18 @@ describe('Real DOM Scenarios Tests', () => {
           parentNode: null,
           nodeType: 1,
           setAttribute: jest.fn((name, value) => {
-            element.attributes[name] = value;
+            _element.attributes[name] = value;
           }),
-          getAttribute: jest.fn(name => element.attributes[name]),
-          hasAttribute: jest.fn(name => name in element.attributes),
+          getAttribute: jest.fn(name => _element.attributes[name]),
+          hasAttribute: jest.fn(name => name in _element.attributes),
           appendChild: jest.fn(child => {
-            element.children.push(child);
-            child.parentNode = element;
+            _element.children.push(child);
+            child.parentNode = _element;
           }),
           removeChild: jest.fn(child => {
-            const _index = element.children.indexOf(child);
-            if (index > -1) {
-              element.children.splice(index, 1);
+            const _index = _element.children.indexOf(child);
+            if (_index > -1) {
+              _element.children.splice(_index, 1);
               child.parentNode = null;
             }
           }),
@@ -95,7 +95,7 @@ describe('Real DOM Scenarios Tests', () => {
             top: 100, left: 200, width: 150, height: 100
           }))
         };
-        return element;
+        return _element;
       }),
       createTextNode: jest.fn(text => ({
         nodeType: 3,
@@ -120,31 +120,31 @@ describe('Real DOM Scenarios Tests', () => {
       // Create complex nested iframe structure
       const _createNestedIframeStructure = () => {
         const _mainPage = _mockDocument.createElement('div');
-        mainPage.id = 'main-content';
+        _mainPage.id = 'main-content';
 
         // Create primary iframe
         const _primaryIframe = _mockDocument.createElement('iframe');
-        primaryIframe.src = 'https://example.com/widget';
-        primaryIframe.setAttribute('title', 'Interactive Widget');
-        mainPage.appendChild(primaryIframe);
+        _primaryIframe.src = 'https://example.com/widget';
+        _primaryIframe.setAttribute('title', 'Interactive Widget');
+        _mainPage.appendChild(_primaryIframe);
 
         // Create secondary iframe (accessibility issues)
         const _secondaryIframe = _mockDocument.createElement('iframe');
-        secondaryIframe.src = 'https://example.com/ads';
+        _secondaryIframe.src = 'https://example.com/ads';
         // Missing title attribute - accessibility issue
-        mainPage.appendChild(secondaryIframe);
+        _mainPage.appendChild(_secondaryIframe);
 
         // Create nested structure
         const _outerContainer = _mockDocument.createElement('div');
-        outerContainer.className = 'iframe-container';
+        _outerContainer.className = 'iframe-container';
 
         const _nestedIframe = _mockDocument.createElement('iframe');
-        nestedIframe.src = 'about:blank';
-        nestedIframe.setAttribute('title', 'Nested Content');
-        outerContainer.appendChild(nestedIframe);
-        mainPage.appendChild(outerContainer);
+        _nestedIframe.src = 'about:blank';
+        _nestedIframe.setAttribute('title', 'Nested Content');
+        _outerContainer.appendChild(_nestedIframe);
+        _mainPage.appendChild(_outerContainer);
 
-        return mainPage;
+        return _mainPage;
       };
 
       const _checkIframeAccessibility = container => {
@@ -154,20 +154,20 @@ describe('Real DOM Scenarios Tests', () => {
         // Simulate finding iframes
         container.children.forEach(child => {
           if (child.tagName === 'IFRAME') {
-            iframes.push(child);
+            _iframes.push(child);
           } else if (child.children) {
             child.children.forEach(grandchild => {
               if (grandchild.tagName === 'IFRAME') {
-                iframes.push(grandchild);
+                _iframes.push(grandchild);
               }
             });
           }
         });
 
-        iframes.forEach(iframe => {
+        _iframes.forEach(iframe => {
           // Check for missing title
           if (!iframe.getAttribute('title')) {
-            issues.push({
+            _issues.push({
               element: iframe,
               issue: 'missing_title',
               message: 'Iframe missing accessible title attribute'
@@ -176,8 +176,8 @@ describe('Real DOM Scenarios Tests', () => {
 
           // Check for empty title
           const _title = iframe.getAttribute('title');
-          if (title && title.trim() === '') {
-            issues.push({
+          if (_title && _title.trim() === '') {
+            _issues.push({
               element: iframe,
               issue: 'empty_title',
               message: 'Iframe has empty title attribute'
@@ -185,28 +185,28 @@ describe('Real DOM Scenarios Tests', () => {
           }
         });
 
-        return { iframes: iframes.length, issues };
+        return { iframes: _iframes.length, issues: _issues };
       };
 
-      const _structure = createNestedIframeStructure();
-      const _results = checkIframeAccessibility(structure);
+      const _structure = _createNestedIframeStructure();
+      const _results = _checkIframeAccessibility(_structure);
 
-      expect(results.iframes).toBe(3);
-      expect(results.issues).toHaveLength(1);
-      expect(results.issues[0].issue).toBe('missing_title');
-      expect(results.issues[0].message).toBe('Iframe missing accessible title attribute');
+      expect(_results.iframes).toBe(3);
+      expect(_results.issues).toHaveLength(1);
+      expect(_results.issues[0].issue).toBe('missing_title');
+      expect(_results.issues[0].message).toBe('Iframe missing accessible title attribute');
     });
 
     test('should handle complex table structures with nested content', () => {
       // Create complex table with accessibility challenges
       const _createComplexTable = () => {
         const _table = _mockDocument.createElement('table');
-        table.setAttribute('role', 'table');
+        _table.setAttribute('role', 'table');
 
         // Create caption
         const _caption = _mockDocument.createElement('caption');
-        caption.textContent = 'Quarterly Sales Data';
-        table.appendChild(caption);
+        _caption.textContent = 'Quarterly Sales Data';
+        _table.appendChild(_caption);
 
         // Create header with complex structure
         const _thead = _mockDocument.createElement('thead');
@@ -220,17 +220,17 @@ describe('Real DOM Scenarios Tests', () => {
           { text: 'Total', scope: 'col' }
         ];
 
-        headers.forEach(headerData => {
+        _headers.forEach(headerData => {
           const _th = _mockDocument.createElement('th');
-          th.textContent = headerData.text;
+          _th.textContent = headerData.text;
           if (headerData.scope) {
-            th.setAttribute('scope', headerData.scope);
+            _th.setAttribute('scope', headerData.scope);
           }
-          headerRow.appendChild(th);
+          _headerRow.appendChild(_th);
         });
 
-        thead.appendChild(headerRow);
-        table.appendChild(thead);
+        _thead.appendChild(_headerRow);
+        _table.appendChild(_thead);
 
         // Create complex body with rowspan/colspan
         const _tbody = _mockDocument.createElement('tbody');
@@ -245,15 +245,15 @@ describe('Real DOM Scenarios Tests', () => {
           { text: '$22,000' }
         ];
 
-        row1Headers.forEach((cellData, index) => {
+        _row1Headers.forEach((cellData, index) => {
           const _cell = index === 0 ? _mockDocument.createElement('th') : _mockDocument.createElement('td');
-          cell.textContent = cellData.text;
+          _cell.textContent = cellData.text;
           if (cellData.scope) {
-            cell.setAttribute('scope', cellData.scope);
+            _cell.setAttribute('scope', cellData.scope);
           }
-          row1.appendChild(cell);
+          _row1.appendChild(_cell);
         });
-        tbody.appendChild(row1);
+        _tbody.appendChild(_row1);
 
         // Row 2 with missing th scope
         const _row2 = _mockDocument.createElement('tr');
@@ -265,16 +265,16 @@ describe('Real DOM Scenarios Tests', () => {
           { text: '$17,500' }
         ];
 
-        row2Headers.forEach((cellData, index) => {
+        _row2Headers.forEach((cellData, index) => {
           const _cell = index === 0 ? _mockDocument.createElement('th') : _mockDocument.createElement('td');
-          cell.textContent = cellData.text;
+          _cell.textContent = cellData.text;
           // Intentionally not setting scope for first cell
-          row2.appendChild(cell);
+          _row2.appendChild(_cell);
         });
-        tbody.appendChild(row2);
+        _tbody.appendChild(_row2);
 
-        table.appendChild(tbody);
-        return table;
+        _table.appendChild(_tbody);
+        return _table;
       };
 
       const _checkTableAccessibility = table => {
@@ -282,8 +282,8 @@ describe('Real DOM Scenarios Tests', () => {
 
         // Check for caption
         const _caption = table.children.find(child => child.tagName === 'CAPTION');
-        if (!caption) {
-          issues.push({
+        if (!_caption) {
+          _issues.push({
             issue: 'missing_caption',
             message: 'Table missing caption for accessibility'
           });
@@ -291,20 +291,20 @@ describe('Real DOM Scenarios Tests', () => {
 
         // Check header cells
         const _thead = table.children.find(child => child.tagName === 'THEAD');
-        if (thead) {
-          const _headerRow = thead.children[0];
-          if (headerRow) {
-            headerRow.children.forEach((th, index) => {
+        if (_thead) {
+          const _headerRow = _thead.children[0];
+          if (_headerRow) {
+            _headerRow.children.forEach((th, index) => {
               if (th.tagName === 'TH') {
                 if (!th.textContent.trim()) {
-                  issues.push({
+                  _issues.push({
                     issue: 'empty_header',
                     message: `Table header at column ${index + 1} is empty`,
                     element: th
                   });
                 }
                 if (!th.getAttribute('scope') && th.textContent.trim()) {
-                  issues.push({
+                  _issues.push({
                     issue: 'missing_scope',
                     message: `Table header at column ${index + 1} missing scope attribute`,
                     element: th
@@ -317,118 +317,118 @@ describe('Real DOM Scenarios Tests', () => {
 
         // Check row headers
         const _tbody = table.children.find(child => child.tagName === 'TBODY');
-        if (tbody) {
-          tbody.children.forEach((row, rowIndex) => {
+        if (_tbody) {
+          _tbody.children.forEach((row, rowIndex) => {
             const _firstCell = row.children[0];
-            if (firstCell && firstCell.tagName === 'TH') {
-              if (!firstCell.getAttribute('scope')) {
-                issues.push({
+            if (_firstCell && _firstCell.tagName === 'TH') {
+              if (!_firstCell.getAttribute('scope')) {
+                _issues.push({
                   issue: 'missing_row_scope',
                   message: `Row header at row ${rowIndex + 1} missing scope attribute`,
-                  element: firstCell
+                  element: _firstCell
                 });
               }
             }
           });
         }
 
-        return issues;
+        return _issues;
       };
 
-      const _table = createComplexTable();
-      const _issues = checkTableAccessibility(table);
+      const _table = _createComplexTable();
+      const _issues = _checkTableAccessibility(_table);
 
-      expect(issues).toHaveLength(2);
-      expect(issues.some(issue => issue.issue === 'empty_header')).toBe(true);
-      expect(issues.some(issue => issue.issue === 'missing_row_scope')).toBe(true);
+      expect(_issues).toHaveLength(2);
+      expect(_issues.some(issue => issue.issue === 'empty_header')).toBe(true);
+      expect(_issues.some(issue => issue.issue === 'missing_row_scope')).toBe(true);
     });
 
     test('should handle form structures with complex field relationships', () => {
       // Create complex form with various accessibility patterns
       const _createComplexForm = () => {
         const _form = _mockDocument.createElement('form');
-        form.setAttribute('role', 'form');
-        form.setAttribute('aria-labelledby', 'form-title');
+        _form.setAttribute('role', 'form');
+        _form.setAttribute('aria-labelledby', 'form-title');
 
         // Form title
         const _title = _mockDocument.createElement('h2');
-        title.id = 'form-title';
-        title.textContent = 'Registration Form';
-        form.appendChild(title);
+        _title.id = 'form-title';
+        _title.textContent = 'Registration Form';
+        _form.appendChild(_title);
 
         // Fieldset 1: Personal Information
         const _personalFieldset = _mockDocument.createElement('fieldset');
         const _personalLegend = _mockDocument.createElement('legend');
-        personalLegend.textContent = 'Personal Information';
-        personalFieldset.appendChild(personalLegend);
+        _personalLegend.textContent = 'Personal Information';
+        _personalFieldset.appendChild(_personalLegend);
 
         // Name field (proper labeling)
         const _nameDiv = _mockDocument.createElement('div');
         const _nameLabel = _mockDocument.createElement('label');
-        nameLabel.setAttribute('for', 'name');
-        nameLabel.textContent = 'Full Name *';
+        _nameLabel.setAttribute('for', 'name');
+        _nameLabel.textContent = 'Full Name *';
         const _nameInput = _mockDocument.createElement('input');
-        nameInput.type = 'text';
-        nameInput.id = 'name';
-        nameInput.setAttribute('required', 'true');
-        nameInput.setAttribute('aria-describedby', 'name-help');
-        nameDiv.appendChild(nameLabel);
-        nameDiv.appendChild(nameInput);
+        _nameInput.type = 'text';
+        _nameInput.id = 'name';
+        _nameInput.setAttribute('required', 'true');
+        _nameInput.setAttribute('aria-describedby', 'name-help');
+        _nameDiv.appendChild(_nameLabel);
+        _nameDiv.appendChild(_nameInput);
 
         const _nameHelp = _mockDocument.createElement('div');
-        nameHelp.id = 'name-help';
-        nameHelp.textContent = 'Enter your first and last name';
-        nameDiv.appendChild(nameHelp);
-        personalFieldset.appendChild(nameDiv);
+        _nameHelp.id = 'name-help';
+        _nameHelp.textContent = 'Enter your first and last name';
+        _nameDiv.appendChild(_nameHelp);
+        _personalFieldset.appendChild(_nameDiv);
 
         // Email field (missing label)
         const _emailDiv = _mockDocument.createElement('div');
         const _emailInput = _mockDocument.createElement('input');
-        emailInput.type = 'email';
-        emailInput.id = 'email';
-        emailInput.setAttribute('placeholder', 'Enter email address');
+        _emailInput.type = 'email';
+        _emailInput.id = 'email';
+        _emailInput.setAttribute('placeholder', 'Enter email address');
         // No label element - accessibility issue
-        emailDiv.appendChild(emailInput);
-        personalFieldset.appendChild(emailDiv);
+        _emailDiv.appendChild(_emailInput);
+        _personalFieldset.appendChild(_emailDiv);
 
-        form.appendChild(personalFieldset);
+        _form.appendChild(_personalFieldset);
 
         // Fieldset 2: Preferences
         const _prefFieldset = _mockDocument.createElement('fieldset');
         const _prefLegend = _mockDocument.createElement('legend');
-        prefLegend.textContent = 'Preferences';
-        prefFieldset.appendChild(prefLegend);
+        _prefLegend.textContent = 'Preferences';
+        _prefFieldset.appendChild(_prefLegend);
 
         // Radio group (missing fieldset grouping)
         const _radioDiv = _mockDocument.createElement('div');
         const _radioLabel1 = _mockDocument.createElement('label');
         const _radio1 = _mockDocument.createElement('input');
-        radio1.type = 'radio';
-        radio1.name = 'newsletter';
-        radio1.value = 'weekly';
-        radioLabel1.appendChild(radio1);
-        radioLabel1.appendChild(_mockDocument.createTextNode('Weekly Newsletter'));
-        radioDiv.appendChild(radioLabel1);
+        _radio1.type = 'radio';
+        _radio1.name = 'newsletter';
+        _radio1.value = 'weekly';
+        _radioLabel1.appendChild(_radio1);
+        _radioLabel1.appendChild(_mockDocument.createTextNode('Weekly Newsletter'));
+        _radioDiv.appendChild(_radioLabel1);
 
         const _radioLabel2 = _mockDocument.createElement('label');
         const _radio2 = _mockDocument.createElement('input');
-        radio2.type = 'radio';
-        radio2.name = 'newsletter';
-        radio2.value = 'monthly';
-        radioLabel2.appendChild(radio2);
-        radioLabel2.appendChild(_mockDocument.createTextNode('Monthly Newsletter'));
-        radioDiv.appendChild(radioLabel2);
+        _radio2.type = 'radio';
+        _radio2.name = 'newsletter';
+        _radio2.value = 'monthly';
+        _radioLabel2.appendChild(_radio2);
+        _radioLabel2.appendChild(_mockDocument.createTextNode('Monthly Newsletter'));
+        _radioDiv.appendChild(_radioLabel2);
 
-        prefFieldset.appendChild(radioDiv);
-        form.appendChild(prefFieldset);
+        _prefFieldset.appendChild(_radioDiv);
+        _form.appendChild(_prefFieldset);
 
         // Submit button (good)
         const _submitButton = _mockDocument.createElement('button');
-        submitButton.type = 'submit';
-        submitButton.textContent = 'Register';
-        form.appendChild(submitButton);
+        _submitButton.type = 'submit';
+        _submitButton.textContent = 'Register';
+        _form.appendChild(_submitButton);
 
-        return form;
+        return _form;
       };
 
       const _checkFormAccessibility = form => {
@@ -437,10 +437,10 @@ describe('Real DOM Scenarios Tests', () => {
         // Check for form label or title
         const _ariaLabelledby = form.getAttribute('aria-labelledby');
         const _ariaLabel = form.getAttribute('aria-label');
-        if (!ariaLabelledby && !ariaLabel) {
+        if (!_ariaLabelledby && !_ariaLabel) {
           const _firstChild = form.children[0];
-          if (!firstChild || !['H1', 'H2', 'H3', 'H4', 'H5', 'H6'].includes(firstChild.tagName)) {
-            issues.push({
+          if (!_firstChild || !['H1', 'H2', 'H3', 'H4', 'H5', 'H6'].includes(_firstChild.tagName)) {
+            _issues.push({
               issue: 'missing_form_label',
               message: 'Form missing accessible label or title'
             });
@@ -452,49 +452,49 @@ describe('Real DOM Scenarios Tests', () => {
         const _findInputs = element => {
           element.children.forEach(child => {
             if (child.tagName === 'INPUT' && ['text', 'email', 'password', 'tel'].includes(child.type)) {
-              inputs.push(child);
+              _inputs.push(child);
             } else if (child.children) {
-              findInputs(child);
+              _findInputs(child);
             }
           });
         };
-        findInputs(form);
+        _findInputs(form);
 
-        inputs.forEach(input => {
+        _inputs.forEach(input => {
           const _id = input.id;
-          const _hasLabel = false;
+          let _hasLabel = false;
 
-          if (id) {
+          if (_id) {
             // Check for explicit label
             const _labels = [];
             const _findLabels = element => {
               element.children.forEach(child => {
-                if (child.tagName === 'LABEL' && child.getAttribute('for') === id) {
-                  labels.push(child);
+                if (child.tagName === 'LABEL' && child.getAttribute('for') === _id) {
+                  _labels.push(child);
                 } else if (child.children) {
-                  findLabels(child);
+                  _findLabels(child);
                 }
               });
             };
-            findLabels(form);
+            _findLabels(form);
 
-            if (labels.length > 0) {
-              hasLabel = true;
+            if (_labels.length > 0) {
+              _hasLabel = true;
             }
           }
 
           // Check for implicit label (parent label)
-          if (!hasLabel && input.parentNode && input.parentNode.tagName === 'LABEL') {
-            hasLabel = true;
+          if (!_hasLabel && input.parentNode && input.parentNode.tagName === 'LABEL') {
+            _hasLabel = true;
           }
 
           // Check for aria-label
-          if (!hasLabel && input.getAttribute('aria-label')) {
-            hasLabel = true;
+          if (!_hasLabel && input.getAttribute('aria-label')) {
+            _hasLabel = true;
           }
 
-          if (!hasLabel) {
-            issues.push({
+          if (!_hasLabel) {
+            _issues.push({
               issue: 'missing_input_label',
               message: `Input field missing accessible label`,
               element: input
@@ -503,28 +503,28 @@ describe('Real DOM Scenarios Tests', () => {
         });
 
         // Check required fields have proper indication
-        inputs.forEach(input => {
+        _inputs.forEach(input => {
           if (input.hasAttribute('required')) {
             const _id = input.id;
-            if (id) {
+            if (_id) {
               const _labels = [];
               const _findLabels = element => {
                 element.children.forEach(child => {
-                  if (child.tagName === 'LABEL' && child.getAttribute('for') === id) {
-                    labels.push(child);
+                  if (child.tagName === 'LABEL' && child.getAttribute('for') === _id) {
+                    _labels.push(child);
                   } else if (child.children) {
-                    findLabels(child);
+                    _findLabels(child);
                   }
                 });
               };
-              findLabels(form);
+              _findLabels(form);
 
-              const _hasRequiredIndicator = labels.some(label =>
+              const _hasRequiredIndicator = _labels.some(label =>
                 label.textContent.includes('*') || label.textContent.includes('required')
               );
 
-              if (!hasRequiredIndicator && !input.getAttribute('aria-required')) {
-                issues.push({
+              if (!_hasRequiredIndicator && !input.getAttribute('aria-required')) {
+                _issues.push({
                   issue: 'missing_required_indicator',
                   message: 'Required field missing visual or programmatic indication',
                   element: input
@@ -534,14 +534,14 @@ describe('Real DOM Scenarios Tests', () => {
           }
         });
 
-        return issues;
+        return _issues;
       };
 
-      const _form = createComplexForm();
-      const _issues = checkFormAccessibility(form);
+      const _form = _createComplexForm();
+      const _issues = _checkFormAccessibility(_form);
 
-      expect(issues).toHaveLength(1); // Should find missing label for email input
-      expect(issues[0].issue).toBe('missing_input_label');
+      expect(_issues).toHaveLength(1); // Should find missing label for email input
+      expect(_issues[0].issue).toBe('missing_input_label');
     });
   });
 
@@ -555,26 +555,26 @@ describe('Real DOM Scenarios Tests', () => {
           { width: 100, height: 50, visible: true }
         ];
 
-        const _results = elements.map(el => {
+        const _results = _elements.map(el => {
           const _isVisible = el.width > 0 && el.height > 0;
           return {
             ...el,
-            shouldCheck: isVisible,
-            reason: isVisible ? 'visible' : 'zero_dimensions'
+            shouldCheck: _isVisible,
+            reason: _isVisible ? 'visible' : 'zero_dimensions'
           };
         });
 
-        return results;
+        return _results;
       };
 
-      const _results = handleZeroDimensionElements();
+      const _results = _handleZeroDimensionElements();
 
-      expect(results[0].shouldCheck).toBe(false);
-      expect(results[0].reason).toBe('zero_dimensions');
-      expect(results[1].shouldCheck).toBe(false);
-      expect(results[2].shouldCheck).toBe(false);
-      expect(results[3].shouldCheck).toBe(true);
-      expect(results[3].reason).toBe('visible');
+      expect(_results[0].shouldCheck).toBe(false);
+      expect(_results[0].reason).toBe('zero_dimensions');
+      expect(_results[1].shouldCheck).toBe(false);
+      expect(_results[2].shouldCheck).toBe(false);
+      expect(_results[3].shouldCheck).toBe(true);
+      expect(_results[3].reason).toBe('visible');
     });
 
     test('should handle elements outside viewport', () => {
@@ -583,24 +583,24 @@ describe('Real DOM Scenarios Tests', () => {
           const _rect = el.getBoundingClientRect();
 
           const _isInViewport = (
-            rect.top < viewport.height &&
-            rect.bottom > 0 &&
-            rect.left < viewport.width &&
-            rect.right > 0
+            _rect.top < viewport.height &&
+            _rect.bottom > 0 &&
+            _rect.left < viewport.width &&
+            _rect.right > 0
           );
 
           const _isVisible = (
-            rect.width > 0 &&
-            rect.height > 0 &&
-            isInViewport
+            _rect.width > 0 &&
+            _rect.height > 0 &&
+            _isInViewport
           );
 
           return {
             element: el,
-            isVisible,
-            isInViewport,
-            rect,
-            shouldCheck: isVisible
+            isVisible: _isVisible,
+            isInViewport: _isInViewport,
+            rect: _rect,
+            shouldCheck: _isVisible
           };
         });
       };
@@ -630,14 +630,14 @@ describe('Real DOM Scenarios Tests', () => {
       ];
 
       const _viewport = { width: 1024, height: 768 };
-      const _results = checkElementVisibility(elements, viewport);
+      const _results = _checkElementVisibility(_elements, _viewport);
 
-      expect(results[0].isVisible).toBe(true);
-      expect(results[0].isInViewport).toBe(true);
-      expect(results[1].isVisible).toBe(false); // Below viewport
-      expect(results[2].isVisible).toBe(false); // Above viewport
-      expect(results[3].isVisible).toBe(false); // Left of viewport
-      expect(results[4].isVisible).toBe(false); // Right of viewport
+      expect(_results[0].isVisible).toBe(true);
+      expect(_results[0].isInViewport).toBe(true);
+      expect(_results[1].isVisible).toBe(false); // Below viewport
+      expect(_results[2].isVisible).toBe(false); // Above viewport
+      expect(_results[3].isVisible).toBe(false); // Left of viewport
+      expect(_results[4].isVisible).toBe(false); // Right of viewport
     });
 
     test('should handle malformed or corrupted DOM elements', () => {
@@ -653,20 +653,20 @@ describe('Real DOM Scenarios Tests', () => {
           try {
             // Basic validation checks
             if (!element) {
-              results.skipped++;
-              results.errors.push(`Element ${index}: null or undefined`);
+              _results.skipped++;
+              _results.errors.push(`Element ${index}: null or undefined`);
               return;
             }
 
             if (typeof element !== 'object') {
-              results.skipped++;
-              results.errors.push(`Element ${index}: not an object`);
+              _results.skipped++;
+              _results.errors.push(`Element ${index}: not an object`);
               return;
             }
 
             if (!element.tagName) {
-              results.skipped++;
-              results.errors.push(`Element ${index}: missing tagName`);
+              _results.skipped++;
+              _results.errors.push(`Element ${index}: missing tagName`);
               return;
             }
 
@@ -677,43 +677,43 @@ describe('Real DOM Scenarios Tests', () => {
 
             // Validate critical methods exist
             if (typeof element.getAttribute !== 'function') {
-              results.skipped++;
-              results.errors.push(`Element ${index}: getAttribute method missing`);
+              _results.skipped++;
+              _results.errors.push(`Element ${index}: getAttribute method missing`);
               return;
             }
 
             if (typeof element.getBoundingClientRect !== 'function') {
-              results.skipped++;
-              results.errors.push(`Element ${index}: getBoundingClientRect method missing`);
+              _results.skipped++;
+              _results.errors.push(`Element ${index}: getBoundingClientRect method missing`);
               return;
             }
 
             // Try to call methods safely
-            let rect;
+            let _rect;
             try {
-              rect = element.getBoundingClientRect();
+              _rect = element.getBoundingClientRect();
             } catch (error) {
-              results.skipped++;
-              results.errors.push(`Element ${index}: getBoundingClientRect failed - ${error.message}`);
+              _results.skipped++;
+              _results.errors.push(`Element ${index}: getBoundingClientRect failed - ${error.message}`);
               return;
             }
 
-            results.validElements.push({
+            _results.validElements.push({
               index,
-              tagName,
-              id,
-              className,
-              rect
+              tagName: _tagName,
+              id: _id,
+              className: _className,
+              rect: _rect
             });
-            results.processed++;
+            _results.processed++;
 
           } catch (error) {
-            results.errors.push(`Element ${index}: unexpected error - ${error.message}`);
-            results.skipped++;
+            _results.errors.push(`Element ${index}: unexpected error - ${error.message}`);
+            _results.skipped++;
           }
         });
 
-        return results;
+        return _results;
       };
 
       // Test with various malformed elements
@@ -749,36 +749,36 @@ describe('Real DOM Scenarios Tests', () => {
         }
       ];
 
-      const _results = handleMalformedElements(testElements);
+      const _results = _handleMalformedElements(_testElements);
 
-      expect(results.processed).toBe(1);
-      expect(results.skipped).toBe(5);
-      expect(results.errors).toHaveLength(5);
-      expect(results.validElements).toHaveLength(1);
-      expect(results.validElements[0].tagName).toBe('DIV');
+      expect(_results.processed).toBe(1);
+      expect(_results.skipped).toBe(5);
+      expect(_results.errors).toHaveLength(5);
+      expect(_results.validElements).toHaveLength(1);
+      expect(_results.validElements[0].tagName).toBe('DIV');
     });
 
     test('should handle deeply nested DOM structures', () => {
       const _createDeeplyNestedStructure = depth => {
-        const _current = _mockDocument.createElement('div');
-        current.className = 'root';
-        const _root = current;
+        let _current = _mockDocument.createElement('div');
+        _current.className = 'root';
+        const _root = _current;
 
-        for (let _i = 1; i < depth; i++) {
+        for (let _i = 1; _i < depth; _i++) {
           const _child = _mockDocument.createElement('div');
-          child.className = `level-${i}`;
-          child.id = `element-${i}`;
-          current.appendChild(child);
-          current = child;
+          _child.className = `level-${_i}`;
+          _child.id = `element-${_i}`;
+          _current.appendChild(_child);
+          _current = _child;
         }
 
         // Add final element with accessibility issue
         const _finalElement = _mockDocument.createElement('img');
-        finalElement.src = 'deep-image.jpg';
+        _finalElement.src = 'deep-image.jpg';
         // Missing alt attribute
-        current.appendChild(finalElement);
+        _current.appendChild(_finalElement);
 
-        return root;
+        return _root;
       };
 
       const _traverseNestedStructure = (element, maxDepth = 50) => {
@@ -791,16 +791,16 @@ describe('Real DOM Scenarios Tests', () => {
 
         const _traverse = (el, currentDepth) => {
           if (currentDepth > maxDepth) {
-            results.depthExceeded = true;
+            _results.depthExceeded = true;
             return;
           }
 
-          results.totalElements++;
-          results.maxDepthReached = Math.max(results.maxDepthReached, currentDepth);
+          _results.totalElements++;
+          _results.maxDepthReached = Math.max(_results.maxDepthReached, currentDepth);
 
           // Check for accessibility issues
           if (el.tagName === 'IMG' && !el.getAttribute('alt')) {
-            results.issues.push({
+            _results.issues.push({
               type: 'missing_alt',
               depth: currentDepth,
               element: el
@@ -810,31 +810,31 @@ describe('Real DOM Scenarios Tests', () => {
           // Traverse children
           if (el.children && el.children.length > 0) {
             el.children.forEach(child => {
-              traverse(child, currentDepth + 1);
+              _traverse(child, currentDepth + 1);
             });
           }
         };
 
-        traverse(element, 0);
-        return results;
+        _traverse(element, 0);
+        return _results;
       };
 
       // Test with moderate depth
-      const _moderateStructure = createDeeplyNestedStructure(20);
-      const _moderateResults = traverseNestedStructure(moderateStructure);
+      const _moderateStructure = _createDeeplyNestedStructure(20);
+      const _moderateResults = _traverseNestedStructure(_moderateStructure);
 
-      expect(moderateResults.totalElements).toBe(21); // 20 divs + 1 img
-      expect(moderateResults.maxDepthReached).toBe(20);
-      expect(moderateResults.issues).toHaveLength(1);
-      expect(moderateResults.issues[0].type).toBe('missing_alt');
-      expect(moderateResults.depthExceeded).toBe(false);
+      expect(_moderateResults.totalElements).toBe(21); // 20 divs + 1 img
+      expect(_moderateResults.maxDepthReached).toBe(20);
+      expect(_moderateResults.issues).toHaveLength(1);
+      expect(_moderateResults.issues[0].type).toBe('missing_alt');
+      expect(_moderateResults.depthExceeded).toBe(false);
 
       // Test with excessive depth
-      const _deepStructure = createDeeplyNestedStructure(100);
-      const _deepResults = traverseNestedStructure(deepStructure, 50);
+      const _deepStructure = _createDeeplyNestedStructure(100);
+      const _deepResults = _traverseNestedStructure(_deepStructure, 50);
 
-      expect(deepResults.depthExceeded).toBe(true);
-      expect(deepResults.maxDepthReached).toBe(50);
+      expect(_deepResults.depthExceeded).toBe(true);
+      expect(_deepResults.maxDepthReached).toBe(50);
     });
   });
 
@@ -906,40 +906,40 @@ describe('Real DOM Scenarios Tests', () => {
 
         // Check IntersectionObserver support
         if (browser.features.intersectionObserver) {
-          compatibility.supportedFeatures.push('IntersectionObserver');
+          _compatibility.supportedFeatures.push('IntersectionObserver');
         } else {
-          compatibility.fallbacksNeeded.push('IntersectionObserver');
-          compatibility.recommendations.push('Use scroll event listeners as fallback');
+          _compatibility.fallbacksNeeded.push('IntersectionObserver');
+          _compatibility.recommendations.push('Use scroll event listeners as fallback');
         }
 
         // Check MutationObserver support
         if (browser.features.mutationObserver) {
-          compatibility.supportedFeatures.push('MutationObserver');
+          _compatibility.supportedFeatures.push('MutationObserver');
         } else {
-          compatibility.fallbacksNeeded.push('MutationObserver');
-          compatibility.recommendations.push('Use DOM event listeners as fallback');
+          _compatibility.fallbacksNeeded.push('MutationObserver');
+          _compatibility.recommendations.push('Use DOM event listeners as fallback');
         }
 
         // Check Custom Elements support
         if (browser.features.customElements) {
-          compatibility.supportedFeatures.push('CustomElements');
+          _compatibility.supportedFeatures.push('CustomElements');
         } else {
-          compatibility.fallbacksNeeded.push('CustomElements');
-          compatibility.recommendations.push('Avoid custom element detection');
+          _compatibility.fallbacksNeeded.push('CustomElements');
+          _compatibility.recommendations.push('Avoid custom element detection');
         }
 
-        return compatibility;
+        return _compatibility;
       };
 
-      Object.values(browserEnvironments).forEach(browser => {
-        const _compatibility = checkBrowserCompatibility(browser);
+      Object.values(_browserEnvironments).forEach(browser => {
+        const _compatibility = _checkBrowserCompatibility(browser);
 
-        expect(compatibility.browser).toBe(browser.name);
-        expect(compatibility.supportedFeatures).toContain('MutationObserver'); // All support this
+        expect(_compatibility.browser).toBe(browser.name);
+        expect(_compatibility.supportedFeatures).toContain('MutationObserver'); // All support this
 
         if (browser.name === 'IE11') {
-          expect(compatibility.fallbacksNeeded).toContain('IntersectionObserver');
-          expect(compatibility.fallbacksNeeded).toContain('CustomElements');
+          expect(_compatibility.fallbacksNeeded).toContain('IntersectionObserver');
+          expect(_compatibility.fallbacksNeeded).toContain('CustomElements');
         }
       });
     });
@@ -959,52 +959,52 @@ describe('Real DOM Scenarios Tests', () => {
           fallbacks: []
         };
 
-        const _values = testValues[property] || [];
+        const _values = _testValues[property] || [];
 
-        values.forEach(value => {
+        _values.forEach(value => {
           try {
             // Simulate setting and reading CSS property
             element.style[property] = value;
 
             // Mock successful property setting for tests
             if (property === 'font-size' && value === '16px') {
-              support.supportedValues.push(value);
+              _support.supportedValues.push(value);
             } else if (property === 'display' && value === 'block') {
-              support.supportedValues.push(value);
+              _support.supportedValues.push(value);
             } else {
               // For other values, simulate partial support
               const _computed = mockWindow.getComputedStyle(element);
-              const _actualValue = computed[property];
+              const _actualValue = _computed[property];
 
-              if (actualValue === value || (actualValue && actualValue.includes && actualValue.includes(value))) {
-                support.supportedValues.push(value);
+              if (_actualValue === value || (_actualValue && _actualValue.includes && _actualValue.includes(value))) {
+                _support.supportedValues.push(value);
               } else {
-                support.unsupportedValues.push(value);
+                _support.unsupportedValues.push(value);
 
                 // Suggest fallbacks
                 if (property === 'display' && value === 'grid') {
-                  support.fallbacks.push('Use flexbox or table layout');
+                  _support.fallbacks.push('Use flexbox or table layout');
                 } else if (property === 'font-size' && value.includes('rem')) {
-                  support.fallbacks.push('Use px units for older browsers');
+                  _support.fallbacks.push('Use px units for older browsers');
                 }
               }
             }
           } catch (error) {
-            support.unsupportedValues.push(value);
-            support.fallbacks.push(`Property ${property} not supported`);
+            _support.unsupportedValues.push(value);
+            _support.fallbacks.push(`Property ${property} not supported`);
           }
         });
 
-        return support;
+        return _support;
       };
 
       const _testElement = _mockDocument.createElement('div');
 
-      const _fontSizeSupport = checkCSSPropertySupport(testElement, 'font-size');
-      const _displaySupport = checkCSSPropertySupport(testElement, 'display');
+      const _fontSizeSupport = _checkCSSPropertySupport(_testElement, 'font-size');
+      const _displaySupport = _checkCSSPropertySupport(_testElement, 'display');
 
-      expect(fontSizeSupport.supportedValues).toContain('16px');
-      expect(displaySupport.supportedValues).toContain('block');
+      expect(_fontSizeSupport.supportedValues).toContain('16px');
+      expect(_displaySupport.supportedValues).toContain('block');
     });
 
     test('should provide graceful degradation for unsupported features', () => {
@@ -1019,8 +1019,8 @@ describe('Real DOM Scenarios Tests', () => {
         const _fallbacks = {};
 
         // Intersection Observer fallback
-        if (!features.intersectionObserver) {
-          fallbacks.intersectionObserver = {
+        if (!_features.intersectionObserver) {
+          _fallbacks.intersectionObserver = {
             method: 'scroll-event',
             implementation: () => {
               // Simulate scroll-based visibility detection
@@ -1034,8 +1034,8 @@ describe('Real DOM Scenarios Tests', () => {
         }
 
         // Mutation Observer fallback
-        if (!features.mutationObserver) {
-          fallbacks.mutationObserver = {
+        if (!_features.mutationObserver) {
+          _fallbacks.mutationObserver = {
             method: 'dom-events',
             implementation: () => {
               // Simulate DOM event-based change detection
@@ -1049,26 +1049,26 @@ describe('Real DOM Scenarios Tests', () => {
         }
 
         // RAF fallback
-        if (!features.requestAnimationFrame) {
-          fallbacks.requestAnimationFrame = {
+        if (!_features.requestAnimationFrame) {
+          _fallbacks.requestAnimationFrame = {
             method: 'setTimeout',
             implementation: callback => setTimeout(callback, 16)
           };
         }
 
-        return { features, fallbacks };
+        return { features: _features, fallbacks: _fallbacks };
       };
 
-      const _detection = createFeatureDetection();
+      const _detection = _createFeatureDetection();
 
-      expect(typeof detection.features).toBe('object');
-      expect(typeof detection.fallbacks).toBe('object');
+      expect(typeof _detection.features).toBe('object');
+      expect(typeof _detection.fallbacks).toBe('object');
 
       // Test fallback creation
-      if (!detection.features.intersectionObserver) {
-        const _fallbackObserver = detection.fallbacks.intersectionObserver.implementation();
-        expect(fallbackObserver.observe).toBeDefined();
-        expect(fallbackObserver.disconnect).toBeDefined();
+      if (!_detection.features.intersectionObserver) {
+        const _fallbackObserver = _detection.fallbacks.intersectionObserver.implementation();
+        expect(_fallbackObserver.observe).toBeDefined();
+        expect(_fallbackObserver.disconnect).toBeDefined();
       }
     });
   });

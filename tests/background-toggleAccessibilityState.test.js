@@ -283,7 +283,7 @@ describe('Background Script - toggleAccessibilityState() Function', () => {
       // Mock runtime error during sendMessage
       chrome.tabs.sendMessage.mockImplementation((_tabId, _message, _callback) => {
         global.chrome.runtime.lastError = { message: 'Could not establish connection' };
-        callback();
+        _callback();
       });
 
       await global.toggleAccessibilityState();
@@ -303,7 +303,7 @@ describe('Background Script - toggleAccessibilityState() Function', () => {
       chrome.storage.local.set.mockResolvedValue();
       chrome.tabs.query.mockResolvedValue([_mockTab]);
       chrome.tabs.sendMessage.mockImplementation((_tabId, _message, _callback) => {
-        callback('Message received successfully');
+        _callback('Message received successfully');
       });
 
       await global.toggleAccessibilityState();
