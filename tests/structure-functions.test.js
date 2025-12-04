@@ -69,9 +69,9 @@ describe('Structure Functions Tests', () => {
         };
         return element;
       }),
-      querySelectorAll: jest.fn(selector => {
+      querySelectorAll: jest.fn(_selector => {
         // Default to return empty array for landmarks
-        if (selector === A11Y_CONFIG.SELECTORS.LANDMARK_ELEMENTS) {
+        if (_selector === A11Y_CONFIG.SELECTORS.LANDMARK_ELEMENTS) {
           return [];
         }
         return [];
@@ -225,36 +225,36 @@ describe('Structure Functions Tests', () => {
       checkHeadingHierarchy = () => {
         const _headings = _mockDocument.querySelectorAll('h1, h2, h3, h4, h5, h6');
         const _issues = [];
-        const _previousLevel = 0;
+        let _previousLevel = 0;
 
-        headings.forEach((heading, index) => {
-          const _level = parseInt(heading.tagName.charAt(1));
+        _headings.forEach((_heading, _index) => {
+          const _level = parseInt(_heading.tagName.charAt(1));
 
           // Check for skipped heading levels
-          if (previousLevel > 0 && level > previousLevel + 1) {
-            issues.push({
-              element: heading,
-              message: `Heading level skipped: h${previousLevel} to h${level}`,
+          if (_previousLevel > 0 && _level > _previousLevel + 1) {
+            _issues.push({
+              element: _heading,
+              message: `Heading level skipped: h${_previousLevel} to h${_level}`,
               level: 'error'
             });
           }
 
           // Check for multiple h1s
-          if (level === 1 && index > 0) {
-            const _h1Count = Array.from(headings).filter(h => h.tagName === 'H1').length;
-            if (h1Count > 1) {
-              issues.push({
-                element: heading,
+          if (_level === 1 && _index > 0) {
+            const _h1Count = Array.from(_headings).filter(_h => _h.tagName === 'H1').length;
+            if (_h1Count > 1) {
+              _issues.push({
+                element: _heading,
                 message: 'Multiple h1 elements found. Use only one h1 per page.',
                 level: 'warning'
               });
             }
           }
 
-          previousLevel = level;
+          _previousLevel = _level;
         });
 
-        return issues;
+        return _issues;
       };
     });
 
@@ -265,18 +265,18 @@ describe('Structure Functions Tests', () => {
         { tagName: 'H2', textContent: 'Section' }
       ];
 
-      _mockDocument.querySelectorAll.mockImplementation(selector => {
-        if (selector === 'h1, h2, h3, h4, h5, h6') {
-          return mockHeadings;
+      _mockDocument.querySelectorAll.mockImplementation(_selector => {
+        if (_selector === 'h1, h2, h3, h4, h5, h6') {
+          return _mockHeadings;
         }
         return [];
       });
 
       const _issues = checkHeadingHierarchy();
 
-      expect(issues).toHaveLength(1);
-      expect(issues[0].message).toContain('Heading level skipped: h1 to h3');
-      expect(issues[0].level).toBe('error');
+      expect(_issues).toHaveLength(1);
+      expect(_issues[0].message).toContain('Heading level skipped: h1 to h3');
+      expect(_issues[0].level).toBe('error');
     });
 
     test('should detect multiple h1 elements', () => {
@@ -286,18 +286,18 @@ describe('Structure Functions Tests', () => {
         { tagName: 'H2', textContent: 'Subtitle' }
       ];
 
-      _mockDocument.querySelectorAll.mockImplementation(selector => {
-        if (selector === 'h1, h2, h3, h4, h5, h6') {
-          return mockHeadings;
+      _mockDocument.querySelectorAll.mockImplementation(_selector => {
+        if (_selector === 'h1, h2, h3, h4, h5, h6') {
+          return _mockHeadings;
         }
         return [];
       });
 
       const _issues = checkHeadingHierarchy();
 
-      expect(issues).toHaveLength(1);
-      expect(issues[0].message).toContain('Multiple h1 elements found');
-      expect(issues[0].level).toBe('warning');
+      expect(_issues).toHaveLength(1);
+      expect(_issues[0].message).toContain('Multiple h1 elements found');
+      expect(_issues[0].level).toBe('warning');
     });
 
     test('should validate correct heading hierarchy', () => {
@@ -309,21 +309,21 @@ describe('Structure Functions Tests', () => {
         { tagName: 'H2', textContent: 'Section 2' }
       ];
 
-      _mockDocument.querySelectorAll.mockImplementation(selector => {
-        if (selector === 'h1, h2, h3, h4, h5, h6') {
-          return mockHeadings;
+      _mockDocument.querySelectorAll.mockImplementation(_selector => {
+        if (_selector === 'h1, h2, h3, h4, h5, h6') {
+          return _mockHeadings;
         }
         return [];
       });
 
       const _issues = checkHeadingHierarchy();
 
-      expect(issues).toHaveLength(0);
+      expect(_issues).toHaveLength(0);
     });
 
     test('should handle pages with no headings', () => {
-      _mockDocument.querySelectorAll.mockImplementation(selector => {
-        if (selector === 'h1, h2, h3, h4, h5, h6') {
+      _mockDocument.querySelectorAll.mockImplementation(_selector => {
+        if (_selector === 'h1, h2, h3, h4, h5, h6') {
           return [];
         }
         return [];
@@ -331,7 +331,7 @@ describe('Structure Functions Tests', () => {
 
       const _issues = checkHeadingHierarchy();
 
-      expect(issues).toHaveLength(0);
+      expect(_issues).toHaveLength(0);
     });
 
     test('should detect large heading level jumps', () => {
@@ -340,17 +340,17 @@ describe('Structure Functions Tests', () => {
         { tagName: 'H5', textContent: 'Deep Section' } // Jumps from H1 to H5
       ];
 
-      _mockDocument.querySelectorAll.mockImplementation(selector => {
-        if (selector === 'h1, h2, h3, h4, h5, h6') {
-          return mockHeadings;
+      _mockDocument.querySelectorAll.mockImplementation(_selector => {
+        if (_selector === 'h1, h2, h3, h4, h5, h6') {
+          return _mockHeadings;
         }
         return [];
       });
 
       const _issues = checkHeadingHierarchy();
 
-      expect(issues).toHaveLength(1);
-      expect(issues[0].message).toContain('Heading level skipped: h1 to h5');
+      expect(_issues).toHaveLength(1);
+      expect(_issues[0].message).toContain('Heading level skipped: h1 to h5');
     });
   });
 
@@ -364,8 +364,8 @@ describe('Structure Functions Tests', () => {
 
         // Check for proper main element usage
         const _mainElements = _mockDocument.querySelectorAll('main, [role="main"]');
-        if (mainElements.length > 1) {
-          issues.push({
+        if (_mainElements.length > 1) {
+          _issues.push({
             message: 'Multiple main elements detected. Use only one main element per page.',
             level: 'error'
           });
@@ -373,10 +373,10 @@ describe('Structure Functions Tests', () => {
 
         // Check for nav without accessible name
         const _navElements = _mockDocument.querySelectorAll('nav, [role="navigation"]');
-        navElements.forEach(nav => {
-          if (!nav.getAttribute('aria-label') && !nav.getAttribute('aria-labelledby')) {
-            issues.push({
-              element: nav,
+        _navElements.forEach(_nav => {
+          if (!_nav.getAttribute('aria-label') && !_nav.getAttribute('aria-labelledby')) {
+            _issues.push({
+              element: _nav,
               message: 'Navigation element missing accessible name. Add aria-label or aria-labelledby.',
               level: 'warning'
             });
@@ -385,17 +385,17 @@ describe('Structure Functions Tests', () => {
 
         // Check for complementary regions without labels
         const _asideElements = _mockDocument.querySelectorAll('aside, [role="complementary"]');
-        asideElements.forEach(aside => {
-          if (!aside.getAttribute('aria-label') && !aside.getAttribute('aria-labelledby')) {
-            issues.push({
-              element: aside,
+        _asideElements.forEach(_aside => {
+          if (!_aside.getAttribute('aria-label') && !_aside.getAttribute('aria-labelledby')) {
+            _issues.push({
+              element: _aside,
               message: 'Complementary region missing accessible name. Add aria-label or aria-labelledby.',
               level: 'warning'
             });
           }
         });
 
-        return issues;
+        return _issues;
       };
     });
 
@@ -405,18 +405,18 @@ describe('Structure Functions Tests', () => {
         { tagName: 'DIV', role: 'main' }
       ];
 
-      _mockDocument.querySelectorAll.mockImplementation(selector => {
-        if (selector === 'main, [role="main"]') {
-          return mockMainElements;
+      _mockDocument.querySelectorAll.mockImplementation(_selector => {
+        if (_selector === 'main, [role="main"]') {
+          return _mockMainElements;
         }
         return [];
       });
 
       const _issues = checkSemanticStructure();
 
-      expect(issues).toHaveLength(1);
-      expect(issues[0].message).toContain('Multiple main elements detected');
-      expect(issues[0].level).toBe('error');
+      expect(_issues).toHaveLength(1);
+      expect(_issues[0].message).toContain('Multiple main elements detected');
+      expect(_issues[0].level).toBe('error');
     });
 
     test('should detect nav elements without accessible names', () => {
@@ -431,14 +431,14 @@ describe('Structure Functions Tests', () => {
         }
       ];
 
-      _mockDocument.querySelectorAll.mockImplementation(selector => {
-        if (selector === 'nav, [role="navigation"]') {
-          return mockNavElements;
+      _mockDocument.querySelectorAll.mockImplementation(_selector => {
+        if (_selector === 'nav, [role="navigation"]') {
+          return _mockNavElements;
         }
-        if (selector === 'main, [role="main"]') {
+        if (_selector === 'main, [role="main"]') {
           return [];
         }
-        if (selector === 'aside, [role="complementary"]') {
+        if (_selector === 'aside, [role="complementary"]') {
           return [];
         }
         return [];
@@ -446,9 +446,9 @@ describe('Structure Functions Tests', () => {
 
       const _issues = checkSemanticStructure();
 
-      expect(issues).toHaveLength(1);
-      expect(issues[0].message).toContain('Navigation element missing accessible name');
-      expect(issues[0].level).toBe('warning');
+      expect(_issues).toHaveLength(1);
+      expect(_issues[0].message).toContain('Navigation element missing accessible name');
+      expect(_issues[0].level).toBe('warning');
     });
 
     test('should detect aside elements without accessible names', () => {
@@ -459,14 +459,14 @@ describe('Structure Functions Tests', () => {
         }
       ];
 
-      _mockDocument.querySelectorAll.mockImplementation(selector => {
-        if (selector === 'aside, [role="complementary"]') {
-          return mockAsideElements;
+      _mockDocument.querySelectorAll.mockImplementation(_selector => {
+        if (_selector === 'aside, [role="complementary"]') {
+          return _mockAsideElements;
         }
-        if (selector === 'main, [role="main"]') {
+        if (_selector === 'main, [role="main"]') {
           return [];
         }
-        if (selector === 'nav, [role="navigation"]') {
+        if (_selector === 'nav, [role="navigation"]') {
           return [];
         }
         return [];
@@ -474,9 +474,9 @@ describe('Structure Functions Tests', () => {
 
       const _issues = checkSemanticStructure();
 
-      expect(issues).toHaveLength(1);
-      expect(issues[0].message).toContain('Complementary region missing accessible name');
-      expect(issues[0].level).toBe('warning');
+      expect(_issues).toHaveLength(1);
+      expect(_issues[0].message).toContain('Complementary region missing accessible name');
+      expect(_issues[0].level).toBe('warning');
     });
 
     test('should validate correct semantic structure', () => {
@@ -498,22 +498,22 @@ describe('Structure Functions Tests', () => {
         }
       ];
 
-      _mockDocument.querySelectorAll.mockImplementation(selector => {
-        if (selector === 'main, [role="main"]') {
-          return mockMainElements;
+      _mockDocument.querySelectorAll.mockImplementation(_selector => {
+        if (_selector === 'main, [role="main"]') {
+          return _mockMainElements;
         }
-        if (selector === 'nav, [role="navigation"]') {
-          return mockNavElements;
+        if (_selector === 'nav, [role="navigation"]') {
+          return _mockNavElements;
         }
-        if (selector === 'aside, [role="complementary"]') {
-          return mockAsideElements;
+        if (_selector === 'aside, [role="complementary"]') {
+          return _mockAsideElements;
         }
         return [];
       });
 
       const _issues = checkSemanticStructure();
 
-      expect(issues).toHaveLength(0);
+      expect(_issues).toHaveLength(0);
     });
 
     test('should handle pages with no semantic elements', () => {
@@ -521,7 +521,7 @@ describe('Structure Functions Tests', () => {
 
       const _issues = checkSemanticStructure();
 
-      expect(issues).toHaveLength(0);
+      expect(_issues).toHaveLength(0);
     });
   });
 });
