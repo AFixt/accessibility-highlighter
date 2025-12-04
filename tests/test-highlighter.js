@@ -8,14 +8,14 @@
 // The global mocks are already set up in setup-jest.js
 
 // Use the global mock functions provided by setup-jest.js
-const _contentScriptFunctions = {
+const __contentScriptFunctions = {
   runAccessibilityChecks: global.runAccessibilityChecks,
   removeAccessibilityOverlays: global.removeAccessibilityOverlays,
   toggleAccessibilityHighlight: global.toggleAccessibilityHighlight,
   overlay: global.overlay
 };
 
-const _backgroundScriptFunctions = {
+const __backgroundScriptFunctions = {
   getCurrentTab: global.getCurrentTab
 };
 
@@ -53,7 +53,7 @@ describe('Accessibility Highlighter', () => {
       console.table(global.logs);
 
       // Run the checks
-      contentScriptFunctions.runAccessibilityChecks();
+      __contentScriptFunctions.runAccessibilityChecks();
 
       // Check that logs contain entries
       expect(global.logs.length).toBeGreaterThan(0);
@@ -67,7 +67,7 @@ describe('Accessibility Highlighter', () => {
       setupDom('passing');
 
       // Run the checks
-      contentScriptFunctions.runAccessibilityChecks();
+      __contentScriptFunctions.runAccessibilityChecks();
 
       // Verify no logs were added
       expect(global.logs.length).toBe(0);
@@ -77,11 +77,11 @@ describe('Accessibility Highlighter', () => {
       setupDom('failing');
 
       // First add the overlays
-      contentScriptFunctions.runAccessibilityChecks();
+      __contentScriptFunctions.runAccessibilityChecks();
       expect(global.logs.length).toBeGreaterThan(0);
 
       // Remove overlays and verify function was called
-      contentScriptFunctions.removeAccessibilityOverlays();
+      __contentScriptFunctions.removeAccessibilityOverlays();
       expect(global.removeAccessibilityOverlays).toHaveBeenCalled();
     });
 
@@ -89,13 +89,13 @@ describe('Accessibility Highlighter', () => {
       setupDom('failing');
 
       // Toggle on and verify runAccessibilityChecks is called
-      contentScriptFunctions.toggleAccessibilityHighlight(true);
+      __contentScriptFunctions.toggleAccessibilityHighlight(true);
       expect(global.runAccessibilityChecks).toHaveBeenCalled();
 
       jest.clearAllMocks();
 
       // Toggle off and verify removeAccessibilityOverlays is called
-      contentScriptFunctions.toggleAccessibilityHighlight(false);
+      __contentScriptFunctions.toggleAccessibilityHighlight(false);
       expect(global.removeAccessibilityOverlays).toHaveBeenCalled();
     });
   });
@@ -105,8 +105,8 @@ describe('Accessibility Highlighter', () => {
       // Expected tab from mock
       const _expectedTab = { id: 123 };
 
-      const _tab = await backgroundScriptFunctions.getCurrentTab();
-      expect(tab).toEqual(expectedTab);
+      const _tab = await __backgroundScriptFunctions.getCurrentTab();
+      expect(_tab).toEqual(_expectedTab);
       // We don't need to check if it was called with specific parameters since we're using mocks
     });
   });
@@ -114,7 +114,7 @@ describe('Accessibility Highlighter', () => {
   describe('Specific Accessibility Checks', () => {
     beforeEach(() => {
       setupDom('failing');
-      contentScriptFunctions.runAccessibilityChecks();
+      __contentScriptFunctions.runAccessibilityChecks();
     });
 
     test('should detect images without alt attributes', () => {
