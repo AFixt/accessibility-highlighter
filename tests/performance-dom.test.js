@@ -102,7 +102,7 @@ describe('Performance and DOM Tests', () => {
     originalClearTimeout = global.clearTimeout;
     originalDateNow = Date.now;
 
-    global.setTimeout = jest.fn((fn, delay) => {
+    global.setTimeout = jest.fn((fn, _delay) => {
       fn();
       return 123; // Mock timer ID
     });
@@ -463,9 +463,9 @@ describe('Performance and DOM Tests', () => {
           chunks.push(chunk);
 
           // Simulate processing delay
-          chunk.forEach(element => {
+          chunk.forEach(_element => {
             processedElements.push({
-              ...element,
+              ..._element,
               processed: true,
               timestamp: Date.now()
             });
@@ -618,9 +618,9 @@ describe('Performance and DOM Tests', () => {
           const removed = this.overlays.splice(0, toRemove);
 
           // Simulate DOM cleanup
-          removed.forEach(overlay => {
-            if (overlay.domElement && overlay.domElement.parentNode) {
-              overlay.domElement.parentNode.removeChild(overlay.domElement);
+          removed.forEach(_overlay => {
+            if (_overlay.domElement && _overlay.domElement.parentNode) {
+              _overlay.domElement.parentNode.removeChild(_overlay.domElement);
             }
           });
 
@@ -629,9 +629,9 @@ describe('Performance and DOM Tests', () => {
 
         clear: function() {
           const count = this.overlays.length;
-          this.overlays.forEach(overlay => {
-            if (overlay.domElement && overlay.domElement.parentNode) {
-              overlay.domElement.parentNode.removeChild(overlay.domElement);
+          this.overlays.forEach(_overlay => {
+            if (_overlay.domElement && _overlay.domElement.parentNode) {
+              _overlay.domElement.parentNode.removeChild(_overlay.domElement);
             }
           });
           this.overlays = [];
