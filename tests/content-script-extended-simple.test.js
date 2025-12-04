@@ -420,11 +420,11 @@ describe('Content Script Extended Functionality Tests', () => {
           let _filtered = overlays;
 
           if (criteria.level) {
-            _filtered = _filtered.filter(overlay => overlay.level === criteria.level);
+            _filtered = _filtered.filter(_overlay => _overlay.level === criteria.level);
           }
 
           if (criteria.category) {
-            _filtered = _filtered.filter(overlay => overlay.category === criteria.category);
+            _filtered = _filtered.filter(_overlay => _overlay.category === criteria.category);
           }
 
           return _filtered;
@@ -475,11 +475,11 @@ describe('Content Script Extended Functionality Tests', () => {
           let _removedCount = 0;
           const _remaining = [];
 
-          overlays.forEach(overlay => {
-            if (predicate && predicate(overlay)) {
+          overlays.forEach(_overlay => {
+            if (predicate && predicate(_overlay)) {
               _removedCount++;
             } else {
-              _remaining.push(overlay);
+              _remaining.push(_overlay);
             }
           });
 

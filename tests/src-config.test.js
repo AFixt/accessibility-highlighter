@@ -16,11 +16,11 @@ describe('src/config.js ES6 Module Tests', () => {
 
   beforeAll(() => {
     // Read and transform ES6 module to CommonJS for testing
-    const _configPath = path.join(__dirname, '../src/config.js');
-    const _configContent = fs.readFileSync(configPath, 'utf8');
+    const _configPath = _path.join(__dirname, '../src/config.js');
+    let _configContent = _fs.readFileSync(_configPath, 'utf8');
 
     // Transform export statements to module.exports for testing
-    configContent = configContent
+    _configContent = _configContent
       .replace(/export const (\w+)/g, 'const $1')
       .replace(/^\/\*\*[\s\S]*?\*\/\s*/gm, '') // Remove JSDoc comments
       .replace(/^\/\*[\s\S]*?\*\/\s*/gm, ''); // Remove block comments
@@ -41,14 +41,14 @@ describe('src/config.js ES6 Module Tests', () => {
       'DEFAULT_CONFIG'
     ];
 
-    configContent += '\n\nmodule.exports = {\n';
-    configContent += exportStatements.map(name => `  ${name}`).join(',\n');
-    configContent += '\n};\n';
+    _configContent += '\n\nmodule.exports = {\n';
+    _configContent += _exportStatements.map(name => `  ${name}`).join(',\n');
+    _configContent += '\n};\n';
 
     // Evaluate the transformed code
     const _module = { exports: {} };
-    eval(configContent); // eslint-disable-line no-eval
-    config = module.exports;
+    eval(_configContent); // eslint-disable-line no-eval
+    config = _module.exports;
   });
 
   describe('PERFORMANCE_CONFIG export', () => {
@@ -216,9 +216,9 @@ describe('src/config.js ES6 Module Tests', () => {
       expect(Array.isArray(SELECTORS.TEXT_ELEMENTS)).toBe(true);
       expect(Array.isArray(SELECTORS.INTERACTIVE_ELEMENTS)).toBe(true);
 
-      SELECTORS.TEXT_ELEMENTS.forEach(element => {
-        expect(typeof element).toBe('string');
-        expect(element.length).toBeGreaterThan(0);
+      SELECTORS.TEXT_ELEMENTS.forEach(_element => {
+        expect(typeof _element).toBe('string');
+        expect(_element.length).toBeGreaterThan(0);
       });
     });
   });
@@ -263,9 +263,9 @@ describe('src/config.js ES6 Module Tests', () => {
       expect(Array.isArray(DEPRECATED_ELEMENTS)).toBe(true);
       expect(DEPRECATED_ELEMENTS.length).toBeGreaterThan(0);
 
-      DEPRECATED_ELEMENTS.forEach(element => {
-        expect(typeof element).toBe('string');
-        expect(element.length).toBeGreaterThan(0);
+      DEPRECATED_ELEMENTS.forEach(_element => {
+        expect(typeof _element).toBe('string');
+        expect(_element.length).toBeGreaterThan(0);
       });
 
       // Should contain known deprecated elements
@@ -319,10 +319,10 @@ describe('src/config.js ES6 Module Tests', () => {
         'DEFAULT_CONFIG'
       ];
 
-      exports.forEach(exportName => {
-        const _exportValue = config[exportName];
-        expect(exportValue).toBeDefined();
-        expect(exportValue).not.toBeNull();
+      exports.forEach(_exportName => {
+        const _exportValue = config[_exportName];
+        expect(_exportValue).toBeDefined();
+        expect(_exportValue).not.toBeNull();
       });
     });
 
