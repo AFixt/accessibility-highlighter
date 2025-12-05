@@ -10,7 +10,7 @@ process.env.NODE_ENV = 'test';
 global.chrome = {
   storage: {
     local: {
-      get: jest.fn().mockImplementation((keys, callback) => {
+      get: jest.fn().mockImplementation((_keys, _callback) => {
         return Promise.resolve({ isEnabled: false });
       }),
       set: jest.fn().mockResolvedValue()
@@ -100,35 +100,35 @@ describe('Coverage Improvements Tests', () => {
 
     // Get the registered listener
     const _addListenerCalls = global.chrome.runtime.onMessage.addListener.mock.calls;
-    expect(addListenerCalls.length).toBeGreaterThan(0);
+    expect(_addListenerCalls.length).toBeGreaterThan(0);
 
-    const _messageListener = addListenerCalls[0][0];
-    expect(typeof messageListener).toBe('function');
+    const _messageListener = _addListenerCalls[0][0];
+    expect(typeof _messageListener).toBe('function');
 
     // Test message handling with valid message
     const _mockSendResponse = jest.fn();
-    const _result = messageListener(
+    const _result = _messageListener(
       { action: 'toggleAccessibilityHighlight', isEnabled: true },
       {},
-      mockSendResponse
+      _mockSendResponse
     );
 
     expect(_result).toBe(true);
-    expect(mockSendResponse).toHaveBeenCalledWith('highlighted');
+    expect(_mockSendResponse).toHaveBeenCalledWith('highlighted');
   });
 
   test('message listener handles invalid messages', () => {
     const _addListenerCalls = global.chrome.runtime.onMessage.addListener.mock.calls;
-    const _messageListener = addListenerCalls[0][0];
+    const _messageListener = _addListenerCalls[0][0];
     const _mockSendResponse = jest.fn();
 
     // Test invalid messages
-    expect(messageListener(null, {}, mockSendResponse)).toBe(false);
-    expect(messageListener(undefined, {}, mockSendResponse)).toBe(false);
-    expect(messageListener({}, {}, mockSendResponse)).toBe(false);
-    expect(messageListener({ action: 'unknown' }, {}, mockSendResponse)).toBe(false);
+    expect(_messageListener(null, {}, _mockSendResponse)).toBe(false);
+    expect(_messageListener(undefined, {}, _mockSendResponse)).toBe(false);
+    expect(_messageListener({}, {}, _mockSendResponse)).toBe(false);
+    expect(_messageListener({ action: 'unknown' }, {}, _mockSendResponse)).toBe(false);
 
-    expect(mockSendResponse).not.toHaveBeenCalled();
+    expect(_mockSendResponse).not.toHaveBeenCalled();
   });
 
   test('overlay function handles various inputs', () => {
