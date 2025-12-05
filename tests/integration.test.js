@@ -213,10 +213,10 @@ describe('Accessibility Highlighter Integration Tests', () => {
         isEnabled: false
       };
 
-      messageListener(disableMessage, mockSender, mockSendResponse);
+      _messageListener(_disableMessage, _mockSender, _mockSendResponse);
 
-      overlays = document.querySelectorAll('.overlay');
-      expect(_overlays.length).toBe(0);
+      const _overlays2 = document.querySelectorAll('.overlay');
+      expect(_overlays2.length).toBe(0);
       expect(_mockSendResponse).toHaveBeenCalledWith('unhighlighted');
     });
   });
@@ -224,28 +224,28 @@ describe('Accessibility Highlighter Integration Tests', () => {
   describe('Performance and Memory Tests', () => {
     test('should handle large DOM with many elements', () => {
       // Create a large DOM structure
-      const _htmlContent = '';
-      for (let _i = 0; i < 100; i++) {
-        htmlContent += `
+      let _htmlContent = '';
+      for (let _i = 0; _i < 100; _i++) {
+        _htmlContent += `
           <div>
-            <img src="image${i}.jpg">
-            <button>Button ${i}</button>
-            <a href="#link${i}">Link ${i}</a>
-            <input type="text" name="field${i}">
+            <img src="image${_i}.jpg">
+            <button>Button ${_i}</button>
+            <a href="#link${_i}">Link ${_i}</a>
+            <input type="text" name="field${_i}">
             <table>
-              <tr><td>Data ${i}</td></tr>
+              <tr><td>Data ${_i}</td></tr>
             </table>
           </div>
         `;
       }
-      document.body.innerHTML = htmlContent;
+      document.body.innerHTML = _htmlContent;
 
       const _startTime = performance.now();
       global.runAccessibilityChecks();
       const _endTime = performance.now();
 
       // Should complete within reasonable time (adjust threshold as needed)
-      expect(endTime - startTime).toBeLessThan(5000); // 5 seconds max
+      expect(_endTime - _startTime).toBeLessThan(5000); // 5 seconds max
 
       // Should detect multiple issues
       const _overlays = document.querySelectorAll('.overlay');
@@ -259,7 +259,7 @@ describe('Accessibility Highlighter Integration Tests', () => {
       `;
 
       // Simulate repeated enable/disable cycles
-      for (let _i = 0; i < 50; i++) {
+      for (let _i = 0; _i < 50; _i++) {
         global.runAccessibilityChecks();
         global.removeAccessibilityOverlays();
       }
@@ -283,25 +283,25 @@ describe('Accessibility Highlighter Integration Tests', () => {
 
       // Add problematic content dynamically
       const _container = document.getElementById('container');
-      container.innerHTML = `
+      _container.innerHTML = `
         <img src="test.jpg">
         <button></button>
       `;
 
       global.runAccessibilityChecks();
-      overlays = document.querySelectorAll('.overlay');
-      expect(_overlays.length).toBeGreaterThan(0);
+      const _overlays2 = document.querySelectorAll('.overlay');
+      expect(_overlays2.length).toBeGreaterThan(0);
 
       // Remove problematic content
-      container.innerHTML = `
+      _container.innerHTML = `
         <img src="test.jpg" alt="Properly described image">
         <button>Properly labeled button</button>
       `;
 
       global.removeAccessibilityOverlays();
       global.runAccessibilityChecks();
-      overlays = document.querySelectorAll('.overlay');
-      expect(_overlays.length).toBe(0);
+      const _overlays3 = document.querySelectorAll('.overlay');
+      expect(_overlays3.length).toBe(0);
     });
   });
 
@@ -315,14 +315,14 @@ describe('Accessibility Highlighter Integration Tests', () => {
 
       // Mock one element to throw error during checking
       const _elements = document.querySelectorAll('*');
-      const _problematicElement = elements[1]; // button
+      const _problematicElement = _elements[1]; // button
 
-      const _originalGetAttribute = problematicElement.getAttribute;
-      problematicElement.getAttribute = jest.fn().mockImplementation(attr => {
-        if (attr === 'aria-label') {
+      const _originalGetAttribute = _problematicElement.getAttribute;
+      _problematicElement.getAttribute = jest.fn().mockImplementation(_attr => {
+        if (_attr === 'aria-label') {
           throw new Error('DOM access error');
         }
-        return originalGetAttribute.call(problematicElement, attr);
+        return _originalGetAttribute.call(_problematicElement, _attr);
       });
 
       // Should continue checking other elements despite one failure
@@ -342,8 +342,8 @@ describe('Accessibility Highlighter Integration Tests', () => {
       expect(_overlays.length).toBeGreaterThan(0);
 
       // Corrupt one overlay by removing its remove method
-      if (overlays.length > 0) {
-        delete overlays[0].remove;
+      if (_overlays.length > 0) {
+        delete _overlays[0].remove;
       }
 
       // Should still clean up other overlays without crashing
@@ -374,14 +374,14 @@ describe('Accessibility Highlighter Integration Tests', () => {
 
       // Verify different message types are used
       const _messageTypes = global.logs.map(log => log.Message);
-      expect(messageTypes.length).toBeGreaterThan(0);
+      expect(_messageTypes.length).toBeGreaterThan(0);
 
       // Should include various message types from config
-      const _hasImageMessage = messageTypes.some(msg =>
-        msg.includes(global.A11Y_CONFIG.MESSAGES.MISSING_ALT) ||
-        msg.includes('alt attribute')
+      const _hasImageMessage = _messageTypes.some(_msg =>
+        _msg.includes(global.A11Y_CONFIG.MESSAGES.MISSING_ALT) ||
+        _msg.includes('alt attribute')
       );
-      expect(hasImageMessage).toBe(true);
+      expect(_hasImageMessage).toBe(true);
     });
   });
 
@@ -397,18 +397,18 @@ describe('Accessibility Highlighter Integration Tests', () => {
         { width: -1, height: -1, top: 0, left: 0, right: -1, bottom: -1 } // Edge case
       ];
 
-      mockRects.forEach(rect => {
-        img.getBoundingClientRect = jest.fn().mockReturnValue(rect);
+      _mockRects.forEach(_rect => {
+        _img.getBoundingClientRect = jest.fn().mockReturnValue(_rect);
 
         expect(() => {
-          global.overlay.call(img, 'overlay', 'error', 'Test message');
+          global.overlay.call(_img, 'overlay', 'error', 'Test message');
         }).not.toThrow();
       });
     });
 
     test('should handle different textContent implementations', () => {
       const _button = document.createElement('button');
-      document.body.appendChild(button);
+      document.body.appendChild(_button);
 
       // Test different textContent scenarios
       const _textScenarios = [
@@ -421,15 +421,15 @@ describe('Accessibility Highlighter Integration Tests', () => {
         false
       ];
 
-      textScenarios.forEach(text => {
-        Object.defineProperty(button, 'textContent', {
-          value: text,
+      _textScenarios.forEach(_text => {
+        Object.defineProperty(_button, 'textContent', {
+          value: _text,
           writable: true,
           configurable: true
         });
 
         expect(() => {
-          global.checkButtonElement(button);
+          global.checkButtonElement(_button);
         }).not.toThrow();
       });
     });
