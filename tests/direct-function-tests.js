@@ -82,29 +82,29 @@ describe('Direct Function Tests for Real Code Coverage', () => {
       const _testElement = document.getElementById('test-img');
 
       // Call overlay function directly
-      global.overlay.call(testElement, 'overlay', 'error', 'Test message');
+      global.overlay.call(_testElement, 'overlay', 'error', 'Test message');
 
       const _overlays = document.querySelectorAll('.overlay');
-      expect(overlays.length).toBe(1);
+      expect(_overlays.length).toBe(1);
 
-      const _overlay = overlays[0];
-      expect(overlay.style.position).toBe('absolute');
-      expect(overlay.style.width).toBe('100px');
-      expect(overlay.style.height).toBe('50px');
-      expect(overlay.getAttribute('data-a11ymessage')).toBe('Test message');
+      const _overlay = _overlays[0];
+      expect(_overlay.style.position).toBe('absolute');
+      expect(_overlay.style.width).toBe('100px');
+      expect(_overlay.style.height).toBe('50px');
+      expect(_overlay.getAttribute('data-a11ymessage')).toBe('Test message');
     });
 
     test('should sanitize messages properly', () => {
       document.body.innerHTML = '<div id="test-div"></div>';
       const _testElement = document.getElementById('test-div');
 
-      global.overlay.call(testElement, 'overlay', 'error', 'Message with <script>alert("xss")</script> content');
+      global.overlay.call(_testElement, 'overlay', 'error', 'Message with <script>alert("xss")</script> content');
 
       const _overlay = document.querySelector('.overlay');
-      const _message = overlay.getAttribute('data-a11ymessage');
-      expect(message).not.toContain('<');
-      expect(message).not.toContain('>');
-      expect(message).toBe('Message with scriptalert("xss")/script content');
+      const _message = _overlay.getAttribute('data-a11ymessage');
+      expect(_message).not.toContain('<');
+      expect(_message).not.toContain('>');
+      expect(_message).toBe('Message with scriptalert("xss")/script content');
     });
   });
 
@@ -136,12 +136,12 @@ describe('Direct Function Tests for Real Code Coverage', () => {
 
       // Check specific issues were found
       const _logMessages = global.logs.map(log => log.Message);
-      expect(logMessages.some(msg => msg.includes('img does not have an alt attribute'))).toBe(true);
-      expect(logMessages.some(msg => msg.includes('Button without aria-label'))).toBe(true);
-      expect(logMessages.some(msg => msg.includes('Link element with matching text content'))).toBe(true);
-      expect(logMessages.some(msg => msg.includes('Form field without a corresponding label'))).toBe(true);
-      expect(logMessages.some(msg => msg.includes('table without any th elements'))).toBe(true);
-      expect(logMessages.some(msg => msg.includes('iframe element without a title attribute'))).toBe(true);
+      expect(_logMessages.some(msg => msg.includes('img does not have an alt attribute'))).toBe(true);
+      expect(_logMessages.some(msg => msg.includes('Button without aria-label'))).toBe(true);
+      expect(_logMessages.some(msg => msg.includes('Link element with matching text content'))).toBe(true);
+      expect(_logMessages.some(msg => msg.includes('Form field without a corresponding label'))).toBe(true);
+      expect(_logMessages.some(msg => msg.includes('table without any th elements'))).toBe(true);
+      expect(_logMessages.some(msg => msg.includes('iframe element without a title attribute'))).toBe(true);
     });
   });
 
