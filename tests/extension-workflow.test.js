@@ -540,8 +540,8 @@ describe('Extension Workflow Tests', () => {
           // Step 5: Content script cleanup
           // Mock overlay removal
           const _overlays = _mockDocument.querySelectorAll('.a11y-highlight-overlay');
-          _overlays.forEach(overlay => {
-            _mockDocument.body.removeChild(overlay);
+          _overlays.forEach(_overlay => {
+            _mockDocument.body.removeChild(_overlay);
             _workflow.cleanupActions.push('removed_overlay');
           });
           _workflow.steps.push('overlays_removed');

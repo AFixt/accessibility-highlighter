@@ -844,7 +844,7 @@ describe('Real DOM Scenarios Tests', () => {
       const _browserEnvironments = {
         chrome: {
           name: 'Chrome',
-          getComputedStyle: element => ({
+          getComputedStyle: _element => ({
             display: 'block',
             visibility: 'visible',
             fontSize: '16px'
@@ -857,7 +857,7 @@ describe('Real DOM Scenarios Tests', () => {
         },
         firefox: {
           name: 'Firefox',
-          getComputedStyle: element => ({
+          getComputedStyle: _element => ({
             display: 'block',
             visibility: 'visible',
             fontSize: '16px'
@@ -870,7 +870,7 @@ describe('Real DOM Scenarios Tests', () => {
         },
         safari: {
           name: 'Safari',
-          getComputedStyle: element => ({
+          getComputedStyle: _element => ({
             display: 'block',
             visibility: 'visible',
             fontSize: '16px'
@@ -883,7 +883,7 @@ describe('Real DOM Scenarios Tests', () => {
         },
         ie11: {
           name: 'IE11',
-          getComputedStyle: element => ({
+          getComputedStyle: _element => ({
             display: 'block',
             visibility: 'visible',
             fontSize: '16px'

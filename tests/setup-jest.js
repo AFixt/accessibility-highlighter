@@ -25,7 +25,7 @@ global.chrome = {
   tabs: {
     query: jest.fn().mockResolvedValue([{ id: 123 }]),
     sendMessage: jest.fn().mockImplementation((_tabId, _message, _callback) => {
-      if (callback) {callback('success');}
+      if (_callback) {_callback('success');}
     })
   },
   action: {

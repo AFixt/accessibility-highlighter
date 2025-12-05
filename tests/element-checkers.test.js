@@ -46,8 +46,8 @@ describe('Element Checker Functions - Real Code Coverage', () => {
   let _mockElement;
   let originalDocument;
 
-  const ALL_CHECKABLE_ELEMENTS = 'img, button, [role="button"], a, [role="link"], fieldset, input, table, iframe, audio, video, [tabindex], [role="img"]';
-  const LANDMARK_ELEMENTS = 'header, aside, footer, main, nav, [role="banner"], [role="complementary"], [role="contentinfo"], [role="main"], [role="navigation"], [role="search"]';
+  const _ALL_CHECKABLE_ELEMENTS = 'img, button, [role="button"], a, [role="link"], fieldset, input, table, iframe, audio, video, [tabindex], [role="img"]';
+  const _LANDMARK_ELEMENTS = 'header, aside, footer, main, nav, [role="banner"], [role="complementary"], [role="contentinfo"], [role="main"], [role="navigation"], [role="search"]';
 
   describe('checkRoleBasedElement Function', () => {
     beforeEach(() => {

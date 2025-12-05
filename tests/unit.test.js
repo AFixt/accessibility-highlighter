@@ -103,7 +103,7 @@ describe('Accessibility Highlighter Unit Tests', () => {
     test('overlay function should sanitize message content', () => {
       // Create a test element using innerHTML to avoid jsdom issues
       document.body.innerHTML = '<div id="test-element">Test</div>';
-      const testElement = document.getElementById('test-element');
+      const _testElement = document.getElementById('test-element');
 
       // Mock global logs array
       global.logs = [];
@@ -120,7 +120,7 @@ describe('Accessibility Highlighter Unit Tests', () => {
 
       // Test with malicious content
       const maliciousMessage = '<script>alert("xss")</script>Test message';
-      overlay.call(testElement, 'overlay', 'error', maliciousMessage);
+      overlay.call(_testElement, 'overlay', 'error', maliciousMessage);
 
       // Check that script tags were removed
       expect(global.logs[0].Message).toBe('scriptalert("xss")/scriptTest message');
