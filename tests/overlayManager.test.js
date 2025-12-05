@@ -104,40 +104,40 @@ describe('overlayManager.js', () => {
       overlay.call(_mockElement, 'a11y-error', 'error', 'Missing alt attribute');
 
       const _overlays = document.querySelectorAll('.a11y-error');
-      expect(overlays.length).toBe(1);
+      expect(_overlays.length).toBe(1);
 
-      const _overlayEl = overlays[0];
-      expect(overlayEl.style.position).toBe('absolute');
-      expect(overlayEl.style.top).toBe('10px');
-      expect(overlayEl.style.left).toBe('20px');
-      expect(overlayEl.style.width).toBe('100px');
-      expect(overlayEl.style.height).toBe('50px');
-      expect(overlayEl.dataset.a11ymessage).toBe('Missing alt attribute');
+      const _overlayEl = _overlays[0];
+      expect(_overlayEl.style.position).toBe('absolute');
+      expect(_overlayEl.style.top).toBe('10px');
+      expect(_overlayEl.style.left).toBe('20px');
+      expect(_overlayEl.style.width).toBe('100px');
+      expect(_overlayEl.style.height).toBe('50px');
+      expect(_overlayEl.dataset.a11ymessage).toBe('Missing alt attribute');
     });
 
     test('should apply error styling for error level', () => {
       overlay.call(_mockElement, 'a11y-error', 'error', 'Test error');
 
       const _overlayEl = document.querySelector('.a11y-error');
-      expect(overlayEl.style.backgroundColor).toBe('#ff0000');
-      expect(overlayEl.style.border).toBe('2px solid #ff0000');
-      expect(overlayEl.classList.contains('a11y-error')).toBe(true);
+      expect(_overlayEl.style.backgroundColor).toBe('#ff0000');
+      expect(_overlayEl.style.border).toBe('2px solid #ff0000');
+      expect(_overlayEl.classList.contains('a11y-error')).toBe(true);
     });
 
     test('should apply warning styling for warning level', () => {
       overlay.call(_mockElement, 'a11y-warning', 'warning', 'Test warning');
 
       const _overlayEl = document.querySelector('.a11y-warning');
-      expect(overlayEl.style.backgroundColor).toBe('#ffaa00');
-      expect(overlayEl.style.border).toBe('2px solid #ffaa00');
-      expect(overlayEl.classList.contains('a11y-warning')).toBe(true);
+      expect(_overlayEl.style.backgroundColor).toBe('#ffaa00');
+      expect(_overlayEl.style.border).toBe('2px solid #ffaa00');
+      expect(_overlayEl.classList.contains('a11y-warning')).toBe(true);
     });
 
     test('should sanitize dangerous message content', () => {
       overlay.call(_mockElement, 'a11y-error', 'error', '<script>alert("xss")</script>Test message');
 
       const _overlayEl = document.querySelector('.a11y-error');
-      expect(overlayEl.dataset.a11ymessage).toBe('alert(xss)Test message');
+      expect(_overlayEl.dataset.a11ymessage).toBe('alert(xss)Test message');
     });
 
     test('should handle invalid overlay class parameter', () => {
@@ -239,49 +239,49 @@ describe('overlayManager.js', () => {
     test('should categorize image-related issues', () => {
       const _imgElement = { tagName: 'IMG' };
 
-      expect(categorizeIssue('Missing alt attribute', imgElement)).toBe('images');
-      expect(categorizeIssue('Image without description', imgElement)).toBe('images');
+      expect(categorizeIssue('Missing alt attribute', _imgElement)).toBe('images');
+      expect(categorizeIssue('Image without description', _imgElement)).toBe('images');
       expect(categorizeIssue('alt text issue', { tagName: 'DIV' })).toBe('images');
     });
 
     test('should categorize form-related issues', () => {
       const _inputElement = { tagName: 'INPUT' };
 
-      expect(categorizeIssue('Form field without label', inputElement)).toBe('forms');
+      expect(categorizeIssue('Form field without label', _inputElement)).toBe('forms');
       expect(categorizeIssue('Missing input label', { tagName: 'DIV' })).toBe('forms');
-      expect(categorizeIssue('fieldset issue', inputElement)).toBe('forms');
+      expect(categorizeIssue('fieldset issue', _inputElement)).toBe('forms');
     });
 
     test('should categorize link-related issues', () => {
       const _linkElement = { tagName: 'A' };
 
-      expect(categorizeIssue('Generic link text', linkElement)).toBe('links');
+      expect(categorizeIssue('Generic link text', _linkElement)).toBe('links');
       expect(categorizeIssue('Invalid href', { tagName: 'DIV' })).toBe('links');
-      expect(categorizeIssue('link problem', linkElement)).toBe('links');
+      expect(categorizeIssue('link problem', _linkElement)).toBe('links');
     });
 
     test('should categorize structure-related issues', () => {
       const _tableElement = { tagName: 'TABLE' };
 
-      expect(categorizeIssue('Missing table headers', tableElement)).toBe('structure');
+      expect(categorizeIssue('Missing table headers', _tableElement)).toBe('structure');
       expect(categorizeIssue('landmark issue', { tagName: 'DIV' })).toBe('structure');
-      expect(categorizeIssue('heading problem', tableElement)).toBe('structure');
+      expect(categorizeIssue('heading problem', _tableElement)).toBe('structure');
     });
 
     test('should categorize multimedia-related issues', () => {
       const _videoElement = { tagName: 'VIDEO' };
 
-      expect(categorizeIssue('Video without captions', videoElement)).toBe('multimedia');
+      expect(categorizeIssue('Video without captions', _videoElement)).toBe('multimedia');
       expect(categorizeIssue('media issue', { tagName: 'DIV' })).toBe('multimedia');
-      expect(categorizeIssue('audio problem', videoElement)).toBe('multimedia');
+      expect(categorizeIssue('audio problem', _videoElement)).toBe('multimedia');
     });
 
     test('should categorize navigation-related issues', () => {
       const _divElement = { tagName: 'DIV' };
 
-      expect(categorizeIssue('tabindex issue', divElement)).toBe('navigation');
-      expect(categorizeIssue('keyboard navigation problem', divElement)).toBe('navigation');
-      expect(categorizeIssue('navigation issue', divElement)).toBe('navigation');
+      expect(categorizeIssue('tabindex issue', _divElement)).toBe('navigation');
+      expect(categorizeIssue('keyboard navigation problem', _divElement)).toBe('navigation');
+      expect(categorizeIssue('navigation issue', _divElement)).toBe('navigation');
     });
 
     test('should default to structure category', () => {
@@ -316,7 +316,7 @@ describe('overlayManager.js', () => {
       overlay.call(_mockElement, 'a11y-warning', 'warning', 'Warning 1');
 
       const _visibleOverlays = getVisibleOverlays();
-      expect(visibleOverlays.length).toBe(2);
+      expect(_visibleOverlays.length).toBe(2);
     });
 
     test('should filter out hidden overlays', () => {
@@ -325,10 +325,10 @@ describe('overlayManager.js', () => {
 
       // Hide one overlay
       const _errorOverlay = document.querySelector('.a11y-error');
-      errorOverlay.style.display = 'none';
+      _errorOverlay.style.display = 'none';
 
       const _visibleOverlays = getVisibleOverlays();
-      expect(visibleOverlays.length).toBe(1);
+      expect(_visibleOverlays.length).toBe(1);
     });
 
     test('should handle errors gracefully', () => {
@@ -369,8 +369,8 @@ describe('overlayManager.js', () => {
       const _errorOverlay = document.querySelector('.a11y-error');
       const _warningOverlay = document.querySelector('.a11y-warning');
 
-      expect(errorOverlay.style.display).toBe('block');
-      expect(warningOverlay.style.display).toBe('none');
+      expect(_errorOverlay.style.display).toBe('block');
+      expect(_warningOverlay.style.display).toBe('none');
     });
 
     test('should handle category filters', () => {
@@ -396,7 +396,7 @@ describe('overlayManager.js', () => {
       expect(_result.total).toBe(1);
 
       const _overlay = document.querySelector('.a11y-error');
-      expect(overlay.style.display).toBe('none');
+      expect(_overlay.style.display).toBe('none');
     });
 
     test('should handle errors gracefully', () => {
@@ -417,16 +417,16 @@ describe('overlayManager.js', () => {
 
       // Mock scrollIntoView
       const _scrollIntoViewMock = jest.fn();
-      document.querySelectorAll('.a11y-error, .a11y-warning').forEach(el => {
-        el.scrollIntoView = scrollIntoViewMock;
+      document.querySelectorAll('.a11y-error, .a11y-warning').forEach(_el => {
+        _el.scrollIntoView = _scrollIntoViewMock;
       });
 
       highlightCurrentOverlay(0);
 
       const _overlays = document.querySelectorAll('.a11y-error, .a11y-warning');
-      expect(overlays[0].style.outline).toBe('3px solid #007cba');
-      expect(overlays[0].style.outlineOffset).toBe('2px');
-      expect(scrollIntoViewMock).toHaveBeenCalledWith({
+      expect(_overlays[0].style.outline).toBe('3px solid #007cba');
+      expect(_overlays[0].style.outlineOffset).toBe('2px');
+      expect(_scrollIntoViewMock).toHaveBeenCalledWith({
         behavior: 'smooth',
         block: 'center',
         inline: 'center'
@@ -438,14 +438,14 @@ describe('overlayManager.js', () => {
       overlay.call(_mockElement, 'a11y-warning', 'warning', 'Warning 1');
 
       const _overlays = document.querySelectorAll('.a11y-error, .a11y-warning');
-      overlays.forEach(el => {
-        el.scrollIntoView = jest.fn();
+      _overlays.forEach(_el => {
+        _el.scrollIntoView = jest.fn();
       });
 
       highlightCurrentOverlay(0);
 
-      expect(overlays[0].style.outline).toBe('3px solid #007cba');
-      expect(overlays[1].style.outline).toBe('');
+      expect(_overlays[0].style.outline).toBe('3px solid #007cba');
+      expect(_overlays[1].style.outline).toBe('');
     });
 
     test('should handle invalid index gracefully', () => {
@@ -456,7 +456,7 @@ describe('overlayManager.js', () => {
 
       // Should not throw and should not highlight anything
       const _overlay = document.querySelector('.a11y-error');
-      expect(overlay.style.outline).toBe('');
+      expect(_overlay.style.outline).toBe('');
     });
 
     test('should handle errors gracefully', () => {
@@ -483,9 +483,9 @@ describe('overlayManager.js', () => {
         })
       };
 
-      const _info = getOverlayInfo(targetElement);
+      const _info = getOverlayInfo(_targetElement);
 
-      expect(info).toEqual({
+      expect(_info).toEqual({
         element: expect.any(HTMLElement),
         message: 'Test error message',
         level: 'error',
@@ -505,8 +505,8 @@ describe('overlayManager.js', () => {
         })
       };
 
-      const _info = getOverlayInfo(targetElement);
-      expect(info).toBeNull();
+      const _info = getOverlayInfo(_targetElement);
+      expect(_info).toBeNull();
     });
 
     test('should handle errors gracefully', () => {
@@ -516,8 +516,8 @@ describe('overlayManager.js', () => {
         }
       };
 
-      const _info = getOverlayInfo(targetElement);
-      expect(info).toBeNull();
+      const _info = getOverlayInfo(_targetElement);
+      expect(_info).toBeNull();
       expect(consoleSpy).toHaveBeenCalledWith('Error getting overlay info:', expect.any(Error));
     });
   });
