@@ -44,7 +44,7 @@ test.describe('Accessibility Highlighter Extension E2E Tests', () => {
     await page.evaluate(() => {
       // Simulate the extension being enabled
       const _event = new CustomEvent('extension-toggle', { detail: { enabled: true } });
-      document.dispatchEvent(event);
+      document.dispatchEvent(_event);
     });
 
     // Wait for overlays to be created
@@ -149,43 +149,43 @@ test.describe('Accessibility Highlighter Extension E2E Tests', () => {
     // Simulate running comprehensive accessibility checks
     await page.evaluate(() => {
       window.runAccessibilityChecks = function() {
-        const _errorCount = 0;
+        let _errorCount = 0;
 
         // Check images without alt
-        document.querySelectorAll('img:not([alt])').forEach(img => {
+        document.querySelectorAll('img:not([alt])').forEach(_img => {
           const _overlay = document.createElement('div');
-          overlay.className = 'overlay a11y-error';
-          overlay.style.cssText = 'position: absolute; background: rgba(255,0,0,0.4); pointer-events: none;';
-          overlay.setAttribute('data-a11ymessage', 'img does not have an alt attribute');
-          document.body.appendChild(overlay);
-          errorCount++;
+          _overlay.className = 'overlay a11y-error';
+          _overlay.style.cssText = 'position: absolute; background: rgba(255,0,0,0.4); pointer-events: none;';
+          _overlay.setAttribute('data-a11ymessage', 'img does not have an alt attribute');
+          document.body.appendChild(_overlay);
+          _errorCount++;
         });
 
         // Check form fields without labels
-        document.querySelectorAll('input[type="text"]:not([aria-label])').forEach(input => {
-          if (!input.id || !document.querySelector(`label[for="${input.id}"]`)) {
+        document.querySelectorAll('input[type="text"]:not([aria-label])').forEach(_input => {
+          if (!_input.id || !document.querySelector(`label[for="${_input.id}"]`)) {
             const _overlay = document.createElement('div');
-            overlay.className = 'overlay a11y-error';
-            overlay.style.cssText = 'position: absolute; background: rgba(255,0,0,0.4); pointer-events: none;';
-            overlay.setAttribute('data-a11ymessage', 'Form field without label');
-            document.body.appendChild(overlay);
-            errorCount++;
+            _overlay.className = 'overlay a11y-error';
+            _overlay.style.cssText = 'position: absolute; background: rgba(255,0,0,0.4); pointer-events: none;';
+            _overlay.setAttribute('data-a11ymessage', 'Form field without label');
+            document.body.appendChild(_overlay);
+            _errorCount++;
           }
         });
 
         // Check empty buttons
-        document.querySelectorAll('button').forEach(button => {
-          if (!button.textContent.trim() && !button.getAttribute('aria-label')) {
+        document.querySelectorAll('button').forEach(_button => {
+          if (!_button.textContent.trim() && !_button.getAttribute('aria-label')) {
             const _overlay = document.createElement('div');
-            overlay.className = 'overlay a11y-error';
-            overlay.style.cssText = 'position: absolute; background: rgba(255,0,0,0.4); pointer-events: none;';
-            overlay.setAttribute('data-a11ymessage', 'Button without label');
-            document.body.appendChild(overlay);
-            errorCount++;
+            _overlay.className = 'overlay a11y-error';
+            _overlay.style.cssText = 'position: absolute; background: rgba(255,0,0,0.4); pointer-events: none;';
+            _overlay.setAttribute('data-a11ymessage', 'Button without label');
+            document.body.appendChild(_overlay);
+            _errorCount++;
           }
         });
 
-        console.log(`Found ${errorCount} accessibility issues`);
+        console.log(`Found ${_errorCount} accessibility issues`);
       };
       runAccessibilityChecks();
     });

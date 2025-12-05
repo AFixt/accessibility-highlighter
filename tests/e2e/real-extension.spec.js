@@ -10,7 +10,7 @@ test.describe('Real Chrome Extension Tests', () => {
   let browser;
   let context;
   let page;
-  let extensionId;
+  let _extensionId;
 
   test.beforeAll(async () => {
     const _pathToExtension = path.join(__dirname, '../../dist');
@@ -36,12 +36,12 @@ test.describe('Real Chrome Extension Tests', () => {
 
     // Find the extension ID (usually visible in developer mode)
     const _extensionCards = await page.locator('.extension-list-item').all();
-    for (const card of extensionCards) {
+    for (const card of _extensionCards) {
       const _nameElement = await card.locator('.extension-name').textContent();
-      if (nameElement && nameElement.includes('Accessibility Highlighter')) {
+      if (_nameElement && _nameElement.includes('Accessibility Highlighter')) {
         const _idElement = await card.locator('.extension-id');
-        if (idElement) {
-          extensionId = await idElement.textContent();
+        if (_idElement) {
+          _extensionId = await _idElement.textContent();
           break;
         }
       }
