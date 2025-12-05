@@ -54,13 +54,13 @@ Object.defineProperty(global.document, 'querySelectorAll', {
       ];
     }
     if (selector.includes('a11y-error') || selector.includes('a11y-warning')) {
-      // Mock overlay elements
-      return {
-        forEach: jest.fn(callback => {
-          const _mockElement = { parentNode: { removeChild: jest.fn() } };
-          callback(_mockElement);
-        })
-      };
+      // Mock overlay elements - return array-like object with length property
+      const mockElements = [];
+      mockElements.forEach = jest.fn(callback => {
+        const _mockElement = { parentNode: { removeChild: jest.fn() } };
+        callback(_mockElement);
+      });
+      return mockElements;
     }
     // Default empty array for other selectors
     return {

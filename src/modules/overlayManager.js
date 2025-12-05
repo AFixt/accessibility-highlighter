@@ -115,8 +115,8 @@ function createOverlayElement(overlayClass, rect, message) {
   overlayEl.style.borderRadius = A11Y_CONFIG.VISUAL.BORDER_RADIUS;
   overlayEl.style.backgroundImage = A11Y_CONFIG.VISUAL.STRIPE_GRADIENT;
 
-  // Use textContent instead of setAttribute for safer content handling
-  overlayEl.dataset.a11ymessage = message;
+  // Use setAttribute for data attributes (dataset may not be available in all environments)
+  overlayEl.setAttribute('data-a11ymessage', message);
 
   return overlayEl;
 }

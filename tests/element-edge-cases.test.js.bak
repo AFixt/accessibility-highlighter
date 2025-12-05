@@ -38,8 +38,8 @@ describe('Element Checker Edge Cases', () => {
     test('should handle img with empty alt attribute correctly', () => {
       const _img = document.createElement('img');
       _img.src = 'test.jpg';
-      _img.alt = '';
-      _img.title = 'Chart showing quarterly results';
+      img.alt = '';
+      img.title = 'Chart showing quarterly results';
       document.body.appendChild(_img);
 
       global.checkImageElement(_img);
@@ -51,8 +51,8 @@ describe('Element Checker Edge Cases', () => {
     test('should handle img with alt and title having subtle differences', () => {
       const _img = document.createElement('img');
       _img.src = 'test.jpg';
-      _img.alt = 'Chart showing quarterly results';
-      _img.title = 'Chart showing quarterly results.'; // Note the period
+      img.alt = 'Chart showing quarterly results';
+      img.title = 'Chart showing quarterly results.'; // Note the period
       document.body.appendChild(_img);
 
       global.checkImageElement(_img);
@@ -63,7 +63,7 @@ describe('Element Checker Edge Cases', () => {
     test('should handle img with very long alt text', () => {
       const _img = document.createElement('img');
       _img.src = 'test.jpg';
-      _img.alt = 'A'.repeat(1000); // Very long alt text
+      img.alt = 'A'.repeat(1000); // Very long alt text
       document.body.appendChild(_img);
 
       global.checkImageElement(_img);
@@ -74,7 +74,7 @@ describe('Element Checker Edge Cases', () => {
     test('should handle img with special characters in alt', () => {
       const _img = document.createElement('img');
       _img.src = 'test.jpg';
-      _img.alt = 'Chart with émojis 🎯 and spëciál characters';
+      img.alt = 'Chart with émojis 🎯 and spëciál characters';
       document.body.appendChild(_img);
 
       global.checkImageElement(_img);
@@ -107,7 +107,7 @@ describe('Element Checker Edge Cases', () => {
     test('should handle link with only whitespace text content', () => {
       const _link = document.createElement('a');
       _link.href = 'https://example.com';
-      _link.textContent = '   \n\t   ';
+      link.textContent = '   \n\t   ';
       document.body.appendChild(_link);
 
       global.checkLinkElement(_link);
@@ -119,7 +119,7 @@ describe('Element Checker Edge Cases', () => {
       const _link = document.createElement('a');
       _link.href = 'https://example.com';
       const _span = document.createElement('span');
-      _span.textContent = 'Click here';
+      span.textContent = 'Click here';
       _link.appendChild(_span);
       document.body.appendChild(_link);
 
@@ -132,7 +132,7 @@ describe('Element Checker Edge Cases', () => {
     test('should handle link with JavaScript protocol', () => {
       const _link = document.createElement('a');
       _link.href = 'javascript:void(0)';
-      _link.textContent = 'Click me';
+      link.textContent = 'Click me';
       document.body.appendChild(_link);
 
       global.checkLinkElement(_link);
@@ -143,7 +143,7 @@ describe('Element Checker Edge Cases', () => {
     test('should handle link with tel protocol', () => {
       const _link = document.createElement('a');
       _link.href = 'tel:+1234567890';
-      _link.textContent = 'Call us';
+      link.textContent = 'Call us';
       document.body.appendChild(_link);
 
       global.checkLinkElement(_link);
@@ -154,7 +154,7 @@ describe('Element Checker Edge Cases', () => {
     test('should handle link with mailto protocol', () => {
       const _link = document.createElement('a');
       _link.href = 'mailto:test@example.com';
-      _link.textContent = 'Email us';
+      link.textContent = 'Email us';
       document.body.appendChild(_link);
 
       global.checkLinkElement(_link);
@@ -165,8 +165,8 @@ describe('Element Checker Edge Cases', () => {
     test('should handle link with role="button"', () => {
       const _link = document.createElement('a');
       _link.href = 'https://example.com';
-      _link.setAttribute('role', 'button');
-      _link.textContent = 'Click here';
+      link.setAttribute('role', 'button');
+      link.textContent = 'Click here';
       document.body.appendChild(_link);
 
       global.checkLinkElement(_link);
@@ -189,11 +189,11 @@ describe('Element Checker Edge Cases', () => {
         'HERE'
       ];
 
-      _genericTexts.forEach(text => {
+      genericTexts.forEach(text => {
         document.body.innerHTML = '';
         const _link = document.createElement('a');
         _link.href = 'https://example.com';
-        _link.textContent = text;
+        link.textContent = text;
         document.body.appendChild(_link);
 
         global.checkLinkElement(_link);
@@ -231,14 +231,14 @@ describe('Element Checker Edge Cases', () => {
       const _thead = document.createElement('thead');
       const _tr = document.createElement('tr');
       const _th = document.createElement('th');
-      _th.textContent = '   \n\t   ';
+      th.textContent = '   \n\t   ';
 
-      _tr.appendChild(_th);
-      _thead.appendChild(_tr);
-      _table.appendChild(_thead);
-      document.body.appendChild(_table);
+      tr.appendChild(th);
+      thead.appendChild(tr);
+      table.appendChild(thead);
+      document.body.appendChild(table);
 
-      global.checkTableElement(_table);
+      global.checkTableElement(table);
 
       // Table has th elements, so should not be flagged
       expect(console.log).not.toHaveBeenCalled();
@@ -249,45 +249,45 @@ describe('Element Checker Edge Cases', () => {
       const _outerThead = document.createElement('thead');
       const _outerTr = document.createElement('tr');
       const _outerTh = document.createElement('th');
-      _outerTh.textContent = 'Outer Header';
+      outerTh.textContent = 'Outer Header';
 
       const _innerTable = document.createElement('table');
       const _innerTbody = document.createElement('tbody');
       const _innerTr = document.createElement('tr');
       const _innerTd = document.createElement('td');
-      _innerTd.textContent = 'Inner Cell';
+      innerTd.textContent = 'Inner Cell';
 
-      _innerTr.appendChild(_innerTd);
-      _innerTbody.appendChild(_innerTr);
-      _innerTable.appendChild(_innerTbody);
+      innerTr.appendChild(innerTd);
+      innerTbody.appendChild(innerTr);
+      innerTable.appendChild(innerTbody);
 
-      _outerTh.appendChild(_innerTable);
-      _outerTr.appendChild(_outerTh);
-      _outerThead.appendChild(_outerTr);
-      _outerTable.appendChild(_outerThead);
-      document.body.appendChild(_outerTable);
+      outerTh.appendChild(innerTable);
+      outerTr.appendChild(outerTh);
+      outerThead.appendChild(outerTr);
+      outerTable.appendChild(outerThead);
+      document.body.appendChild(outerTable);
 
-      global.checkTableElement(_outerTable);
+      global.checkTableElement(outerTable);
 
       expect(console.log).not.toHaveBeenCalled();
     });
 
     test('should handle table with summary attribute edge cases', () => {
       const _table = document.createElement('table');
-      _table.setAttribute('summary', 'layout'); // Uninformative summary that matches prohibited list
+      table.setAttribute('summary', 'layout'); // Uninformative summary that matches prohibited list
       const _thead = document.createElement('thead');
       const _tr = document.createElement('tr');
       const _th = document.createElement('th');
-      _th.textContent = 'Header';
+      th.textContent = 'Header';
 
-      _tr.appendChild(_th);
-      _thead.appendChild(_tr);
-      _table.appendChild(_thead);
-      document.body.appendChild(_table);
+      tr.appendChild(th);
+      thead.appendChild(tr);
+      table.appendChild(thead);
+      document.body.appendChild(table);
 
-      global.checkTableElement(_table);
+      global.checkTableElement(table);
 
-      expect(console.log).toHaveBeenCalledWith(_table);
+      expect(console.log).toHaveBeenCalledWith(table);
     });
   });
 
@@ -295,113 +295,113 @@ describe('Element Checker Edge Cases', () => {
     test('should handle input with implicit label via parent label', () => {
       const _label = document.createElement('label');
       const _input = document.createElement('input');
-      _input.type = 'text';
-      _input.name = 'username';
+      input.type = 'text';
+      input.name = 'username';
 
-      _label.textContent = 'Username: ';
-      _label.appendChild(_input);
-      document.body.appendChild(_label);
+      label.textContent = 'Username: ';
+      label.appendChild(input);
+      document.body.appendChild(label);
 
-      global.checkInputElement(_input);
+      global.checkInputElement(input);
 
       // Current implementation doesn't recognize implicit labels, so it will flag this
-      expect(console.log).toHaveBeenCalledWith(_input);
+      expect(console.log).toHaveBeenCalledWith(input);
     });
 
     test('should handle input with aria-describedby', () => {
       const _input = document.createElement('input');
-      _input.type = 'text';
-      _input.name = 'password';
-      _input.setAttribute('aria-describedby', 'pwd-help');
+      input.type = 'text';
+      input.name = 'password';
+      input.setAttribute('aria-describedby', 'pwd-help');
 
       const _helpText = document.createElement('div');
-      _helpText.id = 'pwd-help';
-      _helpText.textContent = 'Password must be at least 8 characters';
+      helpText.id = 'pwd-help';
+      helpText.textContent = 'Password must be at least 8 characters';
 
-      document.body.appendChild(_input);
-      document.body.appendChild(_helpText);
+      document.body.appendChild(input);
+      document.body.appendChild(helpText);
 
-      global.checkInputElement(_input);
+      global.checkInputElement(input);
 
-      expect(console.log).toHaveBeenCalledWith(_input);
+      expect(console.log).toHaveBeenCalledWith(input);
     });
 
     test('should handle input with multiple labels', () => {
       const _label1 = document.createElement('label');
-      _label1.textContent = 'First Name';
-      _label1.htmlFor = 'name-input';
+      label1.textContent = 'First Name';
+      label1.htmlFor = 'name-input';
 
       const _label2 = document.createElement('label');
-      _label2.textContent = 'Given Name';
-      _label2.htmlFor = 'name-input';
+      label2.textContent = 'Given Name';
+      label2.htmlFor = 'name-input';
 
       const _input = document.createElement('input');
-      _input.type = 'text';
-      _input.id = 'name-input';
-      _input.name = 'firstName';
+      input.type = 'text';
+      input.id = 'name-input';
+      input.name = 'firstName';
 
-      document.body.appendChild(_label1);
-      document.body.appendChild(_label2);
-      document.body.appendChild(_input);
+      document.body.appendChild(label1);
+      document.body.appendChild(label2);
+      document.body.appendChild(input);
 
-      global.checkInputElement(_input);
+      global.checkInputElement(input);
 
       expect(console.log).not.toHaveBeenCalled();
     });
 
     test('should handle input with placeholder as only label', () => {
       const _input = document.createElement('input');
-      _input.type = 'text';
-      _input.placeholder = 'Enter your email';
-      _input.name = 'email';
+      input.type = 'text';
+      input.placeholder = 'Enter your email';
+      input.name = 'email';
 
-      document.body.appendChild(_input);
+      document.body.appendChild(input);
 
-      global.checkInputElement(_input);
+      global.checkInputElement(input);
 
-      expect(console.log).toHaveBeenCalledWith(_input);
+      expect(console.log).toHaveBeenCalledWith(input);
     });
   });
 
   describe('Button Element Edge Cases', () => {
     test('should handle button with only icon font content', () => {
       const _button = document.createElement('button');
-      _button.innerHTML = '<i class="fa fa-save"></i>'; // Icon font
-      document.body.appendChild(_button);
+      button.innerHTML = '<i class="fa fa-save"></i>'; // Icon font
+      document.body.appendChild(button);
 
-      global.checkButtonElement(_button);
+      global.checkButtonElement(button);
 
-      expect(console.log).toHaveBeenCalledWith(_button);
+      expect(console.log).toHaveBeenCalledWith(button);
     });
 
     test('should handle button with nested elements containing text', () => {
       const _button = document.createElement('button');
       const _span = document.createElement('span');
-      _span.textContent = 'Save Document';
-      _button.appendChild(_span);
-      document.body.appendChild(_button);
+      span.textContent = 'Save Document';
+      button.appendChild(span);
+      document.body.appendChild(button);
 
-      global.checkButtonElement(_button);
+      global.checkButtonElement(button);
 
       expect(console.log).not.toHaveBeenCalled();
     });
 
     test('should handle button with mixed content', () => {
       const _button = document.createElement('button');
-      _button.innerHTML = '<i class="icon"></i> Save';
-      document.body.appendChild(_button);
+      button.innerHTML = '<i class="icon"></i> Save';
+      document.body.appendChild(button);
 
-      global.checkButtonElement(_button);
+      global.checkButtonElement(button);
 
       expect(console.log).not.toHaveBeenCalled();
     });
 
     test('should handle button with only special characters', () => {
       const _button = document.createElement('button');
-      _button.textContent = '×'; // Close button with × symbol
-      document.body.appendChild(_button);
+      button.textContent = '×'; // Close button with × symbol
+      document.body.appendChild(button);
 
-      global.checkButtonElement(_button);
+      global.checkButtonElement(button);
 
       expect(console.log).not.toHaveBeenCalled();
     });
@@ -428,48 +428,48 @@ describe('Element Checker Edge Cases', () => {
   describe('Tabindex Edge Cases', () => {
     test('should handle negative tabindex values', () => {
       const _div = document.createElement('div');
-      _div.tabIndex = -1;
-      _div.textContent = 'Focusable but not in tab order';
-      document.body.appendChild(_div);
+      div.tabIndex = -1;
+      div.textContent = 'Focusable but not in tab order';
+      document.body.appendChild(div);
 
-      global.checkTabIndexElement(_div);
+      global.checkTabIndexElement(div);
 
       expect(console.log).not.toHaveBeenCalled();
     });
 
     test('should handle very high tabindex values', () => {
       const _div = document.createElement('div');
-      _div.tabIndex = 999999;
-      _div.textContent = 'Very high tab order';
-      document.body.appendChild(_div);
+      div.tabIndex = 999999;
+      div.textContent = 'Very high tab order';
+      document.body.appendChild(div);
 
-      global.checkTabIndexElement(_div);
+      global.checkTabIndexElement(div);
 
-      expect(console.log).toHaveBeenCalledWith(_div);
+      expect(console.log).toHaveBeenCalledWith(div);
     });
 
     test('should handle elements with tabindex on non-interactive elements', () => {
       const _span = document.createElement('span');
-      _span.tabIndex = 0;
-      _span.textContent = 'Focusable span';
-      document.body.appendChild(_span);
+      span.tabIndex = 0;
+      span.textContent = 'Focusable span';
+      document.body.appendChild(span);
 
-      global.checkTabIndexElement(_span);
+      global.checkTabIndexElement(span);
 
-      expect(console.log).toHaveBeenCalledWith(_span);
+      expect(console.log).toHaveBeenCalledWith(span);
     });
   });
 
   describe('Overlay Creation Edge Cases', () => {
     test('should handle elements with zero dimensions', () => {
       const _div = document.createElement('div');
-      _div.textContent = 'Hidden element';
-      _div.style.width = '0px';
-      _div.style.height = '0px';
-      document.body.appendChild(_div);
+      div.textContent = 'Hidden element';
+      div.style.width = '0px';
+      div.style.height = '0px';
+      document.body.appendChild(div);
 
       // Mock getBoundingClientRect to return zero dimensions
-      _div.getBoundingClientRect = jest.fn().mockReturnValue({
+      div.getBoundingClientRect = jest.fn().mockReturnValue({
         width: 0,
         height: 0,
         top: 0,
@@ -478,20 +478,20 @@ describe('Element Checker Edge Cases', () => {
         bottom: 0
       });
 
-      global.overlay.call(_div, 'overlay', 'error', 'Test message');
+      global.overlay.call(div, 'overlay', 'error', 'Test message');
 
       // Should not create overlay for zero-sized elements
       const _overlays = document.querySelectorAll('.overlay');
-      expect(_overlays.length).toBe(0);
+      expect(overlays.length).toBe(0);
     });
 
     test('should handle elements outside viewport', () => {
       const _div = document.createElement('div');
-      _div.textContent = 'Off-screen element';
-      document.body.appendChild(_div);
+      div.textContent = 'Off-screen element';
+      document.body.appendChild(div);
 
       // Mock getBoundingClientRect to return off-screen position but with valid dimensions
-      _div.getBoundingClientRect = jest.fn().mockReturnValue({
+      div.getBoundingClientRect = jest.fn().mockReturnValue({
         width: 100,
         height: 50,
         top: -100,
@@ -500,19 +500,19 @@ describe('Element Checker Edge Cases', () => {
         bottom: -50
       });
 
-      global.overlay.call(_div, 'overlay', 'error', 'Test message');
+      global.overlay.call(div, 'overlay', 'error', 'Test message');
 
       // Verify that getBoundingClientRect was called (function proceeded past validation)
-      expect(_div.getBoundingClientRect).toHaveBeenCalled();
+      expect(div.getBoundingClientRect).toHaveBeenCalled();
     });
 
     test('should handle very large elements', () => {
       const _div = document.createElement('div');
-      _div.textContent = 'Large element';
-      document.body.appendChild(_div);
+      div.textContent = 'Large element';
+      document.body.appendChild(div);
 
       // Mock getBoundingClientRect to return very large dimensions
-      _div.getBoundingClientRect = jest.fn().mockReturnValue({
+      div.getBoundingClientRect = jest.fn().mockReturnValue({
         width: 10000,
         height: 5000,
         top: 0,
@@ -521,10 +521,10 @@ describe('Element Checker Edge Cases', () => {
         bottom: 5000
       });
 
-      global.overlay.call(_div, 'overlay', 'error', 'Test message');
+      global.overlay.call(div, 'overlay', 'error', 'Test message');
 
       // Verify that getBoundingClientRect was called (function proceeded past validation)
-      expect(_div.getBoundingClientRect).toHaveBeenCalled();
+      expect(div.getBoundingClientRect).toHaveBeenCalled();
     });
   });
 });

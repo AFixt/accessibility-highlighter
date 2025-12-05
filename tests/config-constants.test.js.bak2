@@ -236,7 +236,7 @@ describe('A11Y_CONFIG Constants and Structure', () => {
 
       if (selectors.TEXT_ELEMENTS) {
         expect(Array.isArray(selectors.TEXT_ELEMENTS)).toBe(true);
-        selectors.TEXT_ELEMENTS.forEach(_element => {
+        selectors.TEXT_ELEMENTS.forEach(element => {
           expect(typeof element).toBe('string');
           expect(element.length).toBeGreaterThan(0);
         });
@@ -244,7 +244,7 @@ describe('A11Y_CONFIG Constants and Structure', () => {
 
       if (selectors.INTERACTIVE_ELEMENTS) {
         expect(Array.isArray(selectors.INTERACTIVE_ELEMENTS)).toBe(true);
-        selectors.INTERACTIVE_ELEMENTS.forEach(_element => {
+        selectors.INTERACTIVE_ELEMENTS.forEach(element => {
           expect(typeof element).toBe('string');
           expect(element.length).toBeGreaterThan(0);
         });
@@ -436,7 +436,7 @@ describe('A11Y_CONFIG Constants and Structure', () => {
 
       // Should include common interactive elements
       const _expectedElements = ['img', 'button', 'input', 'a', 'table', 'iframe'];
-      expectedElements.forEach(_element => {
+      expectedElements.forEach(element => {
         expect(selectors.ALL_CHECKABLE_ELEMENTS).toContain(element);
       });
     });
