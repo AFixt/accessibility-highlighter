@@ -254,10 +254,15 @@ describe('Chrome API Error Handling', () => {
       Object.defineProperty(window, 'scrollY', { value: 0, writable: true });
 
       // Should not crash when importing content script with storage errors
-      expect(() => {
-        delete require.cache[require.resolve('../src/contentScript.js')];
-        require('../src/contentScript.js');
-      }).not.toThrow();
+      // Need to wait for async IIFE to complete
+      delete require.cache[require.resolve('../src/contentScript.js')];
+      require('../src/contentScript.js');
+
+      // Wait for any pending promises to resolve/reject
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // If we got here without crashing, the test passes
+      expect(true).toBe(true);
     });
 
     test('should handle runtime.lastError in message handling', async () => {

@@ -3113,7 +3113,10 @@ document.addEventListener('keydown', handleKeyboardNavigation, true);
   } catch (error) {
     console.warn('Accessibility Highlighter: Failed to initialize custom rules:', error);
   }
-})();
+})().catch(error => {
+  // Catch any unhandled rejections from the IIFE itself
+  console.warn('Failed to load custom rules:', error);
+});
 
 // Export functions for testing (when in test environment)
 if (typeof global !== 'undefined' && global.process && global.process.env && global.process.env.NODE_ENV === 'test') {
