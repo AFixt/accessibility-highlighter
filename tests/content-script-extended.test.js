@@ -50,9 +50,9 @@ describe('Content Script Extended Tests', () => {
         return _element;
       }),
       body: {
-        appendChild: jest.fn(element => {
-          if (element.className === 'a11y-highlight-overlay') {
-            mockOverlays.push(element);
+        appendChild: jest.fn(_element => {
+          if (_element.className === 'a11y-highlight-overlay') {
+            mockOverlays.push(_element);
           }
         }),
         innerHTML: ''
@@ -123,14 +123,14 @@ describe('Content Script Extended Tests', () => {
       currentOverlayIndex = -1;
 
       // Create keyboard handler function (simulating the real one)
-      handleKeyboardNavigation = event => {
+      handleKeyboardNavigation = _event => {
         const _overlays = document.querySelectorAll('.a11y-highlight-overlay');
 
         if (_overlays.length === 0) {return;}
 
         // Alt + Shift + N: Start navigation
-        if (event.altKey && event.shiftKey && event.key === 'N') {
-          event.preventDefault();
+        if (_event.altKey && _event.shiftKey && _event.key === 'N') {
+          _event.preventDefault();
           keyboardNavigationActive = true;
           currentOverlayIndex = 0;
           return;
@@ -138,27 +138,27 @@ describe('Content Script Extended Tests', () => {
 
         if (!keyboardNavigationActive) {return;}
 
-        switch (event.key) {
+        switch (_event.key) {
           case 'ArrowDown':
           case 'ArrowRight':
-            event.preventDefault();
-            currentOverlayIndex = Math.min(currentOverlayIndex + 1, overlays.length - 1);
+            _event.preventDefault();
+            currentOverlayIndex = Math.min(currentOverlayIndex + 1, _overlays.length - 1);
             break;
           case 'ArrowUp':
           case 'ArrowLeft':
-            event.preventDefault();
+            _event.preventDefault();
             currentOverlayIndex = Math.max(currentOverlayIndex - 1, 0);
             break;
           case 'Home':
-            event.preventDefault();
+            _event.preventDefault();
             currentOverlayIndex = 0;
             break;
           case 'End':
-            event.preventDefault();
-            currentOverlayIndex = overlays.length - 1;
+            _event.preventDefault();
+            currentOverlayIndex = _overlays.length - 1;
             break;
           case 'Escape':
-            event.preventDefault();
+            _event.preventDefault();
             keyboardNavigationActive = false;
             currentOverlayIndex = -1;
             break;
@@ -172,11 +172,11 @@ describe('Content Script Extended Tests', () => {
         altKey: true,
         shiftKey: true
       });
-      event.preventDefault = jest.fn();
+      _event.preventDefault = jest.fn();
 
-      handleKeyboardNavigation(event);
+      handleKeyboardNavigation(_event);
 
-      expect(event.preventDefault).toHaveBeenCalled();
+      expect(_event.preventDefault).toHaveBeenCalled();
       expect(keyboardNavigationActive).toBe(true);
       expect(currentOverlayIndex).toBe(0);
     });
@@ -189,11 +189,11 @@ describe('Content Script Extended Tests', () => {
       const _event = new KeyboardEvent('keydown', {
         key: 'ArrowDown'
       });
-      event.preventDefault = jest.fn();
+      _event.preventDefault = jest.fn();
 
-      handleKeyboardNavigation(event);
+      handleKeyboardNavigation(_event);
 
-      expect(event.preventDefault).toHaveBeenCalled();
+      expect(_event.preventDefault).toHaveBeenCalled();
       expect(currentOverlayIndex).toBe(1);
     });
 
@@ -204,11 +204,11 @@ describe('Content Script Extended Tests', () => {
       const _event = new KeyboardEvent('keydown', {
         key: 'ArrowRight'
       });
-      event.preventDefault = jest.fn();
+      _event.preventDefault = jest.fn();
 
-      handleKeyboardNavigation(event);
+      handleKeyboardNavigation(_event);
 
-      expect(event.preventDefault).toHaveBeenCalled();
+      expect(_event.preventDefault).toHaveBeenCalled();
       expect(currentOverlayIndex).toBe(1);
     });
 
@@ -219,11 +219,11 @@ describe('Content Script Extended Tests', () => {
       const _event = new KeyboardEvent('keydown', {
         key: 'ArrowUp'
       });
-      event.preventDefault = jest.fn();
+      _event.preventDefault = jest.fn();
 
-      handleKeyboardNavigation(event);
+      handleKeyboardNavigation(_event);
 
-      expect(event.preventDefault).toHaveBeenCalled();
+      expect(_event.preventDefault).toHaveBeenCalled();
       expect(currentOverlayIndex).toBe(1);
     });
 
@@ -234,11 +234,11 @@ describe('Content Script Extended Tests', () => {
       const _event = new KeyboardEvent('keydown', {
         key: 'ArrowLeft'
       });
-      event.preventDefault = jest.fn();
+      _event.preventDefault = jest.fn();
 
-      handleKeyboardNavigation(event);
+      handleKeyboardNavigation(_event);
 
-      expect(event.preventDefault).toHaveBeenCalled();
+      expect(_event.preventDefault).toHaveBeenCalled();
       expect(currentOverlayIndex).toBe(1);
     });
 
@@ -249,11 +249,11 @@ describe('Content Script Extended Tests', () => {
       const _event = new KeyboardEvent('keydown', {
         key: 'Home'
       });
-      event.preventDefault = jest.fn();
+      _event.preventDefault = jest.fn();
 
-      handleKeyboardNavigation(event);
+      handleKeyboardNavigation(_event);
 
-      expect(event.preventDefault).toHaveBeenCalled();
+      expect(_event.preventDefault).toHaveBeenCalled();
       expect(currentOverlayIndex).toBe(0);
     });
 
@@ -264,11 +264,11 @@ describe('Content Script Extended Tests', () => {
       const _event = new KeyboardEvent('keydown', {
         key: 'End'
       });
-      event.preventDefault = jest.fn();
+      _event.preventDefault = jest.fn();
 
-      handleKeyboardNavigation(event);
+      handleKeyboardNavigation(_event);
 
-      expect(event.preventDefault).toHaveBeenCalled();
+      expect(_event.preventDefault).toHaveBeenCalled();
       expect(currentOverlayIndex).toBe(2); // Last overlay index
     });
 
@@ -279,11 +279,11 @@ describe('Content Script Extended Tests', () => {
       const _event = new KeyboardEvent('keydown', {
         key: 'Escape'
       });
-      event.preventDefault = jest.fn();
+      _event.preventDefault = jest.fn();
 
-      handleKeyboardNavigation(event);
+      handleKeyboardNavigation(_event);
 
-      expect(event.preventDefault).toHaveBeenCalled();
+      expect(_event.preventDefault).toHaveBeenCalled();
       expect(keyboardNavigationActive).toBe(false);
       expect(currentOverlayIndex).toBe(-1);
     });
@@ -295,11 +295,11 @@ describe('Content Script Extended Tests', () => {
       const _event = new KeyboardEvent('keydown', {
         key: 'ArrowDown'
       });
-      event.preventDefault = jest.fn();
+      _event.preventDefault = jest.fn();
 
-      handleKeyboardNavigation(event);
+      handleKeyboardNavigation(_event);
 
-      expect(event.preventDefault).not.toHaveBeenCalled();
+      expect(_event.preventDefault).not.toHaveBeenCalled();
       expect(currentOverlayIndex).toBe(-1);
     });
 
@@ -309,15 +309,15 @@ describe('Content Script Extended Tests', () => {
       // Test upper bound
       currentOverlayIndex = 2; // Last overlay
       const _downEvent = new KeyboardEvent('keydown', { key: 'ArrowDown' });
-      downEvent.preventDefault = jest.fn();
-      handleKeyboardNavigation(downEvent);
+      _downEvent.preventDefault = jest.fn();
+      handleKeyboardNavigation(_downEvent);
       expect(currentOverlayIndex).toBe(2); // Should stay at last
 
       // Test lower bound
       currentOverlayIndex = 0; // First overlay
       const _upEvent = new KeyboardEvent('keydown', { key: 'ArrowUp' });
-      upEvent.preventDefault = jest.fn();
-      handleKeyboardNavigation(upEvent);
+      _upEvent.preventDefault = jest.fn();
+      handleKeyboardNavigation(_upEvent);
       expect(currentOverlayIndex).toBe(0); // Should stay at first
     });
 
@@ -330,11 +330,11 @@ describe('Content Script Extended Tests', () => {
         altKey: true,
         shiftKey: true
       });
-      event.preventDefault = jest.fn();
+      _event.preventDefault = jest.fn();
 
-      handleKeyboardNavigation(event);
+      handleKeyboardNavigation(_event);
 
-      expect(event.preventDefault).not.toHaveBeenCalled();
+      expect(_event.preventDefault).not.toHaveBeenCalled();
       expect(keyboardNavigationActive).toBe(false);
     });
   });
@@ -348,25 +348,25 @@ describe('Content Script Extended Tests', () => {
       toggleAccessibilityHighlight = jest.fn();
 
       // Create message handler (simulating the real one)
-      messageHandler = (message, _sender, sendResponse) => {
+      messageHandler = (_message, _sender, _sendResponse) => {
         try {
-          console.log('Message received', message);
+          console.log('Message received', _message);
 
           // Validate message structure
-          if (!message || typeof message !== 'object') {
-            console.warn('Invalid message received:', message);
+          if (!_message || typeof _message !== 'object') {
+            console.warn('Invalid message received:', _message);
             return false;
           }
 
-          if (message.action === 'toggleAccessibilityHighlight') {
+          if (_message.action === 'toggleAccessibilityHighlight') {
             // Validate isEnabled parameter
-            if (typeof message.isEnabled !== 'boolean') {
-              console.warn('Invalid isEnabled value:', message.isEnabled);
+            if (typeof _message.isEnabled !== 'boolean') {
+              console.warn('Invalid isEnabled value:', _message.isEnabled);
               return false;
             }
 
-            toggleAccessibilityHighlight(message.isEnabled);
-            sendResponse(message.isEnabled ? 'highlighted' : 'unhighlighted');
+            toggleAccessibilityHighlight(_message.isEnabled);
+            _sendResponse(_message.isEnabled ? 'highlighted' : 'unhighlighted');
             return true;
           }
 
@@ -385,11 +385,11 @@ describe('Content Script Extended Tests', () => {
         isEnabled: true
       };
 
-      const _result = messageHandler(message, null, sendResponse);
+      const _result = messageHandler(_message, null, _sendResponse);
 
-      expect(console.log).toHaveBeenCalledWith('Message received', message);
+      expect(console.log).toHaveBeenCalledWith('Message received', _message);
       expect(toggleAccessibilityHighlight).toHaveBeenCalledWith(true);
-      expect(sendResponse).toHaveBeenCalledWith('highlighted');
+      expect(_sendResponse).toHaveBeenCalledWith('highlighted');
       expect(_result).toBe(true);
     });
 
@@ -400,10 +400,10 @@ describe('Content Script Extended Tests', () => {
         isEnabled: false
       };
 
-      const _result = messageHandler(message, null, sendResponse);
+      const _result = messageHandler(_message, null, _sendResponse);
 
       expect(toggleAccessibilityHighlight).toHaveBeenCalledWith(false);
-      expect(sendResponse).toHaveBeenCalledWith('unhighlighted');
+      expect(_sendResponse).toHaveBeenCalledWith('unhighlighted');
       expect(_result).toBe(true);
     });
 
@@ -411,11 +411,11 @@ describe('Content Script Extended Tests', () => {
       const _sendResponse = jest.fn();
       const _message = null;
 
-      const _result = messageHandler(message, null, sendResponse);
+      const _result = messageHandler(_message, null, _sendResponse);
 
       expect(console.warn).toHaveBeenCalledWith('Invalid message received:', null);
       expect(toggleAccessibilityHighlight).not.toHaveBeenCalled();
-      expect(sendResponse).not.toHaveBeenCalled();
+      expect(_sendResponse).not.toHaveBeenCalled();
       expect(_result).toBe(false);
     });
 
@@ -423,7 +423,7 @@ describe('Content Script Extended Tests', () => {
       const _sendResponse = jest.fn();
       const _message = 'invalid message';
 
-      const _result = messageHandler(message, null, sendResponse);
+      const _result = messageHandler(_message, null, _sendResponse);
 
       expect(console.warn).toHaveBeenCalledWith('Invalid message received:', 'invalid message');
       expect(_result).toBe(false);
@@ -436,7 +436,7 @@ describe('Content Script Extended Tests', () => {
         isEnabled: 'invalid'
       };
 
-      const _result = messageHandler(message, null, sendResponse);
+      const _result = messageHandler(_message, null, _sendResponse);
 
       expect(console.warn).toHaveBeenCalledWith('Invalid isEnabled value:', 'invalid');
       expect(toggleAccessibilityHighlight).not.toHaveBeenCalled();
@@ -450,27 +450,27 @@ describe('Content Script Extended Tests', () => {
         data: 'test'
       };
 
-      const _result = messageHandler(message, null, sendResponse);
+      const _result = messageHandler(_message, null, _sendResponse);
 
-      expect(console.log).toHaveBeenCalledWith('Message received', message);
+      expect(console.log).toHaveBeenCalledWith('Message received', _message);
       expect(toggleAccessibilityHighlight).not.toHaveBeenCalled();
-      expect(sendResponse).not.toHaveBeenCalled();
+      expect(_sendResponse).not.toHaveBeenCalled();
       expect(_result).toBe(false);
     });
 
     test('should handle status request message', () => {
       // Extend handler to support status requests
-      const _extendedHandler = (message, _sender, sendResponse) => {
+      const _extendedHandler = (_message, _sender, _sendResponse) => {
         try {
-          if (message.action === 'getStatus') {
+          if (_message.action === 'getStatus') {
             const _overlays = document.querySelectorAll('.a11y-highlight-overlay');
-            sendResponse({
-              isActive: overlays.length > 0,
-              overlayCount: overlays.length
+            _sendResponse({
+              isActive: _overlays.length > 0,
+              overlayCount: _overlays.length
             });
             return true;
           }
-          return messageHandler(message, _sender, sendResponse);
+          return messageHandler(_message, _sender, _sendResponse);
         } catch (error) {
           console.error('Error handling message:', error);
           return false;
@@ -479,15 +479,15 @@ describe('Content Script Extended Tests', () => {
 
       // Add some overlays
       const _overlay = document.createElement('div');
-      overlay.className = 'a11y-highlight-overlay';
-      document.body.appendChild(overlay);
+      _overlay.className = 'a11y-highlight-overlay';
+      document.body.appendChild(_overlay);
 
       const _sendResponse = jest.fn();
       const _message = { action: 'getStatus' };
 
-      const _result = extendedHandler(message, null, sendResponse);
+      const _result = _extendedHandler(_message, null, _sendResponse);
 
-      expect(sendResponse).toHaveBeenCalledWith({
+      expect(_sendResponse).toHaveBeenCalledWith({
         isActive: true,
         overlayCount: 1
       });
@@ -500,14 +500,14 @@ describe('Content Script Extended Tests', () => {
       const _sendResponse = jest.fn();
 
       // Create a handler that throws an error
-      const _errorHandler = (message, _sender, _sendResponse) => {
+      const _errorHandler = (_message, _sender, _sendResponse) => {
         try {
-          if (message.action === 'toggleAccessibilityHighlight') {
+          if (_message.action === 'toggleAccessibilityHighlight') {
             throw new Error('Simulated error');
           }
           return false;
-        } catch (error) {
-          console.error('Error handling message:', error);
+        } catch (_error) {
+          console.error('Error handling message:', _error);
           return false;
         }
       };
@@ -517,7 +517,7 @@ describe('Content Script Extended Tests', () => {
         isEnabled: true
       };
 
-      const _result = errorHandler(message, null, sendResponse);
+      const _result = _errorHandler(_message, null, _sendResponse);
 
       expect(console.error).toHaveBeenCalledWith('Error handling message:', expect.any(Error));
       expect(_result).toBe(false);
@@ -533,20 +533,20 @@ describe('Content Script Extended Tests', () => {
       const _handleDOMOperation = () => {
         try {
           const _overlays = document.querySelectorAll('.a11y-highlight-overlay');
-          return overlays.length;
+          return _overlays.length;
         } catch (error) {
           console.error('DOM operation failed:', error);
           return 0;
         }
       };
 
-      const _result = handleDOMOperation();
+      const _result = _handleDOMOperation();
 
       expect(console.error).toHaveBeenCalledWith('DOM operation failed:', expect.any(Error));
       expect(_result).toBe(0);
 
       // Restore original function
-      document.querySelectorAll = originalQuerySelectorAll;
+      document.querySelectorAll = _originalQuerySelectorAll;
     });
 
     test('should validate overlay elements before operations', () => {
@@ -554,24 +554,24 @@ describe('Content Script Extended Tests', () => {
         try {
           const _overlays = document.querySelectorAll('.a11y-highlight-overlay');
 
-          if (!overlays || overlays.length === 0) {
+          if (!_overlays || _overlays.length === 0) {
             console.warn('No overlays found to highlight');
             return false;
           }
 
-          if (index < 0 || index >= overlays.length) {
+          if (index < 0 || index >= _overlays.length) {
             console.warn('Invalid overlay index:', index);
             return false;
           }
 
-          const _overlay = overlays[index];
-          if (!overlay) {
+          const _overlay = _overlays[index];
+          if (!_overlay) {
             console.warn('Overlay element not found at index:', index);
             return false;
           }
 
           // Simulate highlighting
-          overlay.style.border = '3px solid #ff0000';
+          _overlay.style.border = '3px solid #ff0000';
           return true;
         } catch (error) {
           console.error('Error highlighting overlay:', error);
@@ -580,21 +580,21 @@ describe('Content Script Extended Tests', () => {
       };
 
       // Test with no overlays
-      const _result = highlightCurrentOverlay(0);
+      let _result = _highlightCurrentOverlay(0);
       expect(console.warn).toHaveBeenCalledWith('No overlays found to highlight');
       expect(_result).toBe(false);
 
       // Add overlay and test with valid index
       const _overlay = document.createElement('div');
-      overlay.className = 'a11y-highlight-overlay';
-      document.body.appendChild(overlay);
+      _overlay.className = 'a11y-highlight-overlay';
+      document.body.appendChild(_overlay);
 
-      _result = highlightCurrentOverlay(0);
+      _result = _highlightCurrentOverlay(0);
       expect(_result).toBe(true);
-      expect(overlay.style.border).toBe('3px solid #ff0000');
+      expect(_overlay.style.border).toBe('3px solid #ff0000');
 
       // Test with invalid index
-      _result = highlightCurrentOverlay(5);
+      _result = _highlightCurrentOverlay(5);
       expect(console.warn).toHaveBeenCalledWith('Invalid overlay index:', 5);
       expect(_result).toBe(false);
     });
@@ -603,10 +603,10 @@ describe('Content Script Extended Tests', () => {
       const _originalChrome = global.chrome;
       global.chrome = undefined;
 
-      const _sendMessageSafely = message => {
+      const _sendMessageSafely = _message => {
         try {
           if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
-            chrome.runtime.sendMessage(message);
+            chrome.runtime.sendMessage(_message);
             return true;
           } else {
             console.warn('Chrome runtime not available');
@@ -618,13 +618,13 @@ describe('Content Script Extended Tests', () => {
         }
       };
 
-      const _result = sendMessageSafely({ test: 'message' });
+      const _result = _sendMessageSafely({ test: 'message' });
 
       expect(console.warn).toHaveBeenCalledWith('Chrome runtime not available');
       expect(_result).toBe(false);
 
       // Restore
-      global.chrome = originalChrome;
+      global.chrome = _originalChrome;
     });
   });
 
@@ -632,30 +632,30 @@ describe('Content Script Extended Tests', () => {
     test('should handle dynamic overlay creation', () => {
       const _createOverlay = (_element, _message, _level) => {
         try {
-          if (!element || !element.getBoundingClientRect) {
+          if (!_element || !_element.getBoundingClientRect) {
             console.warn('Invalid element for overlay creation');
             return null;
           }
 
           const _overlay = document.createElement('div');
-          overlay.className = 'a11y-highlight-overlay';
-          overlay.setAttribute('data-a11ymessage', message);
-          overlay.setAttribute('data-level', level);
+          _overlay.className = 'a11y-highlight-overlay';
+          _overlay.setAttribute('data-a11ymessage', _message);
+          _overlay.setAttribute('data-level', _level);
 
-          const _rect = element.getBoundingClientRect();
-          overlay.style.cssText = `
+          const _rect = _element.getBoundingClientRect();
+          _overlay.style.cssText = `
             position: absolute;
-            top: ${rect.top + window.scrollY}px;
-            left: ${rect.left + window.scrollX}px;
-            width: ${rect.width}px;
-            height: ${rect.height}px;
+            top: ${_rect.top + window.scrollY}px;
+            left: ${_rect.left + window.scrollX}px;
+            width: ${_rect.width}px;
+            height: ${_rect.height}px;
             pointer-events: none;
             z-index: 10000;
-            border: 2px solid ${level === 'error' ? '#ff0000' : '#ffa500'};
+            border: 2px solid ${_level === 'error' ? '#ff0000' : '#ffa500'};
           `;
 
-          document.body.appendChild(overlay);
-          return overlay;
+          document.body.appendChild(_overlay);
+          return _overlay;
         } catch (error) {
           console.error('Error creating overlay:', error);
           return null;
@@ -664,48 +664,48 @@ describe('Content Script Extended Tests', () => {
 
       // Create a test element
       const _testElement = document.createElement('img');
-      testElement.src = 'test.jpg';
-      document.body.appendChild(testElement);
+      _testElement.src = 'test.jpg';
+      document.body.appendChild(_testElement);
 
       // Mock getBoundingClientRect
-      testElement.getBoundingClientRect = jest.fn(() => ({
+      _testElement.getBoundingClientRect = jest.fn(() => ({
         top: 100,
         left: 200,
         width: 150,
         height: 100
       }));
 
-      const _overlay = createOverlay(testElement, 'Missing alt attribute', 'error');
+      const _overlay = _createOverlay(_testElement, 'Missing alt attribute', 'error');
 
-      expect(overlay).not.toBeNull();
-      expect(overlay.className).toBe('a11y-highlight-overlay');
-      expect(overlay.getAttribute('data-a11ymessage')).toBe('Missing alt attribute');
-      expect(overlay.getAttribute('data-level')).toBe('error');
-      expect(overlay.style.border).toBe('2px solid #ff0000');
+      expect(_overlay).not.toBeNull();
+      expect(_overlay.className).toBe('a11y-highlight-overlay');
+      expect(_overlay.getAttribute('data-a11ymessage')).toBe('Missing alt attribute');
+      expect(_overlay.getAttribute('data-level')).toBe('error');
+      expect(_overlay.style.border).toBe('2px solid #ff0000');
     });
 
     test('should handle overlay removal', () => {
       // Create test overlays
-      for (let _i = 0; i < 3; i++) {
+      for (let _i = 0; _i < 3; _i++) {
         const _overlay = document.createElement('div');
-        overlay.className = 'a11y-highlight-overlay';
-        document.body.appendChild(overlay);
+        _overlay.className = 'a11y-highlight-overlay';
+        document.body.appendChild(_overlay);
       }
 
       const _removeAllOverlays = () => {
         try {
           const _overlays = document.querySelectorAll('.a11y-highlight-overlay');
-          const _removedCount = 0;
+          let _removedCount = 0;
 
-          overlays.forEach(overlay => {
-            if (overlay && overlay.parentNode) {
-              overlay.parentNode.removeChild(overlay);
-              removedCount++;
+          _overlays.forEach(_overlay => {
+            if (_overlay && _overlay.parentNode) {
+              _overlay.parentNode.removeChild(_overlay);
+              _removedCount++;
             }
           });
 
-          console.log(`Removed ${removedCount} overlays`);
-          return removedCount;
+          console.log(`Removed ${_removedCount} overlays`);
+          return _removedCount;
         } catch (error) {
           console.error('Error removing overlays:', error);
           return 0;
@@ -714,9 +714,9 @@ describe('Content Script Extended Tests', () => {
 
       expect(document.querySelectorAll('.a11y-highlight-overlay')).toHaveLength(3);
 
-      const _removedCount = removeAllOverlays();
+      const _removedCount = _removeAllOverlays();
 
-      expect(removedCount).toBe(3);
+      expect(_removedCount).toBe(3);
       expect(document.querySelectorAll('.a11y-highlight-overlay')).toHaveLength(0);
       expect(console.log).toHaveBeenCalledWith('Removed 3 overlays');
     });
@@ -724,47 +724,47 @@ describe('Content Script Extended Tests', () => {
     test('should handle filtered overlay operations', () => {
       // Create overlays with different levels
       const _levels = ['error', 'warning', 'error'];
-      levels.forEach((level, index) => {
+      _levels.forEach((_level, index) => {
         const _overlay = document.createElement('div');
-        overlay.className = 'a11y-highlight-overlay';
-        overlay.setAttribute('data-level', level);
-        overlay.setAttribute('data-a11ymessage', `Issue ${index + 1}`);
-        document.body.appendChild(overlay);
+        _overlay.className = 'a11y-highlight-overlay';
+        _overlay.setAttribute('data-level', _level);
+        _overlay.setAttribute('data-a11ymessage', `Issue ${index + 1}`);
+        document.body.appendChild(_overlay);
       });
 
       const _filterOverlaysByLevel = targetLevel => {
         try {
           const _allOverlays = document.querySelectorAll('.a11y-highlight-overlay');
-          const _filteredOverlays = Array.from(allOverlays).filter(overlay =>
-            overlay.getAttribute('data-level') === targetLevel
+          const _filteredOverlays = Array.from(_allOverlays).filter(_overlay =>
+            _overlay.getAttribute('data-level') === targetLevel
           );
 
           // Hide non-matching overlays
-          allOverlays.forEach(overlay => {
-            const _isVisible = overlay.getAttribute('data-level') === targetLevel;
-            overlay.style.display = isVisible ? 'block' : 'none';
+          _allOverlays.forEach(_overlay => {
+            const _isVisible = _overlay.getAttribute('data-level') === targetLevel;
+            _overlay.style.display = _isVisible ? 'block' : 'none';
           });
 
-          return filteredOverlays.length;
+          return _filteredOverlays.length;
         } catch (error) {
           console.error('Error filtering overlays:', error);
           return 0;
         }
       };
 
-      const _errorCount = filterOverlaysByLevel('error');
-      expect(errorCount).toBe(2);
+      const _errorCount = _filterOverlaysByLevel('error');
+      expect(_errorCount).toBe(2);
 
       // Check that error overlays are visible
       const _errorOverlays = document.querySelectorAll('.a11y-highlight-overlay[data-level="error"]');
-      errorOverlays.forEach(overlay => {
-        expect(overlay.style.display).toBe('block');
+      _errorOverlays.forEach(_overlay => {
+        expect(_overlay.style.display).toBe('block');
       });
 
       // Check that warning overlays are hidden
       const _warningOverlays = document.querySelectorAll('.a11y-highlight-overlay[data-level="warning"]');
-      warningOverlays.forEach(overlay => {
-        expect(overlay.style.display).toBe('none');
+      _warningOverlays.forEach(_overlay => {
+        expect(_overlay.style.display).toBe('none');
       });
     });
   });
