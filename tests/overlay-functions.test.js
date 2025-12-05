@@ -81,11 +81,11 @@ describe('Overlay Functions from contentScript.js', () => {
 
       // Check if overlay was created (should have both classes)
       const _overlays = document.querySelectorAll('.overlay, .a11y-error, .a11y-warning');
-      expect(overlays.length).toBe(1);
+      expect(_overlays.length).toBe(1);
 
-      const _overlayEl = overlays[0];
-      expect(overlayEl.style.position).toBe('absolute');
-      expect(overlayEl.dataset.a11ymessage).toBe('Missing alt attribute');
+      const _overlayEl = _overlays[0];
+      expect(_overlayEl.style.position).toBe('absolute');
+      expect(_overlayEl.dataset.a11ymessage).toBe('Missing alt attribute');
     });
 
     test('should handle invalid element dimensions', () => {
@@ -100,7 +100,7 @@ describe('Overlay Functions from contentScript.js', () => {
 
       // Should skip zero-sized elements
       const _overlays = document.querySelectorAll('.overlay, .a11y-error, .a11y-warning');
-      expect(overlays.length).toBe(0);
+      expect(_overlays.length).toBe(0);
       expect(console.log).toHaveBeenCalledWith('Skipping overlay for zero-sized element:', _mockElement);
     });
 
@@ -108,10 +108,10 @@ describe('Overlay Functions from contentScript.js', () => {
       global.overlay.call(_mockElement, 'overlay', 'error', '<script>alert("xss")</script>Test message');
 
       const _overlayEl = document.querySelector('.overlay, .a11y-error, .a11y-warning');
-      if (overlayEl) {
+      if (_overlayEl) {
         // Message should be sanitized
-        expect(overlayEl.dataset.a11ymessage).not.toContain('<script>');
-        expect(overlayEl.dataset.a11ymessage).not.toContain('alert');
+        expect(_overlayEl.dataset.a11ymessage).not.toContain('<script>');
+        expect(_overlayEl.dataset.a11ymessage).not.toContain('alert');
       }
     });
 
@@ -120,20 +120,20 @@ describe('Overlay Functions from contentScript.js', () => {
       global.overlay.call(_mockElement, 'overlay', 'error', 'Error message');
       const _overlayEl = document.querySelector('.overlay, .a11y-error, .a11y-warning');
 
-      if (overlayEl) {
+      if (_overlayEl) {
         // Should have error styling
-        expect(overlayEl.style.backgroundColor).toContain('red') ||
-        expect(overlayEl.style.backgroundColor).toContain('#');
+        expect(_overlayEl.style.backgroundColor).toContain('red') ||
+        expect(_overlayEl.style.backgroundColor).toContain('#');
       }
 
       // Clear and test warning level
       document.body.innerHTML = '';
       global.overlay.call(_mockElement, 'overlay', 'warning', 'Warning message');
-      overlayEl = document.querySelector('.overlay, .a11y-error, .a11y-warning');
+      const _overlayEl2 = document.querySelector('.overlay, .a11y-error, .a11y-warning');
 
-      if (overlayEl) {
+      if (_overlayEl2) {
         // Should have warning styling (different from error)
-        expect(overlayEl.style.backgroundColor).toBeDefined();
+        expect(_overlayEl2.style.backgroundColor).toBeDefined();
       }
     });
 
@@ -143,11 +143,11 @@ describe('Overlay Functions from contentScript.js', () => {
       global.overlay.call(_mockElement, 'overlay', 'error', 'Test message');
 
       // Should have added to LOGS
-      expect(global.LOGS.length).toBeGreaterThan(initialLogCount);
+      expect(global.LOGS.length).toBeGreaterThan(_initialLogCount);
 
       const _lastLog = global.LOGS[global.LOGS.length - 1];
-      expect(lastLog.Message).toBe('Test message');
-      expect(lastLog.Level).toBe('error');
+      expect(_lastLog.Message).toBe('Test message');
+      expect(_lastLog.Level).toBe('error');
     });
 
     test('should handle errors gracefully', () => {
@@ -184,14 +184,14 @@ describe('Overlay Functions from contentScript.js', () => {
       global.overlay.call(_mockElement, 'overlay', 'warning', 'Warning 1');
 
       const _initialCount = document.querySelectorAll('.overlay, .a11y-error, .a11y-warning').length;
-      expect(initialCount).toBeGreaterThan(0);
+      expect(_initialCount).toBeGreaterThan(0);
 
       // Remove overlays
       global.removeAccessibilityOverlays();
 
       // Should have removed all overlays
       const _finalCount = document.querySelectorAll('.overlay, .a11y-error, .a11y-warning').length;
-      expect(finalCount).toBe(0);
+      expect(_finalCount).toBe(0);
     });
 
     test('should handle case with no overlays gracefully', () => {
@@ -232,11 +232,11 @@ describe('Overlay Functions from contentScript.js', () => {
       global.overlay.call(_mockElement, 'overlay', 'error', 'Position test');
 
       const _overlayEl = document.querySelector('.overlay, .a11y-error, .a11y-warning');
-      if (overlayEl) {
-        expect(overlayEl.style.top).toBe('70px'); // 50 + 20 scroll
-        expect(overlayEl.style.left).toBe('110px'); // 100 + 10 scroll
-        expect(overlayEl.style.width).toBe('150px');
-        expect(overlayEl.style.height).toBe('75px');
+      if (_overlayEl) {
+        expect(_overlayEl.style.top).toBe('70px'); // 50 + 20 scroll
+        expect(_overlayEl.style.left).toBe('110px'); // 100 + 10 scroll
+        expect(_overlayEl.style.width).toBe('150px');
+        expect(_overlayEl.style.height).toBe('75px');
       }
     });
 
@@ -244,9 +244,9 @@ describe('Overlay Functions from contentScript.js', () => {
       global.overlay.call(_mockElement, 'overlay', 'error', 'Z-index test');
 
       const _overlayEl = document.querySelector('.overlay, .a11y-error, .a11y-warning');
-      if (overlayEl) {
-        const _zIndex = parseInt(overlayEl.style.zIndex);
-        expect(zIndex).toBeGreaterThan(1000); // Should be high z-index
+      if (_overlayEl) {
+        const _zIndex = parseInt(_overlayEl.style.zIndex);
+        expect(_zIndex).toBeGreaterThan(1000); // Should be high z-index
       }
     });
 
@@ -254,8 +254,8 @@ describe('Overlay Functions from contentScript.js', () => {
       global.overlay.call(_mockElement, 'overlay', 'error', 'Pointer events test');
 
       const _overlayEl = document.querySelector('.overlay, .a11y-error, .a11y-warning');
-      if (overlayEl) {
-        expect(overlayEl.style.pointerEvents).toBe('none');
+      if (_overlayEl) {
+        expect(_overlayEl.style.pointerEvents).toBe('none');
       }
     });
   });
@@ -264,36 +264,36 @@ describe('Overlay Functions from contentScript.js', () => {
     test('should store message in data attribute', () => {
       const _testMessage = 'This is a test accessibility message';
 
-      global.overlay.call(_mockElement, 'overlay', 'error', testMessage);
+      global.overlay.call(_mockElement, 'overlay', 'error', _testMessage);
 
       const _overlayEl = document.querySelector('.overlay, .a11y-error, .a11y-warning');
-      if (overlayEl) {
-        expect(overlayEl.dataset.a11ymessage).toBe(testMessage);
+      if (_overlayEl) {
+        expect(_overlayEl.dataset.a11ymessage).toBe(_testMessage);
       }
     });
 
     test('should handle long messages appropriately', () => {
       const _longMessage = 'A'.repeat(500); // Very long message
 
-      global.overlay.call(_mockElement, 'overlay', 'error', longMessage);
+      global.overlay.call(_mockElement, 'overlay', 'error', _longMessage);
 
       const _overlayEl = document.querySelector('.overlay, .a11y-error, .a11y-warning');
-      if (overlayEl) {
-        expect(overlayEl.dataset.a11ymessage).toBeDefined();
-        expect(overlayEl.dataset.a11ymessage.length).toBeGreaterThan(0);
+      if (_overlayEl) {
+        expect(_overlayEl.dataset.a11ymessage).toBeDefined();
+        expect(_overlayEl.dataset.a11ymessage.length).toBeGreaterThan(0);
       }
     });
 
     test('should handle special characters in messages', () => {
       const _specialMessage = 'Message with "quotes" and \'apostrophes\' and & symbols';
 
-      global.overlay.call(_mockElement, 'overlay', 'error', specialMessage);
+      global.overlay.call(_mockElement, 'overlay', 'error', _specialMessage);
 
       const _overlayEl = document.querySelector('.overlay, .a11y-error, .a11y-warning');
-      if (overlayEl) {
+      if (_overlayEl) {
         // Should have some form of the message (possibly sanitized)
-        expect(overlayEl.dataset.a11ymessage).toBeDefined();
-        expect(overlayEl.dataset.a11ymessage.length).toBeGreaterThan(0);
+        expect(_overlayEl.dataset.a11ymessage).toBeDefined();
+        expect(_overlayEl.dataset.a11ymessage.length).toBeGreaterThan(0);
       }
     });
   });
@@ -304,19 +304,19 @@ describe('Overlay Functions from contentScript.js', () => {
 
       global.overlay.call(_mockElement, 'overlay', 'error', 'Log tracking test');
 
-      expect(global.LOGS.length).toBe(initialLogCount + 1);
+      expect(global.LOGS.length).toBe(_initialLogCount + 1);
 
       const _newLog = global.LOGS[global.LOGS.length - 1];
-      expect(newLog.Message).toBe('Log tracking test');
-      expect(newLog.Level).toBe('error');
+      expect(_newLog.Message).toBe('Log tracking test');
+      expect(_newLog.Level).toBe('error');
     });
 
     test('should include element information in LOGS', () => {
       global.overlay.call(_mockElement, 'overlay', 'error', 'Element info test');
 
       const _lastLog = global.LOGS[global.LOGS.length - 1];
-      expect(lastLog.Element).toBeDefined();
-      expect(typeof lastLog.Element).toBe('string');
+      expect(_lastLog.Element).toBeDefined();
+      expect(typeof _lastLog.Element).toBe('string');
     });
   });
 });
