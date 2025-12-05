@@ -7,7 +7,7 @@
 global.chrome = {
   storage: {
     local: {
-      get: jest.fn().mockImplementation((keys, callback) => {
+      get: jest.fn().mockImplementation((_keys, _callback) => {
         // Don't call the callback during initial setup to prevent side effects
         return Promise.resolve({ isEnabled: false });
       }),
@@ -49,8 +49,8 @@ describe('Chrome Extension Message Handling', () => {
 
     // Extract the message listener that was registered
     const _addListenerCalls = global.chrome.runtime.onMessage.addListener.mock.calls;
-    if (addListenerCalls.length > 0) {
-      messageListener = addListenerCalls[addListenerCalls.length - 1][0];
+    if (_addListenerCalls.length > 0) {
+      messageListener = _addListenerCalls[_addListenerCalls.length - 1][0];
     }
 
     // Setup mock sender and response function
@@ -75,7 +75,7 @@ describe('Chrome Extension Message Handling', () => {
       isEnabled: true
     };
 
-    const _result = messageListener(message, mockSender, mockSendResponse);
+    const _result = messageListener(_message, mockSender, mockSendResponse);
 
     expect(global.toggleAccessibilityHighlight).toHaveBeenCalledWith(true);
     expect(mockSendResponse).toHaveBeenCalledWith('highlighted');
@@ -88,7 +88,7 @@ describe('Chrome Extension Message Handling', () => {
       isEnabled: false
     };
 
-    const _result = messageListener(message, mockSender, mockSendResponse);
+    const _result = messageListener(_message, mockSender, mockSendResponse);
 
     expect(global.toggleAccessibilityHighlight).toHaveBeenCalledWith(false);
     expect(mockSendResponse).toHaveBeenCalledWith('unhighlighted');
@@ -101,7 +101,7 @@ describe('Chrome Extension Message Handling', () => {
       someData: 'test'
     };
 
-    const _result = messageListener(message, mockSender, mockSendResponse);
+    const _result = messageListener(_message, mockSender, mockSendResponse);
 
     expect(global.toggleAccessibilityHighlight).not.toHaveBeenCalled();
     expect(mockSendResponse).not.toHaveBeenCalled();
@@ -119,8 +119,8 @@ describe('Chrome Extension Message Handling', () => {
       123
     ];
 
-    invalidMessages.forEach(message => {
-      const _result = messageListener(message, mockSender, mockSendResponse);
+    _invalidMessages.forEach(_msg => {
+      const _result = messageListener(_msg, mockSender, mockSendResponse);
       expect(_result).toBe(false);
     });
 
@@ -134,7 +134,7 @@ describe('Chrome Extension Message Handling', () => {
       // Missing isEnabled property
     };
 
-    const _result = messageListener(message, mockSender, mockSendResponse);
+    const _result = messageListener(_message, mockSender, mockSendResponse);
 
     // Should not crash but also should not perform actions
     expect(_result).toBe(false);
@@ -154,7 +154,7 @@ describe('Chrome Extension Message Handling', () => {
 
     // Should not crash when toggleAccessibilityHighlight throws
     expect(() => {
-      messageListener(message, mockSender, mockSendResponse);
+      messageListener(_message, mockSender, mockSendResponse);
     }).not.toThrow();
 
     expect(global.toggleAccessibilityHighlight).toHaveBeenCalledTimes(1);
@@ -173,7 +173,7 @@ describe('Chrome Extension Message Handling', () => {
 
     // Should not crash when toggleAccessibilityHighlight throws
     expect(() => {
-      messageListener(message, mockSender, mockSendResponse);
+      messageListener(_message, mockSender, mockSendResponse);
     }).not.toThrow();
 
     expect(global.toggleAccessibilityHighlight).toHaveBeenCalledTimes(1);
@@ -185,7 +185,7 @@ describe('Chrome Extension Message Handling', () => {
       isEnabled: true
     };
 
-    const _result = messageListener(message, mockSender, mockSendResponse);
+    const _result = messageListener(_message, mockSender, mockSendResponse);
 
     // Should return true to indicate async response
     expect(_result).toBe(true);
@@ -202,12 +202,12 @@ describe('Chrome Extension Message Handling', () => {
       isEnabled: false
     };
 
-    messageListener(enableMessage, mockSender, mockSendResponse);
+    messageListener(_enableMessage, mockSender, mockSendResponse);
     expect(mockSendResponse).toHaveBeenCalledWith('highlighted');
 
     mockSendResponse.mockClear();
 
-    messageListener(disableMessage, mockSender, mockSendResponse);
+    messageListener(_disableMessage, mockSender, mockSendResponse);
     expect(mockSendResponse).toHaveBeenCalledWith('unhighlighted');
   });
 
@@ -228,9 +228,9 @@ describe('Chrome Extension Message Handling', () => {
     };
 
     // Send multiple messages rapidly
-    messageListener(message1, mockSender, mockSendResponse);
-    messageListener(message2, mockSender, mockSendResponse);
-    messageListener(message3, mockSender, mockSendResponse);
+    messageListener(_message1, mockSender, mockSendResponse);
+    messageListener(_message2, mockSender, mockSendResponse);
+    messageListener(_message3, mockSender, mockSendResponse);
 
     // Should handle all messages
     expect(mockSendResponse).toHaveBeenCalledTimes(3);
@@ -246,7 +246,7 @@ describe('Chrome Extension Message Handling', () => {
     };
 
     // Call with different context
-    const _result = messageListener.call({}, message, mockSender, mockSendResponse);
+    const _result = messageListener.call({}, _message, mockSender, mockSendResponse);
 
     expect(_result).toBe(true);
     expect(mockSendResponse).toHaveBeenCalledWith('highlighted');
