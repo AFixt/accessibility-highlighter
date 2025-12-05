@@ -49,6 +49,15 @@ const {
 describe('Config Module Functions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Re-initialize chrome.storage mocks after clearAllMocks
+    global.chrome = {
+      storage: {
+        local: {
+          get: jest.fn(),
+          set: jest.fn()
+        }
+      }
+    };
   });
 
   afterEach(() => {
@@ -88,14 +97,18 @@ describe('Config Module Functions', () => {
       delete global.chrome.storage;
 
       const _customRules = {
-        prohibitedAlts: ['test1', 'test2']
+        images: {
+          enabled: false,
+          checkMissingAlt: false
+        }
       };
       __localStorageMock.getItem.mockReturnValue(JSON.stringify(_customRules));
 
       const _result = await loadCustomRules();
 
       expect(__localStorageMock.getItem).toHaveBeenCalledWith('a11y-custom-rules');
-      expect(_result).toMatchObject(_customRules);
+      expect(_result.images.enabled).toBe(false);
+      expect(_result.images.checkMissingAlt).toBe(false);
 
       // Restore chrome.storage
       global.chrome = __originalChrome;
@@ -119,7 +132,9 @@ describe('Config Module Functions', () => {
   describe('saveCustomRules()', () => {
     test('should save custom rules to Chrome storage', async () => {
       const _customRules = {
-        prohibitedAlts: ['test1', 'test2']
+        images: {
+          enabled: false
+        }
       };
 
       chrome.storage.local.set.mockImplementation((data, callback) => {
@@ -140,7 +155,9 @@ describe('Config Module Functions', () => {
       delete global.chrome.storage;
 
       const _customRules = {
-        prohibitedAlts: ['test1', 'test2']
+        images: {
+          enabled: false
+        }
       };
 
       await saveCustomRules(_customRules);
@@ -319,7 +336,9 @@ describe('Config Module Functions', () => {
   describe('mergeWithDefaults (indirectly tested)', () => {
     test('should merge user settings with defaults', async () => {
       const _userRules = {
-        prohibitedAlts: ['custom1']
+        images: {
+          enabled: false // User customization
+        }
       };
 
       chrome.storage.local.get.mockImplementation((key, callback) => {
@@ -328,11 +347,14 @@ describe('Config Module Functions', () => {
 
       const _result = await loadCustomRules();
 
-      // Should have both user rules and any default properties
-      expect(_result.prohibitedAlts).toContain('custom1');
+      // Should have user's custom value
+      expect(_result.images.enabled).toBe(false);
       // Check that other default properties are preserved
-      expect(_result).toHaveProperty('prohibitedTableSummaries');
-      expect(_result).toHaveProperty('prohibitedLinks');
+      expect(_result).toHaveProperty('forms');
+      expect(_result).toHaveProperty('links');
+      expect(_result).toHaveProperty('structure');
+      expect(_result.forms).toHaveProperty('enabled');
+      expect(_result.links).toHaveProperty('enabled');
     });
 
     test('should handle nested object merging', async () => {

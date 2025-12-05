@@ -45,7 +45,7 @@
  * Centralized configuration object for the Accessibility Highlighter
  * @type {A11yConfig}
  */
-export const A11Y_CONFIG = {
+const A11Y_CONFIG = {
   PERFORMANCE: {
     THROTTLE_DELAY: 1000, // 1 second throttle delay
     FONT_SIZE_THRESHOLD: 12, // Minimum font size in pixels
@@ -137,7 +137,7 @@ export const A11Y_CONFIG = {
  * Default filter settings for accessibility results.
  * @type {Object}
  */
-export const DEFAULT_FILTERS = {
+const DEFAULT_FILTERS = {
   showErrors: true,
   showWarnings: true,
   categories: {
@@ -154,7 +154,7 @@ export const DEFAULT_FILTERS = {
  * Default customizable rules configuration for accessibility checks.
  * @type {Object}
  */
-export const DEFAULT_CUSTOM_RULES = {
+const DEFAULT_CUSTOM_RULES = {
   // Image accessibility rules
   images: {
     enabled: true,
@@ -225,7 +225,7 @@ export const DEFAULT_CUSTOM_RULES = {
  * Configuration for incremental scanning performance optimization.
  * @type {Object}
  */
-export const INCREMENTAL_CONFIG = {
+const INCREMENTAL_CONFIG = {
   CHUNK_SIZE: 100, // Number of elements to process per chunk
   CHUNK_DELAY: 10, // Delay between chunks in milliseconds
   MAX_TOTAL_TIME: 30000, // Maximum total scan time in milliseconds
@@ -236,7 +236,7 @@ export const INCREMENTAL_CONFIG = {
  * Loads custom rules from Chrome storage.
  * @returns {Promise<Object>} Promise that resolves to custom rules object
  */
-export async function loadCustomRules() {
+async function loadCustomRules() {
   try {
     if (typeof chrome !== 'undefined' && chrome.storage) {
       return new Promise(resolve => {
@@ -264,7 +264,7 @@ export async function loadCustomRules() {
  * @param {Object} rules - Custom rules object to save
  * @returns {Promise<void>} Promise that resolves when rules are saved
  */
-export async function saveCustomRules(rules) {
+async function saveCustomRules(rules) {
   try {
     if (typeof chrome !== 'undefined' && chrome.storage) {
       return new Promise(resolve => {
@@ -287,7 +287,7 @@ export async function saveCustomRules(rules) {
  * Resets custom rules to default values.
  * @returns {Promise<Object>} Promise that resolves to default rules
  */
-export async function resetCustomRules() {
+async function resetCustomRules() {
   const defaultRules = JSON.parse(JSON.stringify(DEFAULT_CUSTOM_RULES));
   await saveCustomRules(defaultRules);
   return defaultRules;
@@ -297,7 +297,7 @@ export async function resetCustomRules() {
  * Loads filter settings from Chrome storage.
  * @returns {Promise<Object>} Promise that resolves to filter settings
  */
-export async function loadFilterSettings() {
+async function loadFilterSettings() {
   try {
     if (typeof chrome !== 'undefined' && chrome.storage) {
       return new Promise(resolve => {
@@ -324,7 +324,7 @@ export async function loadFilterSettings() {
  * @param {Object} filters - Filter settings object to save
  * @returns {Promise<void>} Promise that resolves when settings are saved
  */
-export async function saveFilterSettings(filters) {
+async function saveFilterSettings(filters) {
   try {
     if (typeof chrome !== 'undefined' && chrome.storage) {
       return new Promise(resolve => {
@@ -377,3 +377,16 @@ function mergeWithDefaults(userSettings, defaultSettings) {
   deepMerge(merged, userSettings);
   return merged;
 }
+
+// Export all configuration and functions for CommonJS
+module.exports = {
+  A11Y_CONFIG,
+  DEFAULT_FILTERS,
+  DEFAULT_CUSTOM_RULES,
+  INCREMENTAL_CONFIG,
+  loadCustomRules,
+  saveCustomRules,
+  resetCustomRules,
+  loadFilterSettings,
+  saveFilterSettings
+};
