@@ -31,7 +31,7 @@ global.chrome = {
   tabs: {
     query: jest.fn().mockResolvedValue([{ id: 123 }]),
     sendMessage: jest.fn().mockImplementation((_tabId, _message, _callback) => {
-      if (callback) {callback('success');}
+      if (_callback) {_callback('success');}
     })
   },
   action: {
@@ -47,7 +47,7 @@ Object.defineProperty(window, 'scrollX', { value: 0, writable: true });
 Object.defineProperty(window, 'scrollY', { value: 0, writable: true });
 
 // Import the real content script after mocking Chrome APIs
-let contentScriptModule;
+let _contentScriptModule;
 
 describe('Accessibility Highlighter - Real Code Tests', () => {
   beforeAll(() => {
@@ -156,7 +156,7 @@ describe('Accessibility Highlighter - Real Code Tests', () => {
 
       expect(global.logs.some(log => log.Message.includes('Form field without a corresponding label'))).toBe(true);
       const _overlays = document.querySelectorAll('.overlay');
-      expect(overlays.length).toBeGreaterThan(0);
+      expect(_overlays.length).toBeGreaterThan(0);
     });
 
     test('should detect buttons without labels using real code', () => {
@@ -239,14 +239,14 @@ describe('Accessibility Highlighter - Real Code Tests', () => {
 
       // Verify overlays exist
       const _overlays = document.querySelectorAll('.overlay');
-      expect(overlays.length).toBeGreaterThan(0);
+      expect(_overlays.length).toBeGreaterThan(0);
 
       // Remove overlays using real function
       global.removeAccessibilityOverlays();
 
       // Verify overlays are removed
-      overlays = document.querySelectorAll('.overlay');
-      expect(overlays.length).toBe(0);
+      const _overlays2 = document.querySelectorAll('.overlay');
+      expect(_overlays2.length).toBe(0);
 
       // Verify logs are cleared
       expect(global.logs.length).toBe(0);
@@ -288,9 +288,9 @@ describe('Accessibility Highlighter - Real Code Tests', () => {
 
       // Mock getComputedStyle to return our test values
       const _originalGetComputedStyle = window.getComputedStyle;
-      window.getComputedStyle = jest.fn().mockImplementation(element => {
-        const _fontSize = element.style.fontSize || '16px';
-        return { fontSize };
+      window.getComputedStyle = jest.fn().mockImplementation(_element => {
+        const _fontSize = _element.style.fontSize || '16px';
+        return { fontSize: _fontSize };
       });
 
       global.runAccessibilityChecks();
@@ -299,7 +299,7 @@ describe('Accessibility Highlighter - Real Code Tests', () => {
       expect(global.logs.some(log => log.Message.includes('font size smaller than 12px'))).toBe(true);
 
       // Restore original
-      window.getComputedStyle = originalGetComputedStyle;
+      window.getComputedStyle = _originalGetComputedStyle;
     });
 
     test('should create overlays with correct positioning', () => {
@@ -307,7 +307,7 @@ describe('Accessibility Highlighter - Real Code Tests', () => {
 
       // Mock getBoundingClientRect
       const _img = document.getElementById('test-img');
-      img.getBoundingClientRect = jest.fn().mockReturnValue({
+      _img.getBoundingClientRect = jest.fn().mockReturnValue({
         top: 20,
         left: 30,
         width: 100,
@@ -319,20 +319,20 @@ describe('Accessibility Highlighter - Real Code Tests', () => {
       global.runAccessibilityChecks();
 
       const _overlay = document.querySelector('.overlay');
-      expect(overlay).toBeTruthy();
-      expect(overlay.style.position).toBe('absolute');
-      expect(overlay.style.width).toBe('100px');
-      expect(overlay.style.height).toBe('50px');
-      expect(overlay.style.pointerEvents).toBe('none');
+      expect(_overlay).toBeTruthy();
+      expect(_overlay.style.position).toBe('absolute');
+      expect(_overlay.style.width).toBe('100px');
+      expect(_overlay.style.height).toBe('50px');
+      expect(_overlay.style.pointerEvents).toBe('none');
     });
 
     test('should sanitize dangerous content in messages', () => {
       // Create element and manually trigger overlay with dangerous content
       const _testElement = document.createElement('div');
-      testElement.getBoundingClientRect = jest.fn().mockReturnValue({
+      _testElement.getBoundingClientRect = jest.fn().mockReturnValue({
         top: 0, left: 0, width: 100, height: 100
       });
-      document.body.appendChild(testElement);
+      document.body.appendChild(_testElement);
 
       // We need to test the sanitization in the overlay function
       // Since we can't directly inject script tags, we'll check that the overlay function exists
@@ -343,12 +343,12 @@ describe('Accessibility Highlighter - Real Code Tests', () => {
 
       // Check that any created overlays have data-a11ymessage attribute
       const _overlays = document.querySelectorAll('.overlay');
-      overlays.forEach(overlay => {
-        const _message = overlay.getAttribute('data-a11ymessage');
-        if (message) {
+      _overlays.forEach(_overlay => {
+        const _message = _overlay.getAttribute('data-a11ymessage');
+        if (_message) {
           // Message should not contain < or > characters (they get sanitized)
-          expect(message).not.toContain('<');
-          expect(message).not.toContain('>');
+          expect(_message).not.toContain('<');
+          expect(_message).not.toContain('>');
         }
       });
     });
@@ -363,7 +363,7 @@ describe('Accessibility Highlighter - Real Code Tests', () => {
       expect(typeof global.getCurrentTab).toBe('function');
 
       const _tab = await global.getCurrentTab();
-      expect(tab).toEqual({ id: 123 });
+      expect(_tab).toEqual({ id: 123 });
       expect(chrome.tabs.query).toHaveBeenCalledWith({
         active: true,
         lastFocusedWindow: true
