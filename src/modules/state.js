@@ -11,7 +11,7 @@
  * @version 1.0.1
  */
 
-import { DEFAULT_FILTERS, DEFAULT_CUSTOM_RULES, loadCustomRules, loadFilterSettings } from './config.js';
+const { DEFAULT_FILTERS, DEFAULT_CUSTOM_RULES, loadCustomRules, loadFilterSettings } = require('./config.js');
 
 /**
  * @typedef {Object} LogEntry
@@ -24,55 +24,55 @@ import { DEFAULT_FILTERS, DEFAULT_CUSTOM_RULES, loadCustomRules, loadFilterSetti
  * Array to store accessibility check results for logging.
  * @type {LogEntry[]}
  */
-export const LOGS = [];
+const LOGS = [];
 
 /**
  * Current overlay index for keyboard navigation.
  * @type {number}
  */
-export let currentOverlayIndex = -1;
+let currentOverlayIndex = -1;
 
 /**
  * Flag to track if keyboard navigation is active.
  * @type {boolean}
  */
-export let keyboardNavigationActive = false;
+let keyboardNavigationActive = false;
 
 /**
  * Progress indicator element for showing scan progress.
  * @type {HTMLElement|null}
  */
-export let progressIndicator = null;
+let progressIndicator = null;
 
 /**
  * Flag to track if accessibility checks are currently running.
  * @type {boolean}
  */
-export let isRunning = false;
+let isRunning = false;
 
 /**
  * Timestamp of the last accessibility check run.
  * @type {number}
  */
-export let lastRunTime = 0;
+let lastRunTime = 0;
 
 /**
  * Current filter settings for accessibility results.
  * @type {Object}
  */
-export let currentFilters = { ...DEFAULT_FILTERS };
+let currentFilters = { ...DEFAULT_FILTERS };
 
 /**
  * Current custom rules configuration for accessibility checks.
  * @type {Object}
  */
-export let customRules = { ...DEFAULT_CUSTOM_RULES };
+let customRules = { ...DEFAULT_CUSTOM_RULES };
 
 /**
  * State for incremental scanning process.
  * @type {Object}
  */
-export let incrementalState = {
+let incrementalState = {
   isActive: false,
   currentIndex: 0,
   elements: [],
@@ -87,7 +87,7 @@ export let incrementalState = {
  * @param {number} index - The overlay index to set
  * @returns {void}
  */
-export function setCurrentOverlayIndex(index) {
+function setCurrentOverlayIndex(index) {
   currentOverlayIndex = index;
 }
 
@@ -95,7 +95,7 @@ export function setCurrentOverlayIndex(index) {
  * Gets the current overlay index.
  * @returns {number} Current overlay index
  */
-export function getCurrentOverlayIndex() {
+function getCurrentOverlayIndex() {
   return currentOverlayIndex;
 }
 
@@ -104,7 +104,7 @@ export function getCurrentOverlayIndex() {
  * @param {boolean} active - Whether keyboard navigation is active
  * @returns {void}
  */
-export function setKeyboardNavigationActive(active) {
+function setKeyboardNavigationActive(active) {
   keyboardNavigationActive = active;
 }
 
@@ -112,7 +112,7 @@ export function setKeyboardNavigationActive(active) {
  * Gets the keyboard navigation active state.
  * @returns {boolean} Whether keyboard navigation is active
  */
-export function isKeyboardNavigationActive() {
+function isKeyboardNavigationActive() {
   return keyboardNavigationActive;
 }
 
@@ -121,7 +121,7 @@ export function isKeyboardNavigationActive() {
  * @param {HTMLElement|null} element - The progress indicator element
  * @returns {void}
  */
-export function setProgressIndicator(element) {
+function setProgressIndicator(element) {
   progressIndicator = element;
 }
 
@@ -129,7 +129,7 @@ export function setProgressIndicator(element) {
  * Gets the progress indicator element.
  * @returns {HTMLElement|null} The progress indicator element
  */
-export function getProgressIndicator() {
+function getProgressIndicator() {
   return progressIndicator;
 }
 
@@ -138,7 +138,7 @@ export function getProgressIndicator() {
  * @param {boolean} running - Whether checks are running
  * @returns {void}
  */
-export function setIsRunning(running) {
+function setIsRunning(running) {
   isRunning = running;
 }
 
@@ -146,7 +146,7 @@ export function setIsRunning(running) {
  * Gets the running state of accessibility checks.
  * @returns {boolean} Whether checks are running
  */
-export function getIsRunning() {
+function getIsRunning() {
   return isRunning;
 }
 
@@ -155,7 +155,7 @@ export function getIsRunning() {
  * @param {number} time - Timestamp of last run
  * @returns {void}
  */
-export function setLastRunTime(time) {
+function setLastRunTime(time) {
   lastRunTime = time;
 }
 
@@ -163,7 +163,7 @@ export function setLastRunTime(time) {
  * Gets the last run time of accessibility checks.
  * @returns {number} Timestamp of last run
  */
-export function getLastRunTime() {
+function getLastRunTime() {
   return lastRunTime;
 }
 
@@ -172,7 +172,7 @@ export function getLastRunTime() {
  * @param {Object} newFilters - New filter settings
  * @returns {void}
  */
-export function updateCurrentFilters(newFilters) {
+function updateCurrentFilters(newFilters) {
   Object.assign(currentFilters, newFilters);
 }
 
@@ -180,7 +180,7 @@ export function updateCurrentFilters(newFilters) {
  * Gets the current filter settings.
  * @returns {Object} Current filter settings
  */
-export function getCurrentFilters() {
+function getCurrentFilters() {
   return currentFilters;
 }
 
@@ -189,7 +189,7 @@ export function getCurrentFilters() {
  * @param {Object} newRules - New custom rules
  * @returns {void}
  */
-export function updateCustomRules(newRules) {
+function updateCustomRules(newRules) {
   Object.assign(customRules, newRules);
 }
 
@@ -197,7 +197,7 @@ export function updateCustomRules(newRules) {
  * Gets the current custom rules configuration.
  * @returns {Object} Current custom rules
  */
-export function getCustomRules() {
+function getCustomRules() {
   return customRules;
 }
 
@@ -206,7 +206,7 @@ export function getCustomRules() {
  * @param {Object} newState - New incremental state properties
  * @returns {void}
  */
-export function updateIncrementalState(newState) {
+function updateIncrementalState(newState) {
   Object.assign(incrementalState, newState);
 }
 
@@ -214,7 +214,7 @@ export function updateIncrementalState(newState) {
  * Gets the current incremental scan state.
  * @returns {Object} Current incremental state
  */
-export function getIncrementalState() {
+function getIncrementalState() {
   return incrementalState;
 }
 
@@ -222,7 +222,7 @@ export function getIncrementalState() {
  * Resets the incremental scan state to initial values.
  * @returns {void}
  */
-export function resetIncrementalState() {
+function resetIncrementalState() {
   incrementalState = {
     isActive: false,
     currentIndex: 0,
@@ -239,7 +239,7 @@ export function resetIncrementalState() {
  * @param {LogEntry} logEntry - The log entry to add
  * @returns {void}
  */
-export function addLogEntry(logEntry) {
+function addLogEntry(logEntry) {
   LOGS.push(logEntry);
 }
 
@@ -247,7 +247,7 @@ export function addLogEntry(logEntry) {
  * Clears all log entries.
  * @returns {void}
  */
-export function clearLogs() {
+function clearLogs() {
   LOGS.length = 0;
 }
 
@@ -255,7 +255,7 @@ export function clearLogs() {
  * Gets all log entries.
  * @returns {LogEntry[]} Array of log entries
  */
-export function getLogs() {
+function getLogs() {
   return LOGS;
 }
 
@@ -263,7 +263,7 @@ export function getLogs() {
  * Gets the count of log entries.
  * @returns {number} Number of log entries
  */
-export function getLogCount() {
+function getLogCount() {
   return LOGS.length;
 }
 
@@ -271,7 +271,7 @@ export function getLogCount() {
  * Initializes the state management system by loading persisted settings.
  * @returns {Promise<void>} Promise that resolves when initialization is complete
  */
-export async function initializeState() {
+async function initializeState() {
   try {
     // Load persisted filter settings
     const savedFilters = await loadFilterSettings();
@@ -291,7 +291,7 @@ export async function initializeState() {
  * Resets all state to initial values.
  * @returns {void}
  */
-export function resetState() {
+function resetState() {
   // Reset LOGS
   clearLogs();
 
@@ -320,7 +320,7 @@ export function resetState() {
  * Gets a summary of the current state for debugging.
  * @returns {Object} State summary object
  */
-export function getStateSummary() {
+function getStateSummary() {
   return {
     logCount: LOGS.length,
     currentOverlayIndex,
@@ -333,3 +333,32 @@ export function getStateSummary() {
     rulesEnabled: Object.values(customRules).filter(rule => rule.enabled).length
   };
 }
+
+// Export all state variables and functions for CommonJS
+module.exports = {
+  LOGS,
+  setCurrentOverlayIndex,
+  getCurrentOverlayIndex,
+  setKeyboardNavigationActive,
+  isKeyboardNavigationActive,
+  setProgressIndicator,
+  getProgressIndicator,
+  setIsRunning,
+  getIsRunning,
+  setLastRunTime,
+  getLastRunTime,
+  updateCurrentFilters,
+  getCurrentFilters,
+  updateCustomRules,
+  getCustomRules,
+  updateIncrementalState,
+  getIncrementalState,
+  resetIncrementalState,
+  addLogEntry,
+  clearLogs,
+  getLogs,
+  getLogCount,
+  initializeState,
+  resetState,
+  getStateSummary
+};

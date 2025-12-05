@@ -12,8 +12,8 @@
  * @version 1.0.1
  */
 
-import { A11Y_CONFIG } from './config.js';
-import { addLogEntry, getCurrentFilters } from './state.js';
+const { A11Y_CONFIG } = require('./config.js');
+const { addLogEntry, getCurrentFilters } = require('./state.js');
 
 /**
  * Provides the ability to overlay an element with a visual indicator of an accessibility issue.
@@ -23,7 +23,7 @@ import { addLogEntry, getCurrentFilters } from './state.js';
  * @this {Element} The DOM element to overlay
  * @returns {void}
  */
-export function overlay(overlayClass, level, msg) {
+function overlay(overlayClass, level, msg) {
   const elementInError = this;
 
   try {
@@ -162,7 +162,7 @@ function addOverlayToLogs(element, message, level) {
  * Removes all accessibility overlays from the page.
  * @returns {void}
  */
-export function removeAccessibilityOverlays() {
+function removeAccessibilityOverlays() {
   try {
     const overlays = document.querySelectorAll(A11Y_CONFIG.SELECTORS.OVERLAY_ELEMENTS);
     overlays.forEach(overlay => {
@@ -181,7 +181,7 @@ export function removeAccessibilityOverlays() {
  * @param {number} index - Index of the overlay to highlight
  * @returns {void}
  */
-export function highlightCurrentOverlay(index) {
+function highlightCurrentOverlay(index) {
   try {
     const overlays = document.querySelectorAll(A11Y_CONFIG.SELECTORS.OVERLAY_ELEMENTS);
 
@@ -219,7 +219,7 @@ export function highlightCurrentOverlay(index) {
  * @param {Element} element - The problematic element
  * @returns {string} The category name
  */
-export function categorizeIssue(message, element) {
+function categorizeIssue(message, element) {
   const tagName = element ? element.tagName.toLowerCase() : '';
   const lowerMessage = message.toLowerCase();
 
@@ -251,7 +251,7 @@ export function categorizeIssue(message, element) {
  * Applies current filters to show/hide overlays based on filter settings.
  * @returns {void}
  */
-export function applyFilters() {
+function applyFilters() {
   try {
     const allOverlays = document.querySelectorAll(A11Y_CONFIG.SELECTORS.OVERLAY_ELEMENTS);
     const filters = getCurrentFilters();
@@ -291,7 +291,7 @@ export function applyFilters() {
  * Gets the total count of overlays on the page.
  * @returns {number} Number of overlays
  */
-export function getOverlayCount() {
+function getOverlayCount() {
   try {
     const overlays = document.querySelectorAll(A11Y_CONFIG.SELECTORS.OVERLAY_ELEMENTS);
     return overlays.length;
@@ -305,7 +305,7 @@ export function getOverlayCount() {
  * Gets all visible overlays on the page.
  * @returns {NodeList} List of visible overlay elements
  */
-export function getVisibleOverlays() {
+function getVisibleOverlays() {
   try {
     const overlays = document.querySelectorAll(A11Y_CONFIG.SELECTORS.OVERLAY_ELEMENTS);
     return Array.from(overlays).filter(overlay =>
@@ -323,7 +323,7 @@ export function getVisibleOverlays() {
  * @param {Element} target - The target element
  * @returns {Object|null} Overlay information or null if not found
  */
-export function getOverlayInfo(target) {
+function getOverlayInfo(target) {
   try {
     const overlays = document.querySelectorAll(A11Y_CONFIG.SELECTORS.OVERLAY_ELEMENTS);
     const targetOverlay = Array.from(overlays).find(overlay => {
@@ -351,3 +351,15 @@ export function getOverlayInfo(target) {
     return null;
   }
 }
+
+// Export all overlay management functions for CommonJS
+module.exports = {
+  overlay,
+  removeAccessibilityOverlays,
+  highlightCurrentOverlay,
+  categorizeIssue,
+  applyFilters,
+  getOverlayCount,
+  getVisibleOverlays,
+  getOverlayInfo
+};
