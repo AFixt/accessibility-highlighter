@@ -75,9 +75,9 @@ test.describe('Real Chrome Extension Tests', () => {
       return typeof runAccessibilityChecks === 'function';
     });
 
-    if (!hasContentScript) {
+    if (!_hasContentScript) {
       // If content script isn't automatically injected, inject it manually for testing
-      await page.addScriptTag({ path: path.join(__dirname, '../../dist/contentScript.js') });
+      await page.addScriptTag({ path: _path.join(__dirname, '../../dist/contentScript.js') });
       await page.waitForTimeout(1000);
     }
 
@@ -90,9 +90,9 @@ test.describe('Real Chrome Extension Tests', () => {
       };
     });
 
-    expect(functionsExist.runAccessibilityChecks).toBe(true);
-    expect(functionsExist.removeAccessibilityOverlays).toBe(true);
-    expect(functionsExist.toggleAccessibilityHighlight).toBe(true);
+    expect(_functionsExist.runAccessibilityChecks).toBe(true);
+    expect(_functionsExist.removeAccessibilityOverlays).toBe(true);
+    expect(_functionsExist.toggleAccessibilityHighlight).toBe(true);
   });
 
   test('should detect real accessibility issues with actual extension code', async () => {
@@ -136,7 +136,7 @@ test.describe('Real Chrome Extension Tests', () => {
     `);
 
     // Inject content script if needed
-    await page.addScriptTag({ path: path.join(__dirname, '../../dist/contentScript.js') });
+    await page.addScriptTag({ path: _path.join(__dirname, '../../dist/contentScript.js') });
     await page.waitForTimeout(1000);
 
     // Run the real accessibility checks
@@ -157,9 +157,9 @@ test.describe('Real Chrome Extension Tests', () => {
           const _logMessages = typeof logs !== 'undefined' ? logs.map(log => log.Message) : [];
 
           resolve({
-            overlayCount,
-            logCount,
-            logMessages,
+            overlayCount: _overlayCount,
+            logCount: _logCount,
+            logMessages: _logMessages,
             htmlElements: {
               images: document.querySelectorAll('img').length,
               inputs: document.querySelectorAll('input').length,
@@ -173,28 +173,28 @@ test.describe('Real Chrome Extension Tests', () => {
       });
     });
 
-    console.log('Test results:', results);
+    console.log('Test results:', _results);
 
     // Verify elements exist
-    expect(results.htmlElements.images).toBe(4);
-    expect(results.htmlElements.inputs).toBe(3);
-    expect(results.htmlElements.buttons).toBe(3);
-    expect(results.htmlElements.links).toBe(2);
-    expect(results.htmlElements.tables).toBe(2);
-    expect(results.htmlElements.iframes).toBe(2);
+    expect(_results.htmlElements.images).toBe(4);
+    expect(_results.htmlElements.inputs).toBe(3);
+    expect(_results.htmlElements.buttons).toBe(3);
+    expect(_results.htmlElements.links).toBe(2);
+    expect(_results.htmlElements.tables).toBe(2);
+    expect(_results.htmlElements.iframes).toBe(2);
 
     // Verify issues were detected
-    expect(results.logCount).toBeGreaterThan(0);
-    expect(results.overlayCount).toBeGreaterThan(0);
+    expect(_results.logCount).toBeGreaterThan(0);
+    expect(_results.overlayCount).toBeGreaterThan(0);
 
     // Check specific issue types were found
-    const _messages = results.logMessages.join(' ');
-    expect(messages).toContain('img does not have an alt attribute');
-    expect(messages).toContain('Form field without a corresponding label');
-    expect(messages).toContain('Button without aria-label');
-    expect(messages).toContain('Link element with matching text content');
-    expect(messages).toContain('table without any th elements');
-    expect(messages).toContain('iframe element without a title attribute');
+    const _messages = _results.logMessages.join(' ');
+    expect(_messages).toContain('img does not have an alt attribute');
+    expect(_messages).toContain('Form field without a corresponding label');
+    expect(_messages).toContain('Button without aria-label');
+    expect(_messages).toContain('Link element with matching text content');
+    expect(_messages).toContain('table without any th elements');
+    expect(_messages).toContain('iframe element without a title attribute');
   });
 
   test('should properly position overlays on real elements', async () => {
@@ -207,7 +207,7 @@ test.describe('Real Chrome Extension Tests', () => {
     `);
 
     // Inject content script
-    await page.addScriptTag({ path: path.join(__dirname, '../../dist/contentScript.js') });
+    await page.addScriptTag({ path: _path.join(__dirname, '../../dist/contentScript.js') });
     await page.waitForTimeout(1000);
 
     // Run accessibility checks
@@ -222,44 +222,44 @@ test.describe('Real Chrome Extension Tests', () => {
       const _img = document.querySelector('img');
       const _overlay = document.querySelector('.overlay');
 
-      if (!img || !overlay) {
-        return { error: 'Missing elements', img: !!img, overlay: !!overlay };
+      if (!_img || !_overlay) {
+        return { error: 'Missing elements', img: !!_img, overlay: !!_overlay };
       }
 
-      const _imgRect = img.getBoundingClientRect();
-      const _overlayRect = overlay.getBoundingClientRect();
+      const _imgRect = _img.getBoundingClientRect();
+      const _overlayRect = _overlay.getBoundingClientRect();
 
       return {
         img: {
-          top: imgRect.top,
-          left: imgRect.left,
-          width: imgRect.width,
-          height: imgRect.height
+          top: _imgRect.top,
+          left: _imgRect.left,
+          width: _imgRect.width,
+          height: _imgRect.height
         },
         overlay: {
-          top: overlayRect.top,
-          left: overlayRect.left,
-          width: overlayRect.width,
-          height: overlayRect.height
+          top: _overlayRect.top,
+          left: _overlayRect.left,
+          width: _overlayRect.width,
+          height: _overlayRect.height
         }
       };
     });
 
-    console.log('Position test results:', positions);
+    console.log('Position test results:', _positions);
 
-    if (positions.error) {
-      console.log('Error details:', positions);
+    if (_positions.error) {
+      console.log('Error details:', _positions);
     }
 
-    expect(positions.img).toBeDefined();
-    expect(positions.overlay).toBeDefined();
+    expect(_positions.img).toBeDefined();
+    expect(_positions.overlay).toBeDefined();
 
     // Overlay should roughly match image position (within 5px tolerance)
-    if (positions.img && positions.overlay) {
-      expect(Math.abs(positions.overlay.top - positions.img.top)).toBeLessThan(5);
-      expect(Math.abs(positions.overlay.left - positions.img.left)).toBeLessThan(5);
-      expect(Math.abs(positions.overlay.width - positions.img.width)).toBeLessThan(5);
-      expect(Math.abs(positions.overlay.height - positions.img.height)).toBeLessThan(5);
+    if (_positions.img && _positions.overlay) {
+      expect(Math.abs(_positions.overlay.top - _positions.img.top)).toBeLessThan(5);
+      expect(Math.abs(_positions.overlay.left - _positions.img.left)).toBeLessThan(5);
+      expect(Math.abs(_positions.overlay.width - _positions.img.width)).toBeLessThan(5);
+      expect(Math.abs(_positions.overlay.height - _positions.img.height)).toBeLessThan(5);
     }
   });
 
@@ -275,7 +275,7 @@ test.describe('Real Chrome Extension Tests', () => {
     `);
 
     // Inject content script
-    await page.addScriptTag({ path: path.join(__dirname, '../../dist/contentScript.js') });
+    await page.addScriptTag({ path: _path.join(__dirname, '../../dist/contentScript.js') });
     await page.waitForTimeout(1000);
 
     // Create overlays
@@ -287,7 +287,7 @@ test.describe('Real Chrome Extension Tests', () => {
 
     // Verify overlays exist
     const _overlayCountBefore = await page.locator('.overlay, .a11y-error, .a11y-warning').count();
-    expect(overlayCountBefore).toBeGreaterThan(0);
+    expect(_overlayCountBefore).toBeGreaterThan(0);
 
     // Remove overlays
     await page.evaluate(() => {
@@ -298,13 +298,13 @@ test.describe('Real Chrome Extension Tests', () => {
 
     // Verify overlays are removed
     const _overlayCountAfter = await page.locator('.overlay, .a11y-error, .a11y-warning').count();
-    expect(overlayCountAfter).toBe(0);
+    expect(_overlayCountAfter).toBe(0);
 
     // Verify logs are cleared
     const _logCount = await page.evaluate(() => {
       return typeof logs !== 'undefined' ? logs.length : -1;
     });
-    expect(logCount).toBe(0);
+    expect(_logCount).toBe(0);
   });
 
   test('should toggle highlighting on and off', async () => {
@@ -317,7 +317,7 @@ test.describe('Real Chrome Extension Tests', () => {
     `);
 
     // Inject content script
-    await page.addScriptTag({ path: path.join(__dirname, '../../dist/contentScript.js') });
+    await page.addScriptTag({ path: _path.join(__dirname, '../../dist/contentScript.js') });
     await page.waitForTimeout(1000);
 
     // Toggle on
@@ -327,7 +327,7 @@ test.describe('Real Chrome Extension Tests', () => {
 
     await page.waitForTimeout(1000);
     const _overlaysOn = await page.locator('.overlay').count();
-    expect(overlaysOn).toBeGreaterThan(0);
+    expect(_overlaysOn).toBeGreaterThan(0);
 
     // Toggle off
     await page.evaluate(() => {
@@ -336,7 +336,7 @@ test.describe('Real Chrome Extension Tests', () => {
 
     await page.waitForTimeout(500);
     const _overlaysOff = await page.locator('.overlay').count();
-    expect(overlaysOff).toBe(0);
+    expect(_overlaysOff).toBe(0);
   });
 
   test('should handle complex page structures', async () => {
@@ -403,7 +403,7 @@ test.describe('Real Chrome Extension Tests', () => {
     `);
 
     // Inject content script
-    await page.addScriptTag({ path: path.join(__dirname, '../../dist/contentScript.js') });
+    await page.addScriptTag({ path: _path.join(__dirname, '../../dist/contentScript.js') });
     await page.waitForTimeout(1000);
 
     // Run comprehensive checks
@@ -420,37 +420,37 @@ test.describe('Real Chrome Extension Tests', () => {
           const _logMessages = typeof logs !== 'undefined' ? logs.map(log => log.Message) : [];
 
           resolve({
-            overlayCount: overlays.length,
-            logCount: logMessages.length,
-            logMessages,
-            overlayMessages: Array.from(overlays).map(o => o.getAttribute('data-a11ymessage')).filter(Boolean)
+            overlayCount: _overlays.length,
+            logCount: _logMessages.length,
+            logMessages: _logMessages,
+            overlayMessages: Array.from(_overlays).map(o => o.getAttribute('data-a11ymessage')).filter(Boolean)
           });
         }, 1500);
       });
     });
 
-    console.log('Complex page results:', results);
+    console.log('Complex page results:', _results);
 
     // Should find multiple different types of issues
-    expect(results.overlayCount).toBeGreaterThan(3);
-    expect(results.logCount).toBeGreaterThan(3);
+    expect(_results.overlayCount).toBeGreaterThan(3);
+    expect(_results.logCount).toBeGreaterThan(3);
 
     // Check for various issue types
-    const _allMessages = [...results.logMessages, ...results.overlayMessages].join(' ');
+    const _allMessages = [..._results.logMessages, ..._results.overlayMessages].join(' ');
 
     // Should find image issues
-    expect(allMessages).toMatch(/img does not have an alt attribute|Uninformative alt attribute/);
+    expect(_allMessages).toMatch(/img does not have an alt attribute|Uninformative alt attribute/);
 
     // Should find form issues
-    expect(allMessages).toMatch(/Form field without|Button without/);
+    expect(_allMessages).toMatch(/Form field without|Button without/);
 
     // Should find link issues
-    expect(allMessages).toMatch(/Link element with matching text content/);
+    expect(_allMessages).toMatch(/Link element with matching text content/);
 
     // Should find table issues (no th elements)
-    expect(allMessages).toContain('table without any th elements');
+    expect(_allMessages).toContain('table without any th elements');
 
     // Should find iframe issues
-    expect(allMessages).toContain('iframe element without a title attribute');
+    expect(_allMessages).toContain('iframe element without a title attribute');
   });
 });
