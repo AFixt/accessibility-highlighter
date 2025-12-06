@@ -92,7 +92,10 @@ jobs:
         
     - name: Install dependencies
       run: npm ci
-      
+
+    - name: Build extension
+      run: npm run build
+
     - name: Install Playwright browsers
       run: npx playwright install --with-deps chromium
 
