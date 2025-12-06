@@ -15,14 +15,14 @@ test.describe('Accessibility Scenarios E2E Tests', () => {
   let extensionId;
 
   test.beforeAll(async () => {
-    const _pathToExtension = path.join(__dirname, '../../dist');
+    const _pathToExtension = _path.join(__dirname, '../../dist');
 
     // Launch Chrome with the extension loaded
     browser = await chromium.launch({
       headless: false, // Extension testing requires headed mode
       args: [
-        `--disable-extensions-except=${pathToExtension}`,
-        `--load-extension=${pathToExtension}`,
+        `--disable-extensions-except=${_pathToExtension}`,
+        `--load-extension=${_pathToExtension}`,
         '--no-sandbox',
         '--disable-dev-shm-usage'
       ]

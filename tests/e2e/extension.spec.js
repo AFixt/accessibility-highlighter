@@ -12,11 +12,11 @@ test.describe('Accessibility Highlighter Extension E2E Tests', () => {
 
   test.beforeAll(async ({ browser }) => {
     // Create a new browser context with the extension loaded
-    const _pathToExtension = path.join(__dirname, '../../dist');
+    const _pathToExtension = _path.join(__dirname, '../../dist');
     context = await browser.newContext({
       args: [
-        `--disable-extensions-except=${pathToExtension}`,
-        `--load-extension=${pathToExtension}`
+        `--disable-extensions-except=${_pathToExtension}`,
+        `--load-extension=${_pathToExtension}`
       ]
     });
 
