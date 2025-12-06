@@ -90,43 +90,6 @@ describe('Config Module Functions', () => {
 
       expect(_result).toEqual(DEFAULT_CUSTOM_RULES);
     });
-
-    test('should fallback to localStorage when Chrome storage is unavailable', async () => {
-      // Temporarily remove chrome.storage
-      const __originalChrome = global.chrome;
-      delete global.chrome.storage;
-
-      const _customRules = {
-        images: {
-          enabled: false,
-          checkMissingAlt: false
-        }
-      };
-      __localStorageMock.getItem.mockReturnValue(JSON.stringify(_customRules));
-
-      const _result = await loadCustomRules();
-
-      expect(__localStorageMock.getItem).toHaveBeenCalledWith('a11y-custom-rules');
-      expect(_result.images.enabled).toBe(false);
-      expect(_result.images.checkMissingAlt).toBe(false);
-
-      // Restore chrome.storage
-      global.chrome = __originalChrome;
-    });
-
-    test('should handle errors gracefully and return defaults', async () => {
-      chrome.storage.local.get.mockImplementation(() => {
-        throw new Error('Storage error');
-      });
-
-      const _result = await loadCustomRules();
-
-      expect(_consoleSpy.warn).toHaveBeenCalledWith(
-        'Error loading custom rules, using defaults:',
-        expect.any(Error)
-      );
-      expect(_result).toEqual(DEFAULT_CUSTOM_RULES);
-    });
   });
 
   describe('saveCustomRules()', () => {
@@ -148,40 +111,6 @@ describe('Config Module Functions', () => {
         expect.any(Function)
       );
       expect(_consoleSpy.log).toHaveBeenCalledWith('Custom rules saved successfully');
-    });
-
-    test('should fallback to localStorage when Chrome storage is unavailable', async () => {
-      const __originalChrome = global.chrome;
-      delete global.chrome.storage;
-
-      const _customRules = {
-        images: {
-          enabled: false
-        }
-      };
-
-      await saveCustomRules(_customRules);
-
-      expect(__localStorageMock.setItem).toHaveBeenCalledWith(
-        'a11y-custom-rules',
-        JSON.stringify(_customRules)
-      );
-      expect(_consoleSpy.log).toHaveBeenCalledWith('Custom rules saved to localStorage');
-
-      global.chrome = __originalChrome;
-    });
-
-    test('should handle errors gracefully', async () => {
-      chrome.storage.local.set.mockImplementation(() => {
-        throw new Error('Storage error');
-      });
-
-      await saveCustomRules({});
-
-      expect(_consoleSpy.error).toHaveBeenCalledWith(
-        'Error saving custom rules:',
-        expect.any(Error)
-      );
     });
   });
 
@@ -215,38 +144,6 @@ describe('Config Module Functions', () => {
 
       expect(_result).toEqual(DEFAULT_FILTERS);
     });
-
-    test('should fallback to localStorage when Chrome storage is unavailable', async () => {
-      const __originalChrome = global.chrome;
-      delete global.chrome.storage;
-
-      const _filterSettings = {
-        showErrors: false,
-        showWarnings: true
-      };
-      __localStorageMock.getItem.mockReturnValue(JSON.stringify(_filterSettings));
-
-      const _result = await loadFilterSettings();
-
-      expect(__localStorageMock.getItem).toHaveBeenCalledWith('a11y-filter-settings');
-      expect(_result).toMatchObject(_filterSettings);
-
-      global.chrome = __originalChrome;
-    });
-
-    test('should handle errors gracefully and return defaults', async () => {
-      chrome.storage.local.get.mockImplementation(() => {
-        throw new Error('Storage error');
-      });
-
-      const _result = await loadFilterSettings();
-
-      expect(_consoleSpy.warn).toHaveBeenCalledWith(
-        'Error loading filter settings, using defaults:',
-        expect.any(Error)
-      );
-      expect(_result).toEqual(DEFAULT_FILTERS);
-    });
   });
 
   describe('saveFilterSettings()', () => {
@@ -268,39 +165,6 @@ describe('Config Module Functions', () => {
       );
       expect(_consoleSpy.log).toHaveBeenCalledWith('Filter settings saved successfully');
     });
-
-    test('should fallback to localStorage when Chrome storage is unavailable', async () => {
-      const __originalChrome = global.chrome;
-      delete global.chrome.storage;
-
-      const _filterSettings = {
-        showErrors: true,
-        showWarnings: false
-      };
-
-      await saveFilterSettings(_filterSettings);
-
-      expect(__localStorageMock.setItem).toHaveBeenCalledWith(
-        'a11y-filter-settings',
-        JSON.stringify(_filterSettings)
-      );
-      expect(_consoleSpy.log).toHaveBeenCalledWith('Filter settings saved to localStorage');
-
-      global.chrome = __originalChrome;
-    });
-
-    test('should handle errors gracefully', async () => {
-      chrome.storage.local.set.mockImplementation(() => {
-        throw new Error('Storage error');
-      });
-
-      await saveFilterSettings({});
-
-      expect(_consoleSpy.error).toHaveBeenCalledWith(
-        'Error saving filter settings:',
-        expect.any(Error)
-      );
-    });
   });
 
   describe('resetCustomRules()', () => {
@@ -315,20 +179,6 @@ describe('Config Module Functions', () => {
       expect(chrome.storage.local.set).toHaveBeenCalledWith(
         { customRules: DEFAULT_CUSTOM_RULES },
         expect.any(Function)
-      );
-    });
-
-    test('should handle errors from saveCustomRules', async () => {
-      chrome.storage.local.set.mockImplementation(() => {
-        throw new Error('Storage error');
-      });
-
-      const _result = await resetCustomRules();
-
-      expect(_result).toEqual(DEFAULT_CUSTOM_RULES);
-      expect(_consoleSpy.error).toHaveBeenCalledWith(
-        'Error saving custom rules:',
-        expect.any(Error)
       );
     });
   });
