@@ -13,29 +13,30 @@ jobs:
   codeql:
     name: CodeQL Analysis
     runs-on: ubuntu-latest
-    
+    if: false  # Disabled - repository uses CodeQL default setup which conflicts with advanced configuration
+
     permissions:
       actions: read
       contents: read
       security-events: write
-      
+
     strategy:
       fail-fast: false
       matrix:
         language: [ 'javascript' ]
-        
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v3
       with:
         languages: ${{ matrix.language }}
-        
+
     - name: Autobuild
       uses: github/codeql-action/autobuild@v3
-      
+
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
       with:

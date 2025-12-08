@@ -4,45 +4,47 @@
  */
 
 describe('Accessibility Highlighter Unit Tests', () => {
+  // Setup global configuration before all tests
+  beforeAll(() => {
+    global.A11Y_CONFIG = {
+      PERFORMANCE: {
+        THROTTLE_DELAY: 1000,
+        FONT_SIZE_THRESHOLD: 12,
+        MAX_LOG_ELEMENT_LENGTH: 100,
+        Z_INDEX_OVERLAY: 2147483647
+      },
+      VISUAL: {
+        ERROR_COLOR: '#FF0000',
+        WARNING_COLOR: '#FFA500',
+        OVERLAY_OPACITY: 0.4,
+        BORDER_RADIUS: '5px',
+        BORDER_WIDTH: '2px'
+      },
+      PROHIBITED_ALT_VALUES: [
+        'artwork', 'arrow', 'painting', 'bullet', 'graphic', 'graph',
+        'spacer', 'image', 'placeholder', 'photo', 'picture', 'logo'
+      ],
+      PROHIBITED_LINK_TEXT: [
+        'link', 'more', 'here', 'click', 'click here', 'read'
+      ],
+      SELECTORS: {
+        ALL_CHECKABLE_ELEMENTS: 'img, button, [role="button"], a, [role="link"], fieldset, input, table, iframe, audio, video, [tabindex], [role="img"]',
+        LANDMARK_ELEMENTS: 'header, aside, footer, main, nav, [role="banner"], [role="complementary"], [role="contentinfo"], [role="main"], [role="navigation"], [role="search"]'
+      },
+      MESSAGES: {
+        MISSING_ALT: 'img does not have an alt attribute',
+        UNINFORMATIVE_ALT: 'Uninformative alt attribute value found',
+        BUTTON_NO_LABEL: 'Button without aria-label or aria-labelledby or empty text content'
+      },
+      CSS_CLASSES: {
+        ERROR_OVERLAY: 'a11y-error',
+        WARNING_OVERLAY: 'a11y-warning'
+      }
+    };
+  });
+
   describe('Configuration Objects', () => {
     test('A11Y_CONFIG should be properly structured', () => {
-      // Mock the config before requiring the content script
-      global.A11Y_CONFIG = {
-        PERFORMANCE: {
-          THROTTLE_DELAY: 1000,
-          FONT_SIZE_THRESHOLD: 12,
-          MAX_LOG_ELEMENT_LENGTH: 100,
-          Z_INDEX_OVERLAY: 2147483647
-        },
-        VISUAL: {
-          ERROR_COLOR: '#FF0000',
-          WARNING_COLOR: '#FFA500',
-          OVERLAY_OPACITY: 0.4,
-          BORDER_RADIUS: '5px',
-          BORDER_WIDTH: '2px'
-        },
-        PROHIBITED_ALT_VALUES: [
-          'artwork', 'arrow', 'painting', 'bullet', 'graphic', 'graph',
-          'spacer', 'image', 'placeholder', 'photo', 'picture', 'logo'
-        ],
-        PROHIBITED_LINK_TEXT: [
-          'link', 'more', 'here', 'click', 'click here', 'read'
-        ],
-        SELECTORS: {
-          ALL_CHECKABLE_ELEMENTS: 'img, button, [role="button"], a, [role="link"], fieldset, input, table, iframe, audio, video, [tabindex], [role="img"]',
-          LANDMARK_ELEMENTS: 'header, aside, footer, main, nav, [role="banner"], [role="complementary"], [role="contentinfo"], [role="main"], [role="navigation"], [role="search"]'
-        },
-        MESSAGES: {
-          MISSING_ALT: 'img does not have an alt attribute',
-          UNINFORMATIVE_ALT: 'Uninformative alt attribute value found',
-          BUTTON_NO_LABEL: 'Button without aria-label or aria-labelledby or empty text content'
-        },
-        CSS_CLASSES: {
-          ERROR_OVERLAY: 'a11y-error',
-          WARNING_OVERLAY: 'a11y-warning'
-        }
-      };
-
       expect(global.A11Y_CONFIG).toBeDefined();
       expect(global.A11Y_CONFIG.PERFORMANCE).toBeDefined();
       expect(global.A11Y_CONFIG.VISUAL).toBeDefined();
