@@ -316,6 +316,18 @@ const A11Y_CONFIG = {
 };
 
 /**
+ * Escapes HTML special characters to prevent XSS attacks.
+ *
+ * @param {string} str - String to escape
+ * @returns {string} Escaped string safe for HTML
+ */
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+/**
  * Provides the ability to overlay an element with a visual indicator of an accessibility issue.
  * @param {string} overlayClass - CSS class for the overlay
  * @param {string} level - Error level (error/warning)
@@ -356,7 +368,9 @@ function overlay(overlayClass, level, msg) {
     const sanitizedMsg = String(msg)
       .replace(/[<>"'&]/g, '') // Remove HTML-related characters
       .replace(/javascript:/gi, '') // Remove javascript: protocol
-      .replace(/on\w+\s*=/gi, '') // Remove event handlers
+      .replace(/data:/gi, '') // Remove data: protocol
+      .replace(/vbscript:/gi, '') // Remove vbscript: protocol
+      .replace(/on\w+/gi, '') // Remove event handlers (complete removal, not just =)
       .trim();
 
     // Create overlay element
@@ -1534,9 +1548,9 @@ function createExportPanel() {
         <div>• Total Issues: ${summary.total}</div>
         <div>• Errors: ${summary.errors}</div>
         <div>• Warnings: ${summary.warnings}</div>
-        <div>• Page: ${document.title || 'Untitled'}</div>
-        <div>• URL: ${window.location.href}</div>
-        <div>• Generated: ${new Date().toLocaleString()}</div>
+        <div>• Page: ${escapeHtml(document.title || 'Untitled')}</div>
+        <div>• URL: ${escapeHtml(window.location.href)}</div>
+        <div>• Generated: ${escapeHtml(new Date().toLocaleString())}</div>
       </div>
     `;
     exportPanel.appendChild(infoSection);
@@ -2663,8 +2677,9 @@ function checkLinkElement(element) {
     return;
   }
 
-  // Check for invalid href
-  if (href === '#' || (href && href.startsWith('javascript:'))) {
+  // Check for invalid href - includes data: and vbscript: protocols
+  const lowerHref = href ? href.toLowerCase() : '';
+  if (href === '#' || lowerHref.startsWith('javascript:') || lowerHref.startsWith('data:') || lowerHref.startsWith('vbscript:')) {
     console.log(element);
     overlay.call(element, 'overlay', 'error', A11Y_CONFIG.MESSAGES.INVALID_HREF);
   }
