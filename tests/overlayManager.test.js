@@ -155,8 +155,8 @@ describe('overlayManager.js', () => {
       overlay.call(_mockElement, 'a11y-error', 'error', '<script>alert("xss")</script>Test message');
 
       const _overlayEl = document.querySelector('.a11y-error');
-      // Sanitization removes <, >, ", ', & characters
-      expect(_overlayEl.dataset.a11ymessage).toBe('scriptalert(xss)/scriptTest message');
+      // Sanitization escapes HTML entities to prevent XSS
+      expect(_overlayEl.dataset.a11ymessage).toBe('&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;Test message');
     });
 
     test('should handle invalid overlay class parameter', () => {

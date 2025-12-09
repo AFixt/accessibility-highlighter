@@ -73,17 +73,19 @@ function overlay(overlayClass, level, msg) {
 }
 
 /**
- * Sanitizes a message by removing HTML tags and dangerous characters.
+ * Sanitizes a message by escaping HTML entities.
  * @param {string} msg - The message to sanitize
  * @returns {string} Sanitized message
  */
 function sanitizeMessage(msg) {
+  // Escape HTML entities for safe display
+  // Using dataset property is safe, but we sanitize for defense-in-depth
   return String(msg)
-    .replace(/[<>"'&]/g, '') // Remove HTML-related characters
-    .replace(/javascript:/gi, '') // Remove javascript: protocol
-    .replace(/data:/gi, '') // Remove data: protocol
-    .replace(/vbscript:/gi, '') // Remove vbscript: protocol
-    .replace(/on\w+/gi, '') // Remove event handlers (complete removal, not just =)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
     .trim();
 }
 

@@ -244,12 +244,15 @@ describe('Accessibility Highlighter Unit Tests', () => {
 
     test('should identify invalid href attributes', () => {
       function isInvalidHref(href) {
-        return href === '#' || (href && href.startsWith('javascript:'));
+        const lowerHref = href ? href.toLowerCase() : '';
+        return href === '#' || lowerHref.startsWith('javascript:') || lowerHref.startsWith('data:') || lowerHref.startsWith('vbscript:');
       }
 
       expect(isInvalidHref('#')).toBe(true);
       expect(isInvalidHref('javascript:void(0)')).toBe(true);
       expect(isInvalidHref('javascript:alert("test")')).toBe(true);
+      expect(isInvalidHref('data:text/html,<script>alert("xss")</script>')).toBe(true);
+      expect(isInvalidHref('vbscript:msgbox("test")')).toBe(true);
       expect(isInvalidHref('https://example.com')).toBe(false);
       expect(isInvalidHref('/about')).toBe(false);
       expect(isInvalidHref('mailto:test@example.com')).toBe(false);

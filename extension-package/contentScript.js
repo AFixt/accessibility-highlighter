@@ -364,13 +364,15 @@ function overlay(overlayClass, level, msg) {
       return;
     }
 
-    // Enhanced sanitization - remove all HTML tags and dangerous characters
+    // Sanitize message by escaping HTML entities
+    // Note: Using dataset property is safe and doesn't execute code,
+    // but we sanitize for defense-in-depth in case the value is used elsewhere
     const sanitizedMsg = String(msg)
-      .replace(/[<>"'&]/g, '') // Remove HTML-related characters
-      .replace(/javascript:/gi, '') // Remove javascript: protocol
-      .replace(/data:/gi, '') // Remove data: protocol
-      .replace(/vbscript:/gi, '') // Remove vbscript: protocol
-      .replace(/on\w+/gi, '') // Remove event handlers (complete removal, not just =)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#x27;')
       .trim();
 
     // Create overlay element
