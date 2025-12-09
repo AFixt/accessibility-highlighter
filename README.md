@@ -73,7 +73,8 @@ The extension includes both automated and manual tests:
 - Real HTML fixtures with passing and failing examples
 
 Run tests with:
-```
+
+```bash
 npm test
 ```
 
@@ -84,6 +85,7 @@ Or use the manual test runner by opening `/tests/manual-test-runner.html` in you
 PRs are welcome. Please run tests and ensure the extension works properly before submitting.
 
 To contribute:
+
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes

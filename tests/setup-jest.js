@@ -10,7 +10,7 @@ global.chrome = {
         return Promise.resolve({ isEnabled: true });
       }),
       set: jest.fn().mockImplementation((obj, callback) => {
-        if (callback) callback();
+        if (callback) {callback();}
         return Promise.resolve();
       })
     }
@@ -24,8 +24,8 @@ global.chrome = {
   },
   tabs: {
     query: jest.fn().mockResolvedValue([{ id: 123 }]),
-    sendMessage: jest.fn().mockImplementation((tabId, message, callback) => {
-      if (callback) callback("success");
+    sendMessage: jest.fn().mockImplementation((_tabId, _message, _callback) => {
+      if (_callback) {_callback('success');}
     })
   },
   action: {
@@ -54,13 +54,13 @@ Object.defineProperty(global.document, 'querySelectorAll', {
       ];
     }
     if (selector.includes('a11y-error') || selector.includes('a11y-warning')) {
-      // Mock overlay elements
-      return {
-        forEach: jest.fn(callback => {
-          const mockElement = { parentNode: { removeChild: jest.fn() } };
-          callback(mockElement);
-        })
-      };
+      // Mock overlay elements - return array-like object with length property
+      const mockElements = [];
+      mockElements.forEach = jest.fn(callback => {
+        const _mockElement = { parentNode: { removeChild: jest.fn() } };
+        callback(_mockElement);
+      });
+      return mockElements;
     }
     // Default empty array for other selectors
     return {
@@ -159,7 +159,7 @@ global.runAccessibilityChecks = jest.fn().mockImplementation(() => {
   }
 });
 
-global.toggleAccessibilityHighlight = jest.fn().mockImplementation((isEnabled) => {
+global.toggleAccessibilityHighlight = jest.fn().mockImplementation(isEnabled => {
   if (isEnabled) {
     global.runAccessibilityChecks();
   } else {
