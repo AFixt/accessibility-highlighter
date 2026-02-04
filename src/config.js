@@ -33,7 +33,8 @@ export const VISUAL_CONFIG = {
   OVERLAY_OPACITY: 0.4,
   BORDER_RADIUS: '5px',
   BORDER_WIDTH: '2px',
-  STRIPE_GRADIENT: 'repeating-linear-gradient(45deg, transparent, transparent 15px, rgba(255,255,255,.5) 15px, rgba(255,255,255,.5) 30px)'
+  STRIPE_GRADIENT:
+    'repeating-linear-gradient(45deg, transparent, transparent 15px, rgba(255,255,255,.5) 15px, rgba(255,255,255,.5) 30px)'
 };
 
 /**
@@ -183,9 +184,27 @@ export const DEPRECATED_ELEMENTS = [
  * CSS selectors for different types of elements to check
  */
 export const SELECTORS = {
-  ALL_CHECKABLE_ELEMENTS: 'img, button, [role="button"], a, [role="link"], fieldset, input, table, iframe, audio, video, [tabindex], [role="img"]',
-  LANDMARK_ELEMENTS: 'header, aside, footer, main, nav, [role="banner"], [role="complementary"], [role="contentinfo"], [role="main"], [role="navigation"], [role="search"]',
-  TEXT_ELEMENTS: ['p', 'span', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'td', 'th', 'label', 'a', 'button'],
+  ALL_CHECKABLE_ELEMENTS:
+    'img, button, [role="button"], a, [role="link"], fieldset, input, table, iframe, audio, video, [tabindex], [role="img"]',
+  LANDMARK_ELEMENTS:
+    'header, aside, footer, main, nav, [role="banner"], [role="complementary"], [role="contentinfo"], [role="main"], [role="navigation"], [role="search"]',
+  TEXT_ELEMENTS: [
+    'p',
+    'span',
+    'div',
+    'h1',
+    'h2',
+    'h3',
+    'h4',
+    'h5',
+    'h6',
+    'li',
+    'td',
+    'th',
+    'label',
+    'a',
+    'button'
+  ],
   INTERACTIVE_ELEMENTS: ['a', 'area', 'button', 'input', 'select', 'textarea'],
   OVERLAY_ELEMENTS: '.a11y-error, .a11y-warning, .overlay'
 };

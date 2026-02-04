@@ -11,7 +11,12 @@
  * @version 1.0.1
  */
 
-const { DEFAULT_FILTERS, DEFAULT_CUSTOM_RULES, loadCustomRules, loadFilterSettings } = require('./config.js');
+const {
+  DEFAULT_FILTERS,
+  DEFAULT_CUSTOM_RULES,
+  loadCustomRules,
+  loadFilterSettings
+} = require('./config.js');
 
 /**
  * @typedef {Object} LogEntry

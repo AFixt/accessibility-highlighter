@@ -1,0 +1,23 @@
+{
+  "threshold": 0,
+  "reporters": ["html", "console", "json"],
+  "ignore": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/coverage/**",
+    "**/extension-package/**",
+    "**/*.min.js",
+    "**/*.min.css",
+    "**/package-lock.json",
+    "**/yarn.lock"
+  ],
+  "gitignore": true,
+  "minLines": 5,
+  "minTokens": 50,
+  "maxLines": 1000,
+  "maxSize": "100kb",
+  "format": ["javascript", "json"],
+  "absolute": false,
+  "output": "./reports/jscpd"
+}

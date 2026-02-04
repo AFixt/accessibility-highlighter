@@ -84,7 +84,8 @@ describe('Element Checker Edge Cases', () => {
 
     test('should handle img with data URI src', () => {
       const _img = document.createElement('img');
-      _img.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==';
+      _img.src =
+        'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==';
       document.body.appendChild(_img);
 
       global.checkImageElement(_img);

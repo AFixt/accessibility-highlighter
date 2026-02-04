@@ -24,10 +24,12 @@ describe('Structure Functions Tests', () => {
   // Mock A11Y_CONFIG
   const A11Y_CONFIG = {
     SELECTORS: {
-      LANDMARK_ELEMENTS: 'main, nav, header, footer, section, article, aside, form[aria-label], form[aria-labelledby], [role="main"], [role="navigation"], [role="banner"], [role="contentinfo"], [role="complementary"], [role="search"], [role="region"][aria-label], [role="region"][aria-labelledby]'
+      LANDMARK_ELEMENTS:
+        'main, nav, header, footer, section, article, aside, form[aria-label], form[aria-labelledby], [role="main"], [role="navigation"], [role="banner"], [role="contentinfo"], [role="complementary"], [role="search"], [role="region"][aria-label], [role="region"][aria-labelledby]'
     },
     MESSAGES: {
-      NO_LANDMARKS: 'Page has no landmark regions. Add semantic HTML5 elements or ARIA landmarks for better navigation.'
+      NO_LANDMARKS:
+        'Page has no landmark regions. Add semantic HTML5 elements or ARIA landmarks for better navigation.'
     }
   };
 
@@ -104,9 +106,15 @@ describe('Structure Functions Tests', () => {
 
       checkForLandmarks();
 
-      expect(_mockDocument.querySelectorAll).toHaveBeenCalledWith(A11Y_CONFIG.SELECTORS.LANDMARK_ELEMENTS);
+      expect(_mockDocument.querySelectorAll).toHaveBeenCalledWith(
+        A11Y_CONFIG.SELECTORS.LANDMARK_ELEMENTS
+      );
       expect(_mockConsole.log).toHaveBeenCalledWith(_mockDocument.body);
-      expect(mockOverlay).toHaveBeenCalledWith('overlay', 'error', A11Y_CONFIG.MESSAGES.NO_LANDMARKS);
+      expect(mockOverlay).toHaveBeenCalledWith(
+        'overlay',
+        'error',
+        A11Y_CONFIG.MESSAGES.NO_LANDMARKS
+      );
     });
 
     test('should not create overlay when landmarks exist', () => {
@@ -120,7 +128,9 @@ describe('Structure Functions Tests', () => {
 
       checkForLandmarks();
 
-      expect(_mockDocument.querySelectorAll).toHaveBeenCalledWith(A11Y_CONFIG.SELECTORS.LANDMARK_ELEMENTS);
+      expect(_mockDocument.querySelectorAll).toHaveBeenCalledWith(
+        A11Y_CONFIG.SELECTORS.LANDMARK_ELEMENTS
+      );
       expect(_mockConsole.log).not.toHaveBeenCalled();
       expect(mockOverlay).not.toHaveBeenCalled();
     });
@@ -136,15 +146,15 @@ describe('Structure Functions Tests', () => {
 
       checkForLandmarks();
 
-      expect(_mockDocument.querySelectorAll).toHaveBeenCalledWith(A11Y_CONFIG.SELECTORS.LANDMARK_ELEMENTS);
+      expect(_mockDocument.querySelectorAll).toHaveBeenCalledWith(
+        A11Y_CONFIG.SELECTORS.LANDMARK_ELEMENTS
+      );
       expect(mockOverlay).not.toHaveBeenCalled();
     });
 
     test('should detect labeled form landmarks', () => {
       // Mock labeled form found
-      const mockFormLandmarks = [
-        { tagName: 'FORM', attributes: { 'aria-label': 'Search' } }
-      ];
+      const mockFormLandmarks = [{ tagName: 'FORM', attributes: { 'aria-label': 'Search' } }];
       _mockDocument.querySelectorAll.mockReturnValue(mockFormLandmarks);
 
       checkForLandmarks();
@@ -167,9 +177,7 @@ describe('Structure Functions Tests', () => {
 
     test('should handle pages with only one landmark', () => {
       // Mock single landmark
-      const mockSingleLandmark = [
-        { tagName: 'MAIN', role: null }
-      ];
+      const mockSingleLandmark = [{ tagName: 'MAIN', role: null }];
       _mockDocument.querySelectorAll.mockReturnValue(mockSingleLandmark);
 
       checkForLandmarks();
@@ -377,7 +385,8 @@ describe('Structure Functions Tests', () => {
           if (!_nav.getAttribute('aria-label') && !_nav.getAttribute('aria-labelledby')) {
             _issues.push({
               element: _nav,
-              message: 'Navigation element missing accessible name. Add aria-label or aria-labelledby.',
+              message:
+                'Navigation element missing accessible name. Add aria-label or aria-labelledby.',
               level: 'warning'
             });
           }
@@ -389,7 +398,8 @@ describe('Structure Functions Tests', () => {
           if (!_aside.getAttribute('aria-label') && !_aside.getAttribute('aria-labelledby')) {
             _issues.push({
               element: _aside,
-              message: 'Complementary region missing accessible name. Add aria-label or aria-labelledby.',
+              message:
+                'Complementary region missing accessible name. Add aria-label or aria-labelledby.',
               level: 'warning'
             });
           }
@@ -400,10 +410,7 @@ describe('Structure Functions Tests', () => {
     });
 
     test('should detect multiple main elements', () => {
-      const _mockMainElements = [
-        { tagName: 'MAIN' },
-        { tagName: 'DIV', role: 'main' }
-      ];
+      const _mockMainElements = [{ tagName: 'MAIN' }, { tagName: 'DIV', role: 'main' }];
 
       _mockDocument.querySelectorAll.mockImplementation(_selector => {
         if (_selector === 'main, [role="main"]') {
@@ -427,7 +434,7 @@ describe('Structure Functions Tests', () => {
         },
         {
           tagName: 'NAV',
-          getAttribute: jest.fn(attr => attr === 'aria-label' ? 'Primary Navigation' : null)
+          getAttribute: jest.fn(attr => (attr === 'aria-label' ? 'Primary Navigation' : null))
         }
       ];
 
@@ -480,21 +487,19 @@ describe('Structure Functions Tests', () => {
     });
 
     test('should validate correct semantic structure', () => {
-      const _mockMainElements = [
-        { tagName: 'MAIN' }
-      ];
+      const _mockMainElements = [{ tagName: 'MAIN' }];
 
       const _mockNavElements = [
         {
           tagName: 'NAV',
-          getAttribute: jest.fn(attr => attr === 'aria-label' ? 'Main Navigation' : null)
+          getAttribute: jest.fn(attr => (attr === 'aria-label' ? 'Main Navigation' : null))
         }
       ];
 
       const _mockAsideElements = [
         {
           tagName: 'ASIDE',
-          getAttribute: jest.fn(attr => attr === 'aria-labelledby' ? 'sidebar-title' : null)
+          getAttribute: jest.fn(attr => (attr === 'aria-labelledby' ? 'sidebar-title' : null))
         }
       ];
 

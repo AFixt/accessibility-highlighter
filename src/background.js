@@ -81,91 +81,99 @@ async function getCurrentTab() {
  * @returns {void}
  */
 async function toggleAccessibilityState() {
-  chrome.storage.local.get(['isEnabled']).then(result => {
-    // Validate storage result
-    if (!result || typeof result !== 'object') {
-      console.error('Invalid storage result:', result);
-      return;
-    }
+  chrome.storage.local
+    .get(['isEnabled'])
+    .then(result => {
+      // Validate storage result
+      if (!result || typeof result !== 'object') {
+        console.error('Invalid storage result:', result);
+        return;
+      }
 
-    // Validate and toggle isEnabled (default to false if not set)
-    const currentState = result.isEnabled === true;
-    const newState = !currentState;
-    console.log(`Toggling state from ${currentState} to ${newState}`);
+      // Validate and toggle isEnabled (default to false if not set)
+      const currentState = result.isEnabled === true;
+      const newState = !currentState;
+      console.log(`Toggling state from ${currentState} to ${newState}`);
 
-    chrome.storage.local.set({ isEnabled: newState }).then(() => {
-      console.log(`Extension is now ${newState ? 'enabled' : 'disabled'}.`);
+      chrome.storage.local
+        .set({ isEnabled: newState })
+        .then(() => {
+          console.log(`Extension is now ${newState ? 'enabled' : 'disabled'}.`);
 
-      // Update the extension icon based on the current state
-      chrome.action.setIcon({
-        path: {
-          16: newState ? 'icons/icon-16.png' : 'icons/icon-disabled-16.png',
-          48: newState ? 'icons/icon-48.png' : 'icons/icon-disabled-48.png',
-          128: newState ? 'icons/icon-128.png' : 'icons/icon-disabled-128.png'
-        }
-      });
+          // Update the extension icon based on the current state
+          chrome.action.setIcon({
+            path: {
+              16: newState ? 'icons/icon-16.png' : 'icons/icon-disabled-16.png',
+              48: newState ? 'icons/icon-48.png' : 'icons/icon-disabled-48.png',
+              128: newState ? 'icons/icon-128.png' : 'icons/icon-disabled-128.png'
+            }
+          });
 
-      // Update the title for accessibility (screen readers)
-      chrome.action.setTitle({
-        title: newState
-          ? 'Accessibility Highlighter (ON) - Click to disable accessibility checking'
-          : 'Accessibility Highlighter (OFF) - Click to enable accessibility checking'
-      });
+          // Update the title for accessibility (screen readers)
+          chrome.action.setTitle({
+            title: newState
+              ? 'Accessibility Highlighter (ON) - Click to disable accessibility checking'
+              : 'Accessibility Highlighter (OFF) - Click to enable accessibility checking'
+          });
 
-      // Set badge text for visual indication
-      chrome.action.setBadgeText({
-        text: newState ? 'ON' : 'OFF'
-      });
+          // Set badge text for visual indication
+          chrome.action.setBadgeText({
+            text: newState ? 'ON' : 'OFF'
+          });
 
-      // Set badge background color based on state
-      chrome.action.setBadgeBackgroundColor({
-        color: newState ? '#28a745' : '#dc3545' // Green for on, red for off
-      });
+          // Set badge background color based on state
+          chrome.action.setBadgeBackgroundColor({
+            color: newState ? '#28a745' : '#dc3545' // Green for on, red for off
+          });
 
-      // Send a message to the active tab in the current window
-      getCurrentTab().then(activeTab => {
-        if (activeTab && activeTab.id) {
-          // Validate tab has valid ID
-          if (typeof activeTab.id !== 'number' || activeTab.id < 0) {
-            console.error('Invalid tab ID:', activeTab.id);
-            return;
-          }
+          // Send a message to the active tab in the current window
+          getCurrentTab()
+            .then(activeTab => {
+              if (activeTab && activeTab.id) {
+                // Validate tab has valid ID
+                if (typeof activeTab.id !== 'number' || activeTab.id < 0) {
+                  console.error('Invalid tab ID:', activeTab.id);
+                  return;
+                }
 
-          /** @type {ExtensionMessage} */
-          const message = { action: 'toggleAccessibilityHighlight', isEnabled: newState };
+                /** @type {ExtensionMessage} */
+                const message = { action: 'toggleAccessibilityHighlight', isEnabled: newState };
 
-          chrome.tabs.sendMessage(
-            activeTab.id,
-            message,
-            /**
-             * Handles the response from content script message.
-             * @param {string} response - Response from content script
-             * @returns {void}
-             */
-            response => {
-              if (chrome.runtime.lastError) {
-                // Handle any errors that occur during messaging
-                console.warn(
-                  `Could not send message to tab ${activeTab.id}: ${chrome.runtime.lastError.message}`
+                chrome.tabs.sendMessage(
+                  activeTab.id,
+                  message,
+                  /**
+                   * Handles the response from content script message.
+                   * @param {string} response - Response from content script
+                   * @returns {void}
+                   */
+                  response => {
+                    if (chrome.runtime.lastError) {
+                      // Handle any errors that occur during messaging
+                      console.warn(
+                        `Could not send message to tab ${activeTab.id}: ${chrome.runtime.lastError.message}`
+                      );
+                    } else {
+                      // Optionally handle the response from the content script
+                      console.log('Response from content script:', response);
+                    }
+                  }
                 );
               } else {
-                // Optionally handle the response from the content script
-                console.log('Response from content script:', response);
+                console.warn('No active tab found');
               }
-            }
-          );
-        } else {
-          console.warn('No active tab found');
-        }
-      }).catch(error => {
-        console.error('Error getting current tab:', error);
-      });
-    }).catch(error => {
-      console.error('Error setting storage:', error);
+            })
+            .catch(error => {
+              console.error('Error getting current tab:', error);
+            });
+        })
+        .catch(error => {
+          console.error('Error setting storage:', error);
+        });
+    })
+    .catch(error => {
+      console.error('Error getting storage:', error);
     });
-  }).catch(error => {
-    console.error('Error getting storage:', error);
-  });
 }
 
 /**
@@ -197,49 +205,57 @@ chrome.commands.onCommand.addListener(command => {
  */
 chrome.runtime.onInstalled.addListener(() => {
   // Set the initial state when the extension is installed/updated
-  chrome.storage.local.get(['isEnabled']).then(result => {
-    // Validate storage result
-    if (!result || typeof result !== 'object') {
-      console.error('Invalid storage result during install:', result);
-      // Set default state
-      result = { isEnabled: false };
-    }
-
-    // Validate isEnabled value (default to false if not set)
-    const isEnabled = result.isEnabled === true;
-
-    chrome.action.setIcon({
-      path: {
-        16: isEnabled ? 'icons/icon-16.png' : 'icons/icon-disabled-16.png',
-        48: isEnabled ? 'icons/icon-48.png' : 'icons/icon-disabled-48.png',
-        128: isEnabled ? 'icons/icon-128.png' : 'icons/icon-disabled-128.png'
+  chrome.storage.local
+    .get(['isEnabled'])
+    .then(result => {
+      // Validate storage result
+      if (!result || typeof result !== 'object') {
+        console.error('Invalid storage result during install:', result);
+        // Set default state
+        result = { isEnabled: false };
       }
-    });
 
-    // Set initial accessibility properties
-    chrome.action.setTitle({
-      title: isEnabled
-        ? 'Accessibility Highlighter (ON) - Click to disable accessibility checking'
-        : 'Accessibility Highlighter (OFF) - Click to enable accessibility checking'
-    });
+      // Validate isEnabled value (default to false if not set)
+      const isEnabled = result.isEnabled === true;
 
-    chrome.action.setBadgeText({
-      text: isEnabled ? 'ON' : 'OFF'
-    });
+      chrome.action.setIcon({
+        path: {
+          16: isEnabled ? 'icons/icon-16.png' : 'icons/icon-disabled-16.png',
+          48: isEnabled ? 'icons/icon-48.png' : 'icons/icon-disabled-48.png',
+          128: isEnabled ? 'icons/icon-128.png' : 'icons/icon-disabled-128.png'
+        }
+      });
 
-    chrome.action.setBadgeBackgroundColor({
-      color: isEnabled ? '#28a745' : '#dc3545' // Green for on, red for off
+      // Set initial accessibility properties
+      chrome.action.setTitle({
+        title: isEnabled
+          ? 'Accessibility Highlighter (ON) - Click to disable accessibility checking'
+          : 'Accessibility Highlighter (OFF) - Click to enable accessibility checking'
+      });
+
+      chrome.action.setBadgeText({
+        text: isEnabled ? 'ON' : 'OFF'
+      });
+
+      chrome.action.setBadgeBackgroundColor({
+        color: isEnabled ? '#28a745' : '#dc3545' // Green for on, red for off
+      });
+    })
+    .catch(error => {
+      console.error('Error during extension install setup:', error);
     });
-  }).catch(error => {
-    console.error('Error during extension install setup:', error);
-  });
 
   // Log install complete
   console.log('Accessibility Highlighter extension installed successfully');
 });
 
 // Export functions for testing (when in test environment)
-if (typeof global !== 'undefined' && global.process && global.process.env && global.process.env.NODE_ENV === 'test') {
+if (
+  typeof global !== 'undefined' &&
+  global.process &&
+  global.process.env &&
+  global.process.env.NODE_ENV === 'test'
+) {
   global.getCurrentTab = getCurrentTab;
   global.toggleAccessibilityState = toggleAccessibilityState;
 }

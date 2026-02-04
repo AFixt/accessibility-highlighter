@@ -13,11 +13,15 @@ global.chrome = {
   storage: {
     local: {
       get: jest.fn().mockImplementation((keys, callback) => {
-        if (callback) {callback({ isEnabled: true });}
+        if (callback) {
+          callback({ isEnabled: true });
+        }
         return Promise.resolve({ isEnabled: true });
       }),
       set: jest.fn().mockImplementation((obj, callback) => {
-        if (callback) {callback();}
+        if (callback) {
+          callback();
+        }
         return Promise.resolve();
       })
     }

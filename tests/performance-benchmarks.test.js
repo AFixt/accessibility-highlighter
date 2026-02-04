@@ -253,7 +253,9 @@ describe('Performance Benchmarks - Fixed', () => {
       // Log summary for visibility
       console.log('Performance Benchmark Summary:');
       Object.entries(_results).forEach(([size, data]) => {
-        console.log(`  ${size}: ${data.elements} elements in ${data.actualTime}ms (expected < ${data.expectedTime}ms) - ${data.passed ? 'PASS' : 'FAIL'}`);
+        console.log(
+          `  ${size}: ${data.elements} elements in ${data.actualTime}ms (expected < ${data.expectedTime}ms) - ${data.passed ? 'PASS' : 'FAIL'}`
+        );
       });
     });
   });

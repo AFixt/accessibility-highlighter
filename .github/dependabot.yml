@@ -1,76 +1,74 @@
 version: 2
 updates:
   # Enable version updates for npm
-  - package-ecosystem: "npm"
-    directory: "/"
+  - package-ecosystem: 'npm'
+    directory: '/'
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
-      timezone: "UTC"
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+      timezone: 'UTC'
     open-pull-requests-limit: 10
     reviewers:
-      - "AFixt"
+      - 'AFixt'
     assignees:
-      - "AFixt"
+      - 'AFixt'
     commit-message:
-      prefix: "npm"
-      include: "scope"
+      prefix: 'chore(deps)'
     labels:
-      - "dependencies"
-      - "npm"
-    
+      - 'dependencies'
+      - 'npm'
+
     # Group patch updates together
     groups:
       patch-updates:
         patterns:
-          - "*"
+          - '*'
         update-types:
-          - "patch"
-      
+          - 'patch'
+
       minor-updates:
         patterns:
-          - "*"
+          - '*'
         update-types:
-          - "minor"
-    
+          - 'minor'
+
     # Allow specific dependency updates
     allow:
-      - dependency-type: "direct"
-      - dependency-type: "indirect"
-    
+      - dependency-type: 'direct'
+      - dependency-type: 'indirect'
+
     # Ignore specific packages if needed
     ignore:
       # Ignore major version updates for potentially breaking packages
-      - dependency-name: "eslint"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "jest"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "@playwright/test"
-        update-types: ["version-update:semver-major"]
+      - dependency-name: 'eslint'
+        update-types: ['version-update:semver-major']
+      - dependency-name: 'jest'
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@playwright/test'
+        update-types: ['version-update:semver-major']
 
   # Enable version updates for GitHub Actions
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  - package-ecosystem: 'github-actions'
+    directory: '/'
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
-      timezone: "UTC"
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+      timezone: 'UTC'
     open-pull-requests-limit: 5
     reviewers:
-      - "AFixt"
+      - 'AFixt'
     assignees:
-      - "AFixt"
+      - 'AFixt'
     commit-message:
-      prefix: "github-actions"
-      include: "scope"
+      prefix: 'chore(ci)'
     labels:
-      - "dependencies"
-      - "github-actions"
-    
+      - 'dependencies'
+      - 'github-actions'
+
     # Group GitHub Actions updates
     groups:
       github-actions:
         patterns:
-          - "*"
+          - '*'

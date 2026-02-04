@@ -10,7 +10,7 @@ The `activeTab` permission is required to allow the extension to access and anal
 
 This permission is essential for the core functionality of detecting and highlighting accessibility issues on web pages.
 
-## Host Permissions (*://*/*)
+## Host Permissions (_://_/\*)
 
 The host permission for all URLs is required because accessibility issues can occur on any website. The extension needs to:
 
