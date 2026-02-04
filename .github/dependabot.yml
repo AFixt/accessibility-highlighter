@@ -14,8 +14,7 @@ updates:
     assignees:
       - "AFixt"
     commit-message:
-      prefix: "npm"
-      include: "scope"
+      prefix: "chore(deps)"
     labels:
       - "dependencies"
       - "npm"
@@ -63,8 +62,7 @@ updates:
     assignees:
       - "AFixt"
     commit-message:
-      prefix: "github-actions"
-      include: "scope"
+      prefix: "chore(ci)"
     labels:
       - "dependencies"
       - "github-actions"
