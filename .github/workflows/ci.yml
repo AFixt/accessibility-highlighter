@@ -27,7 +27,18 @@ jobs:
       
     - name: Run ESLint
       run: npm run lint:check
-      
+
+    - name: Check Prettier formatting
+      run: npm run format:check
+
+    - name: Lint Markdown
+      run: npm run lint:md
+      continue-on-error: true
+
+    - name: Check for code duplication (jscpd)
+      run: npm run lint:cpd:ci
+      continue-on-error: true
+
     - name: Upload lint results
       uses: actions/upload-artifact@v6
       if: failure()
@@ -37,6 +48,14 @@ jobs:
           eslint-report.json
           eslint-report.html
         retention-days: 30
+
+    - name: Upload duplication report
+      uses: actions/upload-artifact@v4
+      with:
+        name: jscpd-report
+        path: reports/jscpd/
+        retention-days: 30
+      if: always()
 
   test:
     name: Run Tests
