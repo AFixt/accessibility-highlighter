@@ -11,6 +11,7 @@ npm run build:all
 ```
 
 This creates three zip files:
+
 - `accessibility-highlighter-v{VERSION}-chrome.zip` - Chrome Web Store
 - `accessibility-highlighter-v{VERSION}-firefox.zip` - Firefox Add-ons
 - `accessibility-highlighter-v{VERSION}-edge.zip` - Microsoft Edge Add-ons
@@ -20,8 +21,9 @@ This creates three zip files:
 ## Chrome Web Store
 
 ### Prerequisites
+
 - Google Developer account ($5 one-time registration fee)
-- Developer dashboard access: https://chrome.google.com/webstore/devconsole
+- Developer dashboard access: <https://chrome.google.com/webstore/devconsole>
 
 ### Submission Steps
 
@@ -52,6 +54,7 @@ This creates three zip files:
    - You'll receive email notification when approved/rejected
 
 ### Updating Existing Extension
+
 1. Go to Developer Dashboard
 2. Select the extension
 3. Click "Package" tab
@@ -64,8 +67,9 @@ This creates three zip files:
 ## Firefox Add-ons (AMO)
 
 ### Prerequisites
+
 - Firefox Account (free)
-- Developer hub access: https://addons.mozilla.org/developers/
+- Developer hub access: <https://addons.mozilla.org/developers/>
 
 ### Submission Steps
 
@@ -102,12 +106,14 @@ This creates three zip files:
    - Respond promptly to any reviewer questions
 
 ### Firefox-Specific Notes
+
 - Extension ID is set in manifest: `accessibility-highlighter@afixt.com`
 - Minimum Firefox version: 109.0
 - Uses `background.scripts` instead of `service_worker`
 - `chrome.*` APIs work in Firefox (compatibility layer)
 
 ### Updating Existing Extension
+
 1. Go to "Manage My Submissions"
 2. Select the extension
 3. Click "Upload a New Version"
@@ -120,8 +126,9 @@ This creates three zip files:
 ## Microsoft Edge Add-ons
 
 ### Prerequisites
+
 - Microsoft Partner Center account ($19 one-time registration fee)
-- Dashboard access: https://partner.microsoft.com/dashboard/microsoftedge
+- Dashboard access: <https://partner.microsoft.com/dashboard/microsoftedge>
 
 ### Submission Steps
 
@@ -154,11 +161,13 @@ This creates three zip files:
    - Email notification on approval/rejection
 
 ### Edge-Specific Notes
+
 - Edge is Chromium-based, uses same package as Chrome
 - No manifest modifications needed
 - `chrome.*` APIs work natively
 
 ### Updating Existing Extension
+
 1. Go to Partner Center dashboard
 2. Select the extension
 3. Click "Update"
@@ -171,6 +180,7 @@ This creates three zip files:
 ## Required Assets
 
 ### Screenshots (all stores)
+
 - Minimum: 1 screenshot
 - Recommended: 3-5 screenshots showing key features
 - Dimensions: 1280x800 or 640x400
@@ -196,6 +206,7 @@ Use the content from `chrome-webstore-description.md` as a base. Adapt as needed
 ## Review Tips
 
 ### Common Rejection Reasons
+
 1. **Unclear permissions** - Justify why `host_permissions: *://*/*` is needed
 2. **Missing privacy policy** - May be required if collecting any data
 3. **Incomplete listing** - Fill all required fields
@@ -227,17 +238,20 @@ See `chrome-webstore-justifications.md` for detailed justifications:
 
 ## Support Links
 
-- **Chrome**: https://developer.chrome.com/docs/webstore/
-- **Firefox**: https://extensionworkshop.com/documentation/publish/
-- **Edge**: https://docs.microsoft.com/microsoft-edge/extensions-chromium/publish/
+- **Chrome**: <https://developer.chrome.com/docs/webstore/>
+- **Firefox**: <https://extensionworkshop.com/documentation/publish/>
+- **Edge**: <https://docs.microsoft.com/microsoft-edge/extensions-chromium/publish/>
 
 ## Troubleshooting
 
 ### Firefox: "Add-on ID not found"
+
 Ensure `browser_specific_settings.gecko.id` is in manifest.json
 
 ### Chrome: "Manifest version not supported"
+
 Ensure using Manifest V3 (`"manifest_version": 3`)
 
 ### Edge: "Package validation failed"
+
 Check that manifest.json is valid JSON with no trailing commas
