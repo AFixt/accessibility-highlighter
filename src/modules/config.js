@@ -59,41 +59,132 @@ const A11Y_CONFIG = {
     OVERLAY_OPACITY: 0.4,
     BORDER_RADIUS: '5px',
     BORDER_WIDTH: '2px',
-    STRIPE_GRADIENT: 'repeating-linear-gradient(45deg, transparent, transparent 15px, rgba(255,255,255,.5) 15px, rgba(255,255,255,.5) 30px)'
+    STRIPE_GRADIENT:
+      'repeating-linear-gradient(45deg, transparent, transparent 15px, rgba(255,255,255,.5) 15px, rgba(255,255,255,.5) 30px)'
   },
 
   PROHIBITED_TABLE_SUMMARIES: [
-    'combobox', 'Layout', 'for layout', 'layout table', 'layout',
-    'Table for layout purposes', 'Calendar', 'Structural table', 'footer',
-    'This table is used for page layout', 'Text Ad', 'Calendar Display',
-    'Links', 'Content', 'Header', 'header', 'Navigation elements',
-    'top navbar', 'title and navigation', 'block', 'main heading',
-    'body', 'links', 'Event Calendar', 'Search', 'lightbox', 'Menu',
-    'all', 'HeadBox', 'Calendar of Events', 'Lightbox', 'Contents',
-    'management', 'contents', 'search form', 'This table is used for layout',
-    'Search Input Table', 'Content Area', 'Fullsize Image', 'Layout Structure',
-    'Page title', 'Main Table', 'left', 'category', 'Banner Design Table',
-    'Search Form', 'Site contents', 'pageinfo', 'breadcrumb',
-    'table used for layout purposes', 'Footer', 'main layout', 'tooltip', 'Logo'
+    'combobox',
+    'Layout',
+    'for layout',
+    'layout table',
+    'layout',
+    'Table for layout purposes',
+    'Calendar',
+    'Structural table',
+    'footer',
+    'This table is used for page layout',
+    'Text Ad',
+    'Calendar Display',
+    'Links',
+    'Content',
+    'Header',
+    'header',
+    'Navigation elements',
+    'top navbar',
+    'title and navigation',
+    'block',
+    'main heading',
+    'body',
+    'links',
+    'Event Calendar',
+    'Search',
+    'lightbox',
+    'Menu',
+    'all',
+    'HeadBox',
+    'Calendar of Events',
+    'Lightbox',
+    'Contents',
+    'management',
+    'contents',
+    'search form',
+    'This table is used for layout',
+    'Search Input Table',
+    'Content Area',
+    'Fullsize Image',
+    'Layout Structure',
+    'Page title',
+    'Main Table',
+    'left',
+    'category',
+    'Banner Design Table',
+    'Search Form',
+    'Site contents',
+    'pageinfo',
+    'breadcrumb',
+    'table used for layout purposes',
+    'Footer',
+    'main layout',
+    'tooltip',
+    'Logo'
   ],
 
   PROHIBITED_ALT_VALUES: [
-    'artwork', 'arrow', 'painting', 'bullet', 'graphic', 'graph',
-    'spacer', 'image', 'placeholder', 'photo', 'picture', 'photograph',
-    'logo', 'screenshot', 'back', 'bg', 'img', 'alt'
+    'artwork',
+    'arrow',
+    'painting',
+    'bullet',
+    'graphic',
+    'graph',
+    'spacer',
+    'image',
+    'placeholder',
+    'photo',
+    'picture',
+    'photograph',
+    'logo',
+    'screenshot',
+    'back',
+    'bg',
+    'img',
+    'alt'
   ],
 
   PROHIBITED_LINK_TEXT: [
-    'link', 'more', 'here', 'click', 'click here', 'read',
-    'read more', 'learn more', 'continue', 'go', 'continue reading',
-    'view', 'view more', 'less', 'see all', 'show', 'hide',
-    'show more', 'show less'
+    'link',
+    'more',
+    'here',
+    'click',
+    'click here',
+    'read',
+    'read more',
+    'learn more',
+    'continue',
+    'go',
+    'continue reading',
+    'view',
+    'view more',
+    'less',
+    'see all',
+    'show',
+    'hide',
+    'show more',
+    'show less'
   ],
 
   SELECTORS: {
-    ALL_CHECKABLE_ELEMENTS: 'img, button, [role="button"], a, [role="link"], fieldset, input, table, iframe, audio, video, [tabindex], [role="img"]',
-    LANDMARK_ELEMENTS: 'header, aside, footer, main, nav, [role="banner"], [role="complementary"], [role="contentinfo"], [role="main"], [role="navigation"], [role="search"]',
-    TEXT_ELEMENTS: ['p', 'span', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'td', 'th', 'label', 'a', 'button'],
+    ALL_CHECKABLE_ELEMENTS:
+      'img, button, [role="button"], a, [role="link"], fieldset, input, table, iframe, audio, video, [tabindex], [role="img"]',
+    LANDMARK_ELEMENTS:
+      'header, aside, footer, main, nav, [role="banner"], [role="complementary"], [role="contentinfo"], [role="main"], [role="navigation"], [role="search"]',
+    TEXT_ELEMENTS: [
+      'p',
+      'span',
+      'div',
+      'h1',
+      'h2',
+      'h3',
+      'h4',
+      'h5',
+      'h6',
+      'li',
+      'td',
+      'th',
+      'label',
+      'a',
+      'button'
+    ],
     INTERACTIVE_ELEMENTS: ['a', 'area', 'button', 'input', 'select', 'textarea'],
     OVERLAY_ELEMENTS: '.a11y-error, .a11y-warning, .overlay',
     PROGRESS_INDICATOR: '.a11y-progress-indicator'
@@ -105,7 +196,8 @@ const A11Y_CONFIG = {
     EMPTY_ALT_WITH_TITLE: 'Image element with empty alt and non-empty title',
     DIFFERENT_ALT_TITLE: 'Image element with different alt and title attributes',
     BUTTON_NO_LABEL: 'Button without aria-label or aria-labelledby or inner text content',
-    LINK_NO_CONTENT: 'Link without inner text, aria-label, aria-labelledby, or with empty text content',
+    LINK_NO_CONTENT:
+      'Link without inner text, aria-label, aria-labelledby, or with empty text content',
     INVALID_HREF: 'Invalid link href attribute',
     GENERIC_LINK_TEXT: 'Link element with matching text content found',
     MATCHING_TITLE_TEXT: 'Link element with matching title and text content found',
@@ -366,7 +458,11 @@ function mergeWithDefaults(userSettings, defaultSettings) {
       }
 
       if (Object.prototype.hasOwnProperty.call(source, key)) {
-        if (typeof source[key] === 'object' && source[key] !== null && !Array.isArray(source[key])) {
+        if (
+          typeof source[key] === 'object' &&
+          source[key] !== null &&
+          !Array.isArray(source[key])
+        ) {
           if (!target[key] || typeof target[key] !== 'object') {
             target[key] = {};
           }

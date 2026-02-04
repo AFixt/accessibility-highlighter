@@ -66,7 +66,6 @@ function overlay(overlayClass, level, msg) {
 
     // Add to logs
     addOverlayToLogs(elementInError, sanitizedMsg, level);
-
   } catch (error) {
     console.error('Error creating overlay:', error);
   }
@@ -151,9 +150,10 @@ function applyOverlayStyle(overlayEl, level) {
  * @returns {void}
  */
 function addOverlayToLogs(element, message, level) {
-  const sanitizedElementHTML = element.outerHTML
-    .slice(0, A11Y_CONFIG.PERFORMANCE.MAX_LOG_ELEMENT_LENGTH)
-    .replace(/[<>"'&]/g, '') + '...';
+  const sanitizedElementHTML =
+    element.outerHTML
+      .slice(0, A11Y_CONFIG.PERFORMANCE.MAX_LOG_ELEMENT_LENGTH)
+      .replace(/[<>"'&]/g, '') + '...';
 
   addLogEntry({
     Level: level,
@@ -229,22 +229,37 @@ function categorizeIssue(message, element) {
 
   if (lowerMessage.includes('alt') || lowerMessage.includes('image') || tagName === 'img') {
     return 'images';
-  } else if (lowerMessage.includes('form') || lowerMessage.includes('label') ||
-             lowerMessage.includes('input') || lowerMessage.includes('fieldset') ||
-             ['input', 'form', 'fieldset', 'label'].includes(tagName)) {
+  } else if (
+    lowerMessage.includes('form') ||
+    lowerMessage.includes('label') ||
+    lowerMessage.includes('input') ||
+    lowerMessage.includes('fieldset') ||
+    ['input', 'form', 'fieldset', 'label'].includes(tagName)
+  ) {
     return 'forms';
   } else if (lowerMessage.includes('link') || lowerMessage.includes('href') || tagName === 'a') {
     return 'links';
-  } else if (lowerMessage.includes('landmark') || lowerMessage.includes('heading') ||
-             lowerMessage.includes('table') || lowerMessage.includes('header') ||
-             ['table', 'th', 'td', 'header', 'main', 'nav', 'aside', 'footer'].includes(tagName)) {
+  } else if (
+    lowerMessage.includes('landmark') ||
+    lowerMessage.includes('heading') ||
+    lowerMessage.includes('table') ||
+    lowerMessage.includes('header') ||
+    ['table', 'th', 'td', 'header', 'main', 'nav', 'aside', 'footer'].includes(tagName)
+  ) {
     return 'structure';
-  } else if (lowerMessage.includes('media') || lowerMessage.includes('video') ||
-             lowerMessage.includes('audio') || lowerMessage.includes('captions') ||
-             ['video', 'audio', 'iframe'].includes(tagName)) {
+  } else if (
+    lowerMessage.includes('media') ||
+    lowerMessage.includes('video') ||
+    lowerMessage.includes('audio') ||
+    lowerMessage.includes('captions') ||
+    ['video', 'audio', 'iframe'].includes(tagName)
+  ) {
     return 'multimedia';
-  } else if (lowerMessage.includes('tabindex') || lowerMessage.includes('navigation') ||
-             lowerMessage.includes('keyboard')) {
+  } else if (
+    lowerMessage.includes('tabindex') ||
+    lowerMessage.includes('navigation') ||
+    lowerMessage.includes('keyboard')
+  ) {
     return 'navigation';
   }
 
@@ -269,8 +284,7 @@ function applyFilters() {
 
       // Check if overlay should be visible based on filters
       const shouldShow =
-        (level === 'error' && filters.showErrors) ||
-        (level === 'warning' && filters.showWarnings);
+        (level === 'error' && filters.showErrors) || (level === 'warning' && filters.showWarnings);
 
       const categoryEnabled = filters.categories[category];
 
@@ -284,7 +298,6 @@ function applyFilters() {
 
     console.log(`Showing ${visibleCount} of ${allOverlays.length} accessibility issues`);
     return { visible: visibleCount, total: allOverlays.length };
-
   } catch (error) {
     console.error('Error applying filters:', error);
     return { visible: 0, total: 0 };
@@ -312,9 +325,9 @@ function getOverlayCount() {
 function getVisibleOverlays() {
   try {
     const overlays = document.querySelectorAll(A11Y_CONFIG.SELECTORS.OVERLAY_ELEMENTS);
-    return Array.from(overlays).filter(overlay =>
-      overlay.style.display !== 'none' &&
-      window.getComputedStyle(overlay).display !== 'none'
+    return Array.from(overlays).filter(
+      overlay =>
+        overlay.style.display !== 'none' && window.getComputedStyle(overlay).display !== 'none'
     );
   } catch (error) {
     console.error('Error getting visible overlays:', error);
@@ -336,8 +349,10 @@ function getOverlayInfo(target) {
 
       // Check if overlay position matches target position (within tolerance)
       const tolerance = 5;
-      return Math.abs(rect.top - overlayRect.top) < tolerance &&
-             Math.abs(rect.left - overlayRect.left) < tolerance;
+      return (
+        Math.abs(rect.top - overlayRect.top) < tolerance &&
+        Math.abs(rect.left - overlayRect.left) < tolerance
+      );
     });
 
     if (targetOverlay) {

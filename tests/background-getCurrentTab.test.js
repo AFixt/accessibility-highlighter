@@ -226,10 +226,7 @@ describe('Background Script - getCurrentTab() Function', () => {
       const __result = await global.getCurrentTab();
 
       expect(__result).toBeNull();
-      expect(console.error).toHaveBeenCalledWith(
-        'Error querying tabs:',
-        expect.any(Error)
-      );
+      expect(console.error).toHaveBeenCalledWith('Error querying tabs:', expect.any(Error));
     });
   });
 

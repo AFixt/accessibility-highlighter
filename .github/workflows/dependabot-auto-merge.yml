@@ -9,119 +9,119 @@ jobs:
     name: Auto-merge Dependabot PRs
     runs-on: ubuntu-latest
     if: github.actor == 'dependabot[bot]'
-    
+
     permissions:
       contents: write
       pull-requests: write
-      
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v6
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v6
-      with:
-        node-version: '18'
-        cache: 'npm'
-        
-    - name: Install dependencies
-      run: npm ci
-      
-    - name: Run tests
-      run: |
-        npm run lint:check
-        npm test
-        
-    - name: Check if PR is for patch or minor updates
-      id: check-update
-      run: |
-        # Get the PR title to check update type
-        PR_TITLE="${{ github.event.pull_request.title }}"
-        echo "PR Title: $PR_TITLE"
-        
-        # Check for patch updates (e.g., "Bump package from 1.0.0 to 1.0.1")
-        if echo "$PR_TITLE" | grep -qE "Bump .* from [0-9]+\.[0-9]+\.[0-9]+ to [0-9]+\.[0-9]+\.[0-9]+$"; then
-          # Extract versions to compare
-          OLD_VERSION=$(echo "$PR_TITLE" | sed -n 's/.*from \([0-9]\+\.[0-9]\+\.[0-9]\+\).*/\1/p')
-          NEW_VERSION=$(echo "$PR_TITLE" | sed -n 's/.*to \([0-9]\+\.[0-9]\+\.[0-9]\+\)$/\1/p')
-          
-          # Parse version components
-          OLD_MAJOR=$(echo $OLD_VERSION | cut -d. -f1)
-          OLD_MINOR=$(echo $OLD_VERSION | cut -d. -f2)
-          NEW_MAJOR=$(echo $NEW_VERSION | cut -d. -f1)
-          NEW_MINOR=$(echo $NEW_VERSION | cut -d. -f2)
-          
-          # Allow auto-merge for patch updates and minor updates
-          if [ "$OLD_MAJOR" = "$NEW_MAJOR" ]; then
-            if [ "$OLD_MINOR" = "$NEW_MINOR" ]; then
-              echo "auto_merge=true" >> $GITHUB_OUTPUT
-              echo "update_type=patch" >> $GITHUB_OUTPUT
-            elif [ "$NEW_MINOR" -gt "$OLD_MINOR" ]; then
-              echo "auto_merge=true" >> $GITHUB_OUTPUT
-              echo "update_type=minor" >> $GITHUB_OUTPUT
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: |
+          npm run lint:check
+          npm test
+
+      - name: Check if PR is for patch or minor updates
+        id: check-update
+        run: |
+          # Get the PR title to check update type
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          echo "PR Title: $PR_TITLE"
+
+          # Check for patch updates (e.g., "Bump package from 1.0.0 to 1.0.1")
+          if echo "$PR_TITLE" | grep -qE "Bump .* from [0-9]+\.[0-9]+\.[0-9]+ to [0-9]+\.[0-9]+\.[0-9]+$"; then
+            # Extract versions to compare
+            OLD_VERSION=$(echo "$PR_TITLE" | sed -n 's/.*from \([0-9]\+\.[0-9]\+\.[0-9]\+\).*/\1/p')
+            NEW_VERSION=$(echo "$PR_TITLE" | sed -n 's/.*to \([0-9]\+\.[0-9]\+\.[0-9]\+\)$/\1/p')
+            
+            # Parse version components
+            OLD_MAJOR=$(echo $OLD_VERSION | cut -d. -f1)
+            OLD_MINOR=$(echo $OLD_VERSION | cut -d. -f2)
+            NEW_MAJOR=$(echo $NEW_VERSION | cut -d. -f1)
+            NEW_MINOR=$(echo $NEW_VERSION | cut -d. -f2)
+            
+            # Allow auto-merge for patch updates and minor updates
+            if [ "$OLD_MAJOR" = "$NEW_MAJOR" ]; then
+              if [ "$OLD_MINOR" = "$NEW_MINOR" ]; then
+                echo "auto_merge=true" >> $GITHUB_OUTPUT
+                echo "update_type=patch" >> $GITHUB_OUTPUT
+              elif [ "$NEW_MINOR" -gt "$OLD_MINOR" ]; then
+                echo "auto_merge=true" >> $GITHUB_OUTPUT
+                echo "update_type=minor" >> $GITHUB_OUTPUT
+              else
+                echo "auto_merge=false" >> $GITHUB_OUTPUT
+                echo "update_type=unknown" >> $GITHUB_OUTPUT
+              fi
             else
               echo "auto_merge=false" >> $GITHUB_OUTPUT
-              echo "update_type=unknown" >> $GITHUB_OUTPUT
+              echo "update_type=major" >> $GITHUB_OUTPUT
             fi
           else
             echo "auto_merge=false" >> $GITHUB_OUTPUT
-            echo "update_type=major" >> $GITHUB_OUTPUT
+            echo "update_type=unknown" >> $GITHUB_OUTPUT
           fi
-        else
-          echo "auto_merge=false" >> $GITHUB_OUTPUT
-          echo "update_type=unknown" >> $GITHUB_OUTPUT
-        fi
-        
-    - name: Auto-approve PR
-      if: steps.check-update.outputs.auto_merge == 'true'
-      uses: actions/github-script@v8
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        script: |
-          const { owner, repo, number } = context.issue;
-          await github.rest.pulls.createReview({
-            owner,
-            repo,
-            pull_number: number,
-            event: 'APPROVE',
-            body: `🤖 Auto-approving this ${{ steps.check-update.outputs.update_type }} update after successful tests.`
-          });
-          
-    - name: Auto-merge PR
-      if: steps.check-update.outputs.auto_merge == 'true'
-      uses: actions/github-script@v8
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        script: |
-          const { owner, repo, number } = context.issue;
-          await github.rest.pulls.merge({
-            owner,
-            repo,
-            pull_number: number,
-            commit_title: `${{ github.event.pull_request.title }}`,
-            commit_message: 'Auto-merged by Dependabot workflow after successful tests.',
-            merge_method: 'squash'
-          });
-          
-    - name: Comment on skipped PR
-      if: steps.check-update.outputs.auto_merge == 'false'
-      uses: actions/github-script@v8
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        script: |
-          const { owner, repo, number } = context.issue;
-          const updateType = '${{ steps.check-update.outputs.update_type }}';
-          let message = '';
-          
-          if (updateType === 'major') {
-            message = '🔍 This appears to be a major version update. Please review manually before merging.';
-          } else {
-            message = '🔍 This PR requires manual review. Auto-merge is only enabled for patch and minor dependency updates.';
-          }
-          
-          await github.rest.issues.createComment({
-            owner,
-            repo,
-            issue_number: number,
-            body: message
-          });
+
+      - name: Auto-approve PR
+        if: steps.check-update.outputs.auto_merge == 'true'
+        uses: actions/github-script@v8
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner, repo, number } = context.issue;
+            await github.rest.pulls.createReview({
+              owner,
+              repo,
+              pull_number: number,
+              event: 'APPROVE',
+              body: `🤖 Auto-approving this ${{ steps.check-update.outputs.update_type }} update after successful tests.`
+            });
+
+      - name: Auto-merge PR
+        if: steps.check-update.outputs.auto_merge == 'true'
+        uses: actions/github-script@v8
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner, repo, number } = context.issue;
+            await github.rest.pulls.merge({
+              owner,
+              repo,
+              pull_number: number,
+              commit_title: `${{ github.event.pull_request.title }}`,
+              commit_message: 'Auto-merged by Dependabot workflow after successful tests.',
+              merge_method: 'squash'
+            });
+
+      - name: Comment on skipped PR
+        if: steps.check-update.outputs.auto_merge == 'false'
+        uses: actions/github-script@v8
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner, repo, number } = context.issue;
+            const updateType = '${{ steps.check-update.outputs.update_type }}';
+            let message = '';
+
+            if (updateType === 'major') {
+              message = '🔍 This appears to be a major version update. Please review manually before merging.';
+            } else {
+              message = '🔍 This PR requires manual review. Auto-merge is only enabled for patch and minor dependency updates.';
+            }
+
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: number,
+              body: message
+            });

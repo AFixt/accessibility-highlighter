@@ -189,13 +189,13 @@ This creates three zip files:
 
 ### Promotional Images
 
-| Store | Size | Required |
-|-------|------|----------|
-| Chrome | 440x280 (small tile) | Optional |
-| Chrome | 920x680 (large tile) | Optional |
-| Chrome | 1400x560 (marquee) | Optional |
-| Firefox | Any reasonable size | Optional |
-| Edge | 300x300 (logo) | Recommended |
+| Store   | Size                 | Required    |
+| ------- | -------------------- | ----------- |
+| Chrome  | 440x280 (small tile) | Optional    |
+| Chrome  | 920x680 (large tile) | Optional    |
+| Chrome  | 1400x560 (marquee)   | Optional    |
+| Firefox | Any reasonable size  | Optional    |
+| Edge    | 300x300 (logo)       | Recommended |
 
 ### Store Description
 
@@ -216,11 +216,11 @@ Use the content from `chrome-webstore-description.md` as a base. Adapt as needed
 
 See `chrome-webstore-justifications.md` for detailed justifications:
 
-| Permission | Justification |
-|------------|---------------|
-| `storage` | Store user preference for enabled/disabled state |
-| `activeTab` | Access current tab to inject accessibility checks |
-| `host_permissions: *://*/*` | Run accessibility checks on any website |
+| Permission                  | Justification                                     |
+| --------------------------- | ------------------------------------------------- |
+| `storage`                   | Store user preference for enabled/disabled state  |
+| `activeTab`                 | Access current tab to inject accessibility checks |
+| `host_permissions: *://*/*` | Run accessibility checks on any website           |
 
 ---
 

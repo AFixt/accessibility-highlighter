@@ -10,7 +10,9 @@ global.chrome = {
         return Promise.resolve({ isEnabled: true });
       }),
       set: jest.fn().mockImplementation((obj, callback) => {
-        if (callback) {callback();}
+        if (callback) {
+          callback();
+        }
         return Promise.resolve();
       })
     }
@@ -25,7 +27,9 @@ global.chrome = {
   tabs: {
     query: jest.fn().mockResolvedValue([{ id: 123 }]),
     sendMessage: jest.fn().mockImplementation((_tabId, _message, _callback) => {
-      if (_callback) {_callback('success');}
+      if (_callback) {
+        _callback('success');
+      }
     })
   },
   action: {
@@ -98,11 +102,11 @@ global.getComputedStyle = jest.fn().mockImplementation(() => ({
 // Define stubs for contentScript.js functions
 global.logs = [];
 
-global.overlay = jest.fn().mockImplementation(function(overlayClass, level, msg) {
+global.overlay = jest.fn().mockImplementation(function (overlayClass, level, msg) {
   global.logs.push({
     Level: level,
     Message: msg,
-    Element: this ? (this.outerHTML || 'mock-element') : 'mock-element'
+    Element: this ? this.outerHTML || 'mock-element' : 'mock-element'
   });
 });
 

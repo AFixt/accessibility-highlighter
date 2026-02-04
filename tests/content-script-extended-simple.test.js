@@ -211,11 +211,7 @@ describe('Content Script Extended Functionality Tests', () => {
 
       // Test status message
       _sendResponse.mockClear();
-      _result = _messageHandler(
-        { action: 'getStatus' },
-        null,
-        _sendResponse
-      );
+      _result = _messageHandler({ action: 'getStatus' }, null, _sendResponse);
 
       expect(_result).toBe(true);
       expect(_sendResponse).toHaveBeenCalledWith({ isActive: false, overlayCount: 5 });
@@ -241,11 +237,7 @@ describe('Content Script Extended Functionality Tests', () => {
 
       // Test unknown action
       _sendResponse.mockClear();
-      _result = _messageHandler(
-        { action: 'unknownAction' },
-        null,
-        _sendResponse
-      );
+      _result = _messageHandler({ action: 'unknownAction' }, null, _sendResponse);
 
       expect(_result).toBe(false);
       expect(_sendResponse).not.toHaveBeenCalled();
@@ -593,7 +585,10 @@ describe('Content Script Extended Functionality Tests', () => {
       const _validateLandmarks = landmarks => {
         try {
           if (!landmarks || landmarks.length === 0) {
-            return { valid: false, issues: [{ type: 'no-landmarks', message: 'No landmark elements found' }] };
+            return {
+              valid: false,
+              issues: [{ type: 'no-landmarks', message: 'No landmark elements found' }]
+            };
           }
 
           const _issues = [];
@@ -639,9 +634,7 @@ describe('Content Script Extended Functionality Tests', () => {
       expect(_result.landmarkCounts).toHaveProperty('navigation');
 
       // Test missing main
-      const _noMain = [
-        { tagName: 'NAV', role: 'navigation', label: 'Main navigation' }
-      ];
+      const _noMain = [{ tagName: 'NAV', role: 'navigation', label: 'Main navigation' }];
 
       _result = _validateLandmarks(_noMain);
       expect(_result.valid).toBe(false);

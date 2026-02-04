@@ -84,7 +84,7 @@ test.describe('Accessibility Highlighter Extension E2E Tests', () => {
       // Inject the content script functionality for testing
       if (typeof runAccessibilityChecks === 'undefined') {
         // Create a mock version for testing
-        window.runAccessibilityChecks = function() {
+        window.runAccessibilityChecks = function () {
           const _images = document.querySelectorAll('img:not([alt])');
           _images.forEach(img => {
             const _rect = img.getBoundingClientRect();
@@ -128,7 +128,7 @@ test.describe('Accessibility Highlighter Extension E2E Tests', () => {
     // Simulate running accessibility checks
     await page.evaluate(() => {
       if (typeof runAccessibilityChecks === 'undefined') {
-        window.runAccessibilityChecks = function() {
+        window.runAccessibilityChecks = function () {
           // For passing content, no overlays should be created
           console.log('No accessibility issues found');
         };
@@ -162,14 +162,15 @@ test.describe('Accessibility Highlighter Extension E2E Tests', () => {
 
     // Simulate running comprehensive accessibility checks
     await page.evaluate(() => {
-      window.runAccessibilityChecks = function() {
+      window.runAccessibilityChecks = function () {
         let _errorCount = 0;
 
         // Check images without alt
         document.querySelectorAll('img:not([alt])').forEach(_img => {
           const _overlay = document.createElement('div');
           _overlay.className = 'overlay a11y-error';
-          _overlay.style.cssText = 'position: absolute; background: rgba(255,0,0,0.4); pointer-events: none;';
+          _overlay.style.cssText =
+            'position: absolute; background: rgba(255,0,0,0.4); pointer-events: none;';
           _overlay.setAttribute('data-a11ymessage', 'img does not have an alt attribute');
           document.body.appendChild(_overlay);
           _errorCount++;
@@ -180,7 +181,8 @@ test.describe('Accessibility Highlighter Extension E2E Tests', () => {
           if (!_input.id || !document.querySelector(`label[for="${_input.id}"]`)) {
             const _overlay = document.createElement('div');
             _overlay.className = 'overlay a11y-error';
-            _overlay.style.cssText = 'position: absolute; background: rgba(255,0,0,0.4); pointer-events: none;';
+            _overlay.style.cssText =
+              'position: absolute; background: rgba(255,0,0,0.4); pointer-events: none;';
             _overlay.setAttribute('data-a11ymessage', 'Form field without label');
             document.body.appendChild(_overlay);
             _errorCount++;
@@ -192,7 +194,8 @@ test.describe('Accessibility Highlighter Extension E2E Tests', () => {
           if (!_button.textContent.trim() && !_button.getAttribute('aria-label')) {
             const _overlay = document.createElement('div');
             _overlay.className = 'overlay a11y-error';
-            _overlay.style.cssText = 'position: absolute; background: rgba(255,0,0,0.4); pointer-events: none;';
+            _overlay.style.cssText =
+              'position: absolute; background: rgba(255,0,0,0.4); pointer-events: none;';
             _overlay.setAttribute('data-a11ymessage', 'Button without label');
             document.body.appendChild(_overlay);
             _errorCount++;
@@ -228,9 +231,11 @@ test.describe('Accessibility Highlighter Extension E2E Tests', () => {
       document.body.appendChild(_overlay);
 
       // Define removal function
-      window.removeAccessibilityOverlays = function() {
+      window.removeAccessibilityOverlays = function () {
         document.querySelectorAll('.overlay, .a11y-error, .a11y-warning').forEach(el => {
-          if (el.parentNode) {el.parentNode.removeChild(el);}
+          if (el.parentNode) {
+            el.parentNode.removeChild(el);
+          }
         });
       };
     });
@@ -265,12 +270,15 @@ test.describe('Accessibility Highlighter Extension E2E Tests', () => {
         _container.innerHTML = '<img src="dynamic.jpg"><input type="text">';
       });
 
-      window.runAccessibilityChecks = function() {
-        const _issues = document.querySelectorAll('img:not([alt]), input[type="text"]:not([aria-label])');
+      window.runAccessibilityChecks = function () {
+        const _issues = document.querySelectorAll(
+          'img:not([alt]), input[type="text"]:not([aria-label])'
+        );
         _issues.forEach((element, index) => {
           const _overlay = document.createElement('div');
           _overlay.className = 'overlay a11y-error';
-          _overlay.style.cssText = 'position: absolute; background: rgba(255,0,0,0.4); pointer-events: none;';
+          _overlay.style.cssText =
+            'position: absolute; background: rgba(255,0,0,0.4); pointer-events: none;';
           _overlay.setAttribute('data-a11ymessage', `Issue ${index + 1}`);
           document.body.appendChild(_overlay);
         });
@@ -331,7 +339,7 @@ test.describe('Accessibility Highlighter Extension E2E Tests', () => {
 
     // Run comprehensive accessibility checks
     await page.evaluate(() => {
-      window.runAccessibilityChecks = function() {
+      window.runAccessibilityChecks = function () {
         const _issues = [];
 
         // Check images without alt
@@ -367,7 +375,8 @@ test.describe('Accessibility Highlighter Extension E2E Tests', () => {
         _issues.forEach((issue, index) => {
           const _overlay = document.createElement('div');
           _overlay.className = 'overlay a11y-error';
-          _overlay.style.cssText = 'position: absolute; background: rgba(255,0,0,0.4); pointer-events: none; z-index: 999999;';
+          _overlay.style.cssText =
+            'position: absolute; background: rgba(255,0,0,0.4); pointer-events: none; z-index: 999999;';
           _overlay.setAttribute('data-a11ymessage', issue.message);
           _overlay.setAttribute('data-issue-id', index);
           document.body.appendChild(_overlay);

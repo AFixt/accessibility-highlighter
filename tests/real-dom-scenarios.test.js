@@ -56,7 +56,10 @@ describe('Real DOM Scenarios Tests', () => {
         querySelector: jest.fn(),
         querySelectorAll: jest.fn(() => []),
         getBoundingClientRect: jest.fn(() => ({
-          top: 0, left: 0, width: 1024, height: 768
+          top: 0,
+          left: 0,
+          width: 1024,
+          height: 768
         }))
       },
       createElement: jest.fn(tag => {
@@ -92,7 +95,10 @@ describe('Real DOM Scenarios Tests', () => {
           click: jest.fn(),
           focus: jest.fn(),
           getBoundingClientRect: jest.fn(() => ({
-            top: 100, left: 200, width: 150, height: 100
+            top: 100,
+            left: 200,
+            width: 150,
+            height: 100
           }))
         };
         return _element;
@@ -246,7 +252,8 @@ describe('Real DOM Scenarios Tests', () => {
         ];
 
         _row1Headers.forEach((cellData, index) => {
-          const _cell = index === 0 ? _mockDocument.createElement('th') : _mockDocument.createElement('td');
+          const _cell =
+            index === 0 ? _mockDocument.createElement('th') : _mockDocument.createElement('td');
           _cell.textContent = cellData.text;
           if (cellData.scope) {
             _cell.setAttribute('scope', cellData.scope);
@@ -266,7 +273,8 @@ describe('Real DOM Scenarios Tests', () => {
         ];
 
         _row2Headers.forEach((cellData, index) => {
-          const _cell = index === 0 ? _mockDocument.createElement('th') : _mockDocument.createElement('td');
+          const _cell =
+            index === 0 ? _mockDocument.createElement('th') : _mockDocument.createElement('td');
           _cell.textContent = cellData.text;
           // Intentionally not setting scope for first cell
           _row2.appendChild(_cell);
@@ -451,7 +459,10 @@ describe('Real DOM Scenarios Tests', () => {
         const _inputs = [];
         const _findInputs = element => {
           element.children.forEach(child => {
-            if (child.tagName === 'INPUT' && ['text', 'email', 'password', 'tel'].includes(child.type)) {
+            if (
+              child.tagName === 'INPUT' &&
+              ['text', 'email', 'password', 'tel'].includes(child.type)
+            ) {
               _inputs.push(child);
             } else if (child.children) {
               _findInputs(child);
@@ -519,8 +530,8 @@ describe('Real DOM Scenarios Tests', () => {
               };
               _findLabels(form);
 
-              const _hasRequiredIndicator = _labels.some(label =>
-                label.textContent.includes('*') || label.textContent.includes('required')
+              const _hasRequiredIndicator = _labels.some(
+                label => label.textContent.includes('*') || label.textContent.includes('required')
               );
 
               if (!_hasRequiredIndicator && !input.getAttribute('aria-required')) {
@@ -582,18 +593,13 @@ describe('Real DOM Scenarios Tests', () => {
         return elements.map(el => {
           const _rect = el.getBoundingClientRect();
 
-          const _isInViewport = (
+          const _isInViewport =
             _rect.top < viewport.height &&
             _rect.bottom > 0 &&
             _rect.left < viewport.width &&
-            _rect.right > 0
-          );
+            _rect.right > 0;
 
-          const _isVisible = (
-            _rect.width > 0 &&
-            _rect.height > 0 &&
-            _isInViewport
-          );
+          const _isVisible = _rect.width > 0 && _rect.height > 0 && _isInViewport;
 
           return {
             element: el,
@@ -609,23 +615,58 @@ describe('Real DOM Scenarios Tests', () => {
       const _elements = [
         // In viewport
         {
-          getBoundingClientRect: () => ({ top: 100, left: 100, bottom: 200, right: 200, width: 100, height: 100 })
+          getBoundingClientRect: () => ({
+            top: 100,
+            left: 100,
+            bottom: 200,
+            right: 200,
+            width: 100,
+            height: 100
+          })
         },
         // Below viewport
         {
-          getBoundingClientRect: () => ({ top: 1000, left: 100, bottom: 1100, right: 200, width: 100, height: 100 })
+          getBoundingClientRect: () => ({
+            top: 1000,
+            left: 100,
+            bottom: 1100,
+            right: 200,
+            width: 100,
+            height: 100
+          })
         },
         // Above viewport
         {
-          getBoundingClientRect: () => ({ top: -200, left: 100, bottom: -100, right: 200, width: 100, height: 100 })
+          getBoundingClientRect: () => ({
+            top: -200,
+            left: 100,
+            bottom: -100,
+            right: 200,
+            width: 100,
+            height: 100
+          })
         },
         // Left of viewport
         {
-          getBoundingClientRect: () => ({ top: 100, left: -200, bottom: 200, right: -100, width: 100, height: 100 })
+          getBoundingClientRect: () => ({
+            top: 100,
+            left: -200,
+            bottom: 200,
+            right: -100,
+            width: 100,
+            height: 100
+          })
         },
         // Right of viewport
         {
-          getBoundingClientRect: () => ({ top: 100, left: 1200, bottom: 200, right: 1300, width: 100, height: 100 })
+          getBoundingClientRect: () => ({
+            top: 100,
+            left: 1200,
+            bottom: 200,
+            right: 1300,
+            width: 100,
+            height: 100
+          })
         }
       ];
 
@@ -694,7 +735,9 @@ describe('Real DOM Scenarios Tests', () => {
               _rect = element.getBoundingClientRect();
             } catch (error) {
               _results.skipped++;
-              _results.errors.push(`Element ${index}: getBoundingClientRect failed - ${error.message}`);
+              _results.errors.push(
+                `Element ${index}: getBoundingClientRect failed - ${error.message}`
+              );
               return;
             }
 
@@ -706,7 +749,6 @@ describe('Real DOM Scenarios Tests', () => {
               rect: _rect
             });
             _results.processed++;
-
           } catch (error) {
             _results.errors.push(`Element ${index}: unexpected error - ${error.message}`);
             _results.skipped++;
@@ -738,7 +780,9 @@ describe('Real DOM Scenarios Tests', () => {
         {
           tagName: 'BROKEN',
           getAttribute: jest.fn(),
-          getBoundingClientRect: jest.fn(() => { throw new Error('Method failed'); })
+          getBoundingClientRect: jest.fn(() => {
+            throw new Error('Method failed');
+          })
         },
         // Non-object
         'not-an-element',
@@ -948,8 +992,8 @@ describe('Real DOM Scenarios Tests', () => {
       const _checkCSSPropertySupport = (element, property) => {
         const _testValues = {
           'font-size': ['16px', '1rem', '1em'],
-          'display': ['block', 'flex', 'grid'],
-          'visibility': ['visible', 'hidden', 'collapse']
+          display: ['block', 'flex', 'grid'],
+          visibility: ['visible', 'hidden', 'collapse']
         };
 
         const _support = {
@@ -976,7 +1020,10 @@ describe('Real DOM Scenarios Tests', () => {
               const _computed = mockWindow.getComputedStyle(element);
               const _actualValue = _computed[property];
 
-              if (_actualValue === value || (_actualValue && _actualValue.includes && _actualValue.includes(value))) {
+              if (
+                _actualValue === value ||
+                (_actualValue && _actualValue.includes && _actualValue.includes(value))
+              ) {
                 _support.supportedValues.push(value);
               } else {
                 _support.unsupportedValues.push(value);

@@ -152,7 +152,9 @@ test.describe('Real Chrome Extension Tests', () => {
       // Wait a moment for async operations
       return new Promise(resolve => {
         setTimeout(() => {
-          const _overlayCount = document.querySelectorAll('.overlay, .a11y-error, .a11y-warning').length;
+          const _overlayCount = document.querySelectorAll(
+            '.overlay, .a11y-error, .a11y-warning'
+          ).length;
           const _logCount = typeof logs !== 'undefined' ? logs.length : 0;
           const _logMessages = typeof logs !== 'undefined' ? logs.map(log => log.Message) : [];
 
@@ -423,7 +425,9 @@ test.describe('Real Chrome Extension Tests', () => {
             overlayCount: _overlays.length,
             logCount: _logMessages.length,
             logMessages: _logMessages,
-            overlayMessages: Array.from(_overlays).map(o => o.getAttribute('data-a11ymessage')).filter(Boolean)
+            overlayMessages: Array.from(_overlays)
+              .map(o => o.getAttribute('data-a11ymessage'))
+              .filter(Boolean)
           });
         }, 1500);
       });

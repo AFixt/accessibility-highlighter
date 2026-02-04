@@ -157,4 +157,4 @@ All analysis happens locally in your browser. No data collection, external conne
 
 **Ready to make the web more accessible?** Install Accessibility Highlighter today and start building inclusive digital experiences that work for everyone.
 
-*Developed by AFixt - committed to digital accessibility and inclusive design.*
+_Developed by AFixt - committed to digital accessibility and inclusive design._

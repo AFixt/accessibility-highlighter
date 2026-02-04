@@ -72,7 +72,10 @@ describe('Performance and DOM Tests', () => {
           removeEventListener: jest.fn(),
           click: jest.fn(),
           getBoundingClientRect: jest.fn(() => ({
-            top: 100, left: 200, width: 150, height: 100
+            top: 100,
+            left: 200,
+            width: 150,
+            height: 100
           }))
         };
         return element;
@@ -189,13 +192,13 @@ describe('Performance and DOM Tests', () => {
         };
 
         // Simulate mutation
-        const mutations = [{
-          type: 'childList',
-          addedNodes: [
-            { nodeType: 1, tagName: 'IMG', getAttribute: () => null }
-          ],
-          removedNodes: []
-        }];
+        const mutations = [
+          {
+            type: 'childList',
+            addedNodes: [{ nodeType: 1, tagName: 'IMG', getAttribute: () => null }],
+            removedNodes: []
+          }
+        ];
 
         // Trigger callback with mutations
         setTimeout(() => callback(mutations), 0);
@@ -234,7 +237,10 @@ describe('Performance and DOM Tests', () => {
             _mockConsole.log('Accessibility Highlighter: Custom rules initialized');
             return true;
           } catch (error) {
-            _mockConsole.warn('Accessibility Highlighter: Failed to initialize custom rules:', error);
+            _mockConsole.warn(
+              'Accessibility Highlighter: Failed to initialize custom rules:',
+              error
+            );
             return false;
           }
         };
@@ -243,7 +249,9 @@ describe('Performance and DOM Tests', () => {
 
       return initializeOnLoad().then(_result => {
         expect(_result).toBe(true);
-        expect(_mockConsole.log).toHaveBeenCalledWith('Accessibility Highlighter: Custom rules initialized');
+        expect(_mockConsole.log).toHaveBeenCalledWith(
+          'Accessibility Highlighter: Custom rules initialized'
+        );
       });
     });
 
@@ -255,7 +263,8 @@ describe('Performance and DOM Tests', () => {
         mutations.forEach(mutation => {
           if (mutation.type === 'childList') {
             mutation.addedNodes.forEach(node => {
-              if (node.nodeType === 1) { // Element node
+              if (node.nodeType === 1) {
+                // Element node
                 newElements.push({
                   tagName: node.tagName,
                   needsAccessibilityCheck: true
@@ -303,7 +312,7 @@ describe('Performance and DOM Tests', () => {
       // Create throttling functions
       shouldThrottleScan = () => {
         const now = Date.now();
-        return isRunning || (now - lastRunTime) < A11Y_CONFIG.PERFORMANCE.THROTTLE_DELAY;
+        return isRunning || now - lastRunTime < A11Y_CONFIG.PERFORMANCE.THROTTLE_DELAY;
       };
 
       initializeScanState = () => {
@@ -397,17 +406,21 @@ describe('Performance and DOM Tests', () => {
       };
 
       const shouldThrottleWithCustomDelay = (now, lastRun, delay) => {
-        return (now - lastRun) < delay;
+        return now - lastRun < delay;
       };
 
       const mockNow = 1000000;
       const lastRun = mockNow - 1500; // 1.5 seconds ago
 
       // With 2 second delay, should still be throttled
-      expect(shouldThrottleWithCustomDelay(mockNow, lastRun, customConfig.PERFORMANCE.THROTTLE_DELAY)).toBe(true);
+      expect(
+        shouldThrottleWithCustomDelay(mockNow, lastRun, customConfig.PERFORMANCE.THROTTLE_DELAY)
+      ).toBe(true);
 
       // With 1 second delay, should not be throttled
-      expect(shouldThrottleWithCustomDelay(mockNow, lastRun, A11Y_CONFIG.PERFORMANCE.THROTTLE_DELAY)).toBe(false);
+      expect(
+        shouldThrottleWithCustomDelay(mockNow, lastRun, A11Y_CONFIG.PERFORMANCE.THROTTLE_DELAY)
+      ).toBe(false);
     });
 
     test('should handle throttle during incremental scanning', () => {
@@ -584,9 +597,7 @@ describe('Performance and DOM Tests', () => {
       ];
 
       // Test batch mode optimization
-      const batchOverlays = elements.map(el =>
-        createOptimizedOverlay(el, 'Test message', true)
-      );
+      const batchOverlays = elements.map(el => createOptimizedOverlay(el, 'Test message', true));
 
       expect(batchOverlays.every(overlay => overlay.optimizations.batchMode)).toBe(true);
       expect(batchOverlays.every(overlay => overlay.deferred)).toBe(true);
@@ -603,7 +614,7 @@ describe('Performance and DOM Tests', () => {
         overlays: [],
         maxOverlays: 1000,
 
-        addOverlay: function(overlay) {
+        addOverlay: function (overlay) {
           this.overlays.push(overlay);
 
           // Cleanup if exceeding limit
@@ -612,7 +623,7 @@ describe('Performance and DOM Tests', () => {
           }
         },
 
-        cleanup: function() {
+        cleanup: function () {
           // Remove oldest overlays
           const toRemove = this.overlays.length - this.maxOverlays;
           const removed = this.overlays.splice(0, toRemove);
@@ -627,7 +638,7 @@ describe('Performance and DOM Tests', () => {
           return removed.length;
         },
 
-        clear: function() {
+        clear: function () {
           const count = this.overlays.length;
           this.overlays.forEach(_overlay => {
             if (_overlay.domElement && _overlay.domElement.parentNode) {
