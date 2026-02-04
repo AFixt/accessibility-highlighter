@@ -1,6 +1,6 @@
 {
   "name": "@afixt/a11y-highlighter",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "The Accessibility Highlighter finds accessibility problems on a website and highlights them on the page to give a visual indication of what the problems are. It also logs errors to console and annotates the DOM.",
   "main": "src/background.js",
   "scripts": {
@@ -16,6 +16,10 @@
     "lint:check": "eslint src/ tests/ *.js --max-warnings 0",
     "prebuild": "npm run clean",
     "build": "mkdir -p dist && cp -r src/* manifest.json dist/",
+    "build:all": "node scripts/build.js all",
+    "build:chrome": "node scripts/build.js chrome",
+    "build:firefox": "node scripts/build.js firefox",
+    "build:edge": "node scripts/build.js edge",
     "package": "npm run build && cd dist && zip -r ../a11y-highlighter.zip *",
     "dev": "npm run build && npm run test:watch",
     "prepare": "husky",

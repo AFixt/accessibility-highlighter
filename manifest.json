@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Accessibility Highlighter",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A browser extension to highlight accessibility problems on the page, giving a visual indication of what the problems are",
   "author": "AFixt",
   "permissions": ["storage", "activeTab"],
