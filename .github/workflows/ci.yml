@@ -50,7 +50,7 @@ jobs:
           retention-days: 30
 
       - name: Upload duplication report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: jscpd-report
           path: reports/jscpd/
