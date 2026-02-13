@@ -5,9 +5,6 @@ on:
     branches: [main, develop]
   pull_request:
     branches: [main, develop]
-  schedule:
-    # Run comprehensive scan every Sunday at midnight
-    - cron: '0 0 * * 0'
   workflow_dispatch:
 
 permissions:
