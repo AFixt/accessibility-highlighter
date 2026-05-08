@@ -264,3 +264,6 @@ jobs:
             console.log('✓ Extension name:', manifest.name);
             console.log('✓ Manifest version:', manifest.manifest_version);
           "
+env:
+  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+

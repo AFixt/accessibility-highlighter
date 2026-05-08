@@ -242,3 +242,6 @@ jobs:
           echo "❌ Failed to release Accessibility Highlighter ${{ needs.validate.outputs.version }}"
           echo "Check the workflow logs for details."
           exit 1
+env:
+  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+

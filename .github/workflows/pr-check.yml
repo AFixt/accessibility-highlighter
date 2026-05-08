@@ -86,3 +86,6 @@ jobs:
         if: steps.detect.outputs.type == 'node'
         run: npm test --if-present
         continue-on-error: true
+env:
+  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
