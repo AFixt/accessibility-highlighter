@@ -11,6 +11,9 @@ on:
         required: true
         type: string
 
+env:
+  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
 jobs:
   validate:
     name: Validate Release
