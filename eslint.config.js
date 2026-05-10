@@ -2,7 +2,7 @@ const js = require('@eslint/js');
 const globals = require('globals');
 
 // Some ESLint plugins ship as ESM-default; unwrap so CJS `require` works.
-const interop = (mod) => mod?.default ?? mod;
+const interop = mod => mod?.default ?? mod;
 
 const sonarjs = interop(require('eslint-plugin-sonarjs'));
 const security = interop(require('eslint-plugin-security'));

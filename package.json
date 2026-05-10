@@ -16,11 +16,17 @@
     "lint:check": "eslint src/ tests/ *.js --max-warnings 0",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "lint:md": "markdownlint '**/*.md' --ignore node_modules --ignore coverage",
+    "lint:md": "markdownlint '**/*.md' --ignore node_modules --ignore coverage --ignore reports --ignore scratchpads --ignore docs/templates --ignore errors.md --ignore element-highlighting-guide.md --ignore CHANGELOG.md --ignore CLAUDE.md",
     "lint:cpd": "jscpd . --config .jscpd.json",
     "lint:cpd:ci": "jscpd . --config .jscpd.json --threshold 5",
     "security:audit": "npm audit",
     "security:check": "npm audit --audit-level=high",
+    "size": "size-limit",
+    "license:check": "license-checker-rseidelsohn --production --onlyAllow 'MIT;ISC;Apache-2.0;BSD-2-Clause;BSD-3-Clause;0BSD;CC0-1.0;Unlicense;Python-2.0;WTFPL;BlueOak-1.0.0' --excludePrivatePackages --summary",
+    "license:report": "license-checker-rseidelsohn --production --csv --out reports/licenses.csv",
+    "links": "command -v lychee >/dev/null 2>&1 && lychee --no-progress '**/*.md' || echo 'lychee not installed; skipping link check (see scripts/bootstrap.sh)'",
+    "check": "npm-run-all --parallel lint:check format:check lint:md",
+    "check:all": "npm-run-all -s check test build size license:check links security:check",
     "prebuild": "npm run clean",
     "build": "mkdir -p dist && cp -r src/* manifest.json dist/",
     "build:all": "node scripts/build.js all",
@@ -54,6 +60,7 @@
     "@commitlint/config-conventional": "^20.4.1",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.58.2",
+    "@size-limit/file": "^12.1.0",
     "eslint": "^10.3.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import-x": "^4.16.2",
@@ -70,12 +77,32 @@
     "jest-environment-jsdom": "^29.7.0",
     "jest-html-loader": "^1.0.0",
     "jscpd": "^4.0.5",
+    "license-checker-rseidelsohn": "^4.4.2",
+    "lint-staged": "^17.0.4",
     "markdownlint-cli": "^0.47.0",
     "npm-run-all": "^4.1.5",
     "prettier": "^3.5.1",
+    "size-limit": "^12.1.0",
     "standard-version": "^9.5.0"
   },
   "engines": {
     "node": ">=20.0.0"
-  }
+  },
+  "size-limit": [
+    {
+      "name": "contentScript (brotli)",
+      "path": "src/contentScript.js",
+      "limit": "30 KB"
+    },
+    {
+      "name": "background (brotli)",
+      "path": "src/background.js",
+      "limit": "5 KB"
+    },
+    {
+      "name": "config (brotli)",
+      "path": "src/config.js",
+      "limit": "5 KB"
+    }
+  ]
 }
