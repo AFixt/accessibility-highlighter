@@ -11,6 +11,9 @@ permissions:
   contents: read
   security-events: write
 
+env:
+  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
 jobs:
   # Quick scan on every push/PR
   npm-audit:
@@ -119,6 +122,3 @@ jobs:
           name: license-report
           path: licenses.json
           retention-days: 90
-env:
-  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-

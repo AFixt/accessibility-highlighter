@@ -7,6 +7,9 @@ on:
 permissions:
   contents: read
 
+env:
+  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
 jobs:
   validate-workflows:
     name: Validate GitHub Actions Workflows
@@ -86,6 +89,3 @@ jobs:
         if: steps.detect.outputs.type == 'node'
         run: npm test --if-present
         continue-on-error: true
-env:
-  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-
