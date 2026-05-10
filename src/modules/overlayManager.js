@@ -1,5 +1,5 @@
 /**
- * @fileoverview Overlay management module for Accessibility Highlighter
+ * @file Overlay management module for Accessibility Highlighter
  *
  * This module handles the creation, styling, positioning, and removal of
  * accessibility issue overlays on DOM elements. It provides functionality for:
@@ -338,7 +338,7 @@ function getVisibleOverlays() {
 /**
  * Gets overlay information for a specific element.
  * @param {Element} target - The target element
- * @returns {Object|null} Overlay information or null if not found
+ * @returns {object | null} Overlay information or null if not found
  */
 function getOverlayInfo(target) {
   try {

@@ -1,5 +1,5 @@
 /**
- * @fileoverview Accessibility Highlighter Content Script
+ * @file Accessibility Highlighter Content Script
  *
  * This content script runs on all web pages and provides functionality to detect
  * and visually highlight accessibility issues. It performs various checks including:
@@ -45,7 +45,7 @@ let progressIndicator = null;
 
 /**
  * Current filter settings for accessibility results.
- * @type {Object}
+ * @type {object}
  */
 const CURRENT_FILTERS = {
   showErrors: true,
@@ -62,7 +62,7 @@ const CURRENT_FILTERS = {
 
 /**
  * Customizable rules configuration for accessibility checks.
- * @type {Object}
+ * @type {object}
  */
 let customRules = {
   // Image accessibility rules
@@ -143,7 +143,7 @@ let customRules = {
 };
 
 /**
- * @typedef {Object} PerformanceConfig
+ * @typedef {object} PerformanceConfig
  * @property {number} THROTTLE_DELAY - Throttle delay in milliseconds
  * @property {number} FONT_SIZE_THRESHOLD - Minimum font size threshold in pixels
  * @property {number} MAX_LOG_ELEMENT_LENGTH - Maximum length for element HTML in LOGS
@@ -151,7 +151,7 @@ let customRules = {
  */
 
 /**
- * @typedef {Object} VisualConfig
+ * @typedef {object} VisualConfig
  * @property {string} ERROR_COLOR - Hex color for error overlays
  * @property {string} WARNING_COLOR - Hex color for warning overlays
  * @property {number} OVERLAY_OPACITY - Opacity value for overlays (0-1)
@@ -161,7 +161,7 @@ let customRules = {
  */
 
 /**
- * @typedef {Object} Selectors
+ * @typedef {object} Selectors
  * @property {string} ALL_CHECKABLE_ELEMENTS - CSS selector for all checkable elements
  * @property {string} LANDMARK_ELEMENTS - CSS selector for landmark elements
  * @property {string[]} TEXT_ELEMENTS - Array of text element tag names
@@ -170,7 +170,7 @@ let customRules = {
  */
 
 /**
- * @typedef {Object} Messages
+ * @typedef {object} Messages
  * @property {string} MISSING_ALT - Message for missing alt attribute
  * @property {string} UNINFORMATIVE_ALT - Message for uninformative alt text
  * @property {string} EMPTY_ALT_WITH_TITLE - Message for empty alt with title
@@ -198,14 +198,14 @@ let customRules = {
  */
 
 /**
- * @typedef {Object} CSSClasses
+ * @typedef {object} CSSClasses
  * @property {string} ERROR_OVERLAY - CSS class for error overlays
  * @property {string} WARNING_OVERLAY - CSS class for warning overlays
  * @property {string} GENERIC_OVERLAY - CSS class for generic overlays
  */
 
 /**
- * @typedef {Object} A11yConfig
+ * @typedef {object} A11yConfig
  * @property {PerformanceConfig} PERFORMANCE - Performance-related configuration
  * @property {VisualConfig} VISUAL - Visual styling configuration
  * @property {string[]} PROHIBITED_TABLE_SUMMARIES - Array of prohibited table summary values
@@ -217,7 +217,7 @@ let customRules = {
  */
 
 /**
- * @typedef {Object} LogEntry
+ * @typedef {object} LogEntry
  * @property {string} Level - Log level (error/warning)
  * @property {string} Message - Error message
  * @property {string} Element - Element HTML snippet
@@ -960,7 +960,7 @@ function addSummaryTitle(panel) {
 /**
  * Adds the overall statistics section to the summary panel.
  * @param {HTMLElement} panel - The panel to add the stats to
- * @param {Object} summary - The summary data
+ * @param {object} summary - The summary data
  * @returns {void}
  */
 function addOverallStatsSection(panel, summary) {
@@ -988,7 +988,7 @@ function addOverallStatsSection(panel, summary) {
 /**
  * Adds the category breakdown section to the summary panel.
  * @param {HTMLElement} panel - The panel to add the breakdown to
- * @param {Object} summary - The summary data
+ * @param {object} summary - The summary data
  * @returns {void}
  */
 function addCategoryBreakdownSection(panel, summary) {
@@ -1007,7 +1007,7 @@ function addCategoryBreakdownSection(panel, summary) {
 
 /**
  * Creates a list of categories with their issue counts.
- * @param {Object} categories - Categories with their counts
+ * @param {object} categories - Categories with their counts
  * @returns {HTMLElement} The category list element
  */
 function createCategoryList(categories) {
@@ -1050,7 +1050,7 @@ function createCategoryItem(category, count) {
 /**
  * Adds the top issues section to the summary panel.
  * @param {HTMLElement} panel - The panel to add the top issues to
- * @param {Object} summary - The summary data
+ * @param {object} summary - The summary data
  * @returns {void}
  */
 function addTopIssuesSection(panel, summary) {
@@ -1214,7 +1214,7 @@ function createSummaryCloseButton(panel) {
 
 /**
  * Analyzes the LOGS array to create summary statistics.
- * @returns {Object} Summary object with statistics
+ * @returns {object} Summary object with statistics
  */
 function analyzeLogs() {
   const summary = {
@@ -1495,7 +1495,7 @@ function createConfigPanel() {
  * Creates a configuration section for a specific rule category.
  * @param {string} categoryKey - The category key
  * @param {string} categoryLabel - The display label for the category
- * @param {Object} rules - The rules object for this category
+ * @param {object} rules - The rules object for this category
  * @returns {HTMLElement} The section element
  */
 function createConfigSection(categoryKey, categoryLabel, rules) {
@@ -1834,7 +1834,7 @@ function exportReport(format) {
 
 /**
  * Generates a JSON report of accessibility issues.
- * @param {Object} summary - Summary statistics
+ * @param {object} summary - Summary statistics
  * @returns {string} JSON report content
  */
 function generateJSONReport(summary) {
@@ -1900,11 +1900,11 @@ function generateCSVReport() {
 
 /**
  * Generates an HTML report of accessibility issues.
- * @param {Object} summary - Summary statistics
+ * @param {object} summary - Summary statistics
  * @returns {string} HTML report content
  */
 function generateHTMLReport(summary) {
-  const html = `
+  return `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -2008,13 +2008,11 @@ function generateHTMLReport(summary) {
     </div>
 </body>
 </html>`;
-
-  return html;
 }
 
 /**
  * Generates a plain text report of accessibility issues.
- * @param {Object} summary - Summary statistics
+ * @param {object} summary - Summary statistics
  * @returns {string} Text report content
  */
 function generateTextReport(summary) {
@@ -2201,7 +2199,7 @@ let lastRunTime = 0;
 
 /**
  * Configuration for incremental scanning.
- * @type {Object}
+ * @type {object}
  */
 const INCREMENTAL_CONFIG = {
   CHUNK_SIZE: 25, // Number of elements to process per chunk
@@ -2212,7 +2210,7 @@ const INCREMENTAL_CONFIG = {
 
 /**
  * State for incremental scanning.
- * @type {Object|null}
+ * @type {object | null}
  */
 let incrementalState = null;
 
@@ -3117,7 +3115,7 @@ chrome.storage.local.get(['isEnabled'], result => {
 
 /**
  * Listen for messages from the background or popup script to dynamically toggle features.
- * @param {Object} message - The message object from the sender
+ * @param {object} message - The message object from the sender
  * @param {chrome.runtime.MessageSender} _sender - The sender information (unused)
  * @param {Function} sendResponse - Function to send response back to sender
  * @returns {boolean} - True if response will be sent asynchronously, false otherwise

@@ -1,5 +1,5 @@
 /**
- * @fileoverview Accessibility Highlighter - Background Service Worker
+ * @file Accessibility Highlighter - Background Service Worker
  *
  * This service worker manages the extension's lifecycle and state. It handles:
  * - Extension icon clicks to toggle accessibility checking on/off
@@ -16,13 +16,13 @@
  */
 
 /**
- * @typedef {Object} TabQueryOptions
+ * @typedef {object} TabQueryOptions
  * @property {boolean} active - Whether to find active tabs
  * @property {boolean} lastFocusedWindow - Whether to search in last focused window
  */
 
 /**
- * @typedef {Object} Tab
+ * @typedef {object} Tab
  * @property {number} id - The tab ID
  * @property {string} url - The tab URL
  * @property {string} title - The tab title
@@ -30,12 +30,12 @@
  */
 
 /**
- * @typedef {Object} StorageResult
+ * @typedef {object} StorageResult
  * @property {boolean} [isEnabled] - Whether the extension is enabled
  */
 
 /**
- * @typedef {Object} ExtensionMessage
+ * @typedef {object} ExtensionMessage
  * @property {string} action - The action to perform
  * @property {boolean} isEnabled - Whether accessibility highlighting is enabled
  */

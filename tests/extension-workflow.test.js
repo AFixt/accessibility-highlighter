@@ -179,8 +179,7 @@ describe('Extension Workflow Tests', () => {
 
       const _sendMessageToTab = async (tabId, message) => {
         try {
-          const _response = await mockChrome.tabs.sendMessage(tabId, message);
-          return _response;
+          return await mockChrome.tabs.sendMessage(tabId, message);
         } catch (error) {
           _mockConsole.error('Error sending message to tab:', error);
           throw error;

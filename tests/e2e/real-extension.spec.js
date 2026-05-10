@@ -142,7 +142,7 @@ test.describe('Real Chrome Extension Tests', () => {
     // Run the real accessibility checks
     const _results = await page.evaluate(() => {
       // Clear any existing logs
-      if (typeof logs !== 'undefined' && logs.length) {
+      if (typeof logs !== 'undefined' && logs.length > 0) {
         logs.length = 0;
       }
 

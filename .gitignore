@@ -3,8 +3,13 @@
 /coverage
 /dist
 /reports
+/scratchpads
 *.zip
 *.log
 .DS_Store
 CLAUDE.md
 .claude
+
+# Local-only working notes
+errors.md
+element-highlighting-guide.md

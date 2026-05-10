@@ -359,7 +359,7 @@ describe('Content Script Extended Functionality Tests', () => {
             return null;
           }
 
-          const _overlayData = {
+          return {
             id: Date.now(),
             message: _message,
             level: _level,
@@ -370,8 +370,6 @@ describe('Content Script Extended Functionality Tests', () => {
               zIndex: 10000
             }
           };
-
-          return _overlayData;
         } catch (error) {
           console.error('Error creating overlay:', error);
           return null;
