@@ -24,7 +24,7 @@ in Phase 1.
 | Area               | Tool                                                                | Notes                        |
 | ------------------ | ------------------------------------------------------------------- | ---------------------------- |
 | Editor consistency | `.editorconfig`                                                     | new                          |
-| Node pinning       | `.nvmrc`, `.node-version`, `engines >=20`, `engine-strict=true`     | bumped from `>=12`           |
+| Node pinning       | `.nvmrc`, `.node-version`, `engines >=22`, `engine-strict=true`     | bumped from `>=12`           |
 | Lint               | ESLint v10 flat config (`eslint.config.js`)                         | migrated from `.eslintrc.js` |
 | Lint plugins       | sonarjs, security, unicorn, promise, n, import-x, no-secrets, jsdoc | new                          |
 | Pre-commit         | `lint-staged` + gitleaks (optional)                                 | new                          |

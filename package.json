@@ -86,7 +86,7 @@
     "standard-version": "^9.5.0"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=22.0.0"
   },
   "size-limit": [
     {
