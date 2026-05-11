@@ -357,10 +357,9 @@ test.describe('Accessibility Highlighter Extension E2E Tests', () => {
 
         // Check form fields without labels
         document.querySelectorAll('input[type="text"], input[type="email"]').forEach(input => {
-          if (!input.id || !document.querySelector(`label[for="${input.id}"]`)) {
-            if (!input.getAttribute('aria-label')) {
-              _issues.push({ element: input, message: 'Form field without label' });
-            }
+          const _hasLabel = input.id && document.querySelector(`label[for="${input.id}"]`);
+          if (!_hasLabel && !input.getAttribute('aria-label')) {
+            _issues.push({ element: input, message: 'Form field without label' });
           }
         });
 
