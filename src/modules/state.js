@@ -1,5 +1,5 @@
 /**
- * @fileoverview State management module for Accessibility Highlighter
+ * @file State management module for Accessibility Highlighter
  *
  * This module manages the global state of the accessibility highlighter including:
  * - Scan results and LOGS
@@ -19,7 +19,7 @@ const {
 } = require('./config.js');
 
 /**
- * @typedef {Object} LogEntry
+ * @typedef {object} LogEntry
  * @property {string} Level - Log level (error/warning)
  * @property {string} Message - Error message
  * @property {string} Element - Element HTML snippet
@@ -63,19 +63,19 @@ let lastRunTime = 0;
 
 /**
  * Current filter settings for accessibility results.
- * @type {Object}
+ * @type {object}
  */
 let currentFilters = { ...DEFAULT_FILTERS };
 
 /**
  * Current custom rules configuration for accessibility checks.
- * @type {Object}
+ * @type {object}
  */
 let customRules = { ...DEFAULT_CUSTOM_RULES };
 
 /**
  * State for incremental scanning process.
- * @type {Object}
+ * @type {object}
  */
 let incrementalState = {
   isActive: false,
@@ -174,7 +174,7 @@ function getLastRunTime() {
 
 /**
  * Updates the current filter settings.
- * @param {Object} newFilters - New filter settings
+ * @param {object} newFilters - New filter settings
  * @returns {void}
  */
 function updateCurrentFilters(newFilters) {
@@ -183,7 +183,7 @@ function updateCurrentFilters(newFilters) {
 
 /**
  * Gets the current filter settings.
- * @returns {Object} Current filter settings
+ * @returns {object} Current filter settings
  */
 function getCurrentFilters() {
   return currentFilters;
@@ -191,7 +191,7 @@ function getCurrentFilters() {
 
 /**
  * Updates the custom rules configuration.
- * @param {Object} newRules - New custom rules
+ * @param {object} newRules - New custom rules
  * @returns {void}
  */
 function updateCustomRules(newRules) {
@@ -200,7 +200,7 @@ function updateCustomRules(newRules) {
 
 /**
  * Gets the current custom rules configuration.
- * @returns {Object} Current custom rules
+ * @returns {object} Current custom rules
  */
 function getCustomRules() {
   return customRules;
@@ -208,7 +208,7 @@ function getCustomRules() {
 
 /**
  * Updates the incremental scan state.
- * @param {Object} newState - New incremental state properties
+ * @param {object} newState - New incremental state properties
  * @returns {void}
  */
 function updateIncrementalState(newState) {
@@ -217,7 +217,7 @@ function updateIncrementalState(newState) {
 
 /**
  * Gets the current incremental scan state.
- * @returns {Object} Current incremental state
+ * @returns {object} Current incremental state
  */
 function getIncrementalState() {
   return incrementalState;
@@ -323,7 +323,7 @@ function resetState() {
 
 /**
  * Gets a summary of the current state for debugging.
- * @returns {Object} State summary object
+ * @returns {object} State summary object
  */
 function getStateSummary() {
   return {

@@ -1,5 +1,5 @@
 /**
- * @fileoverview Configuration module for Accessibility Highlighter
+ * @file Configuration module for Accessibility Highlighter
  *
  * This module centralizes all configuration data including:
  * - Performance and visual settings
@@ -12,7 +12,7 @@
  */
 
 /**
- * @typedef {Object} PerformanceConfig
+ * @typedef {object} PerformanceConfig
  * @property {number} THROTTLE_DELAY - Throttle delay in milliseconds
  * @property {number} FONT_SIZE_THRESHOLD - Minimum font size threshold
  * @property {number} MAX_LOG_ELEMENT_LENGTH - Maximum element HTML length in logs
@@ -20,7 +20,7 @@
  */
 
 /**
- * @typedef {Object} VisualConfig
+ * @typedef {object} VisualConfig
  * @property {string} ERROR_COLOR - Error overlay color
  * @property {string} WARNING_COLOR - Warning overlay color
  * @property {number} OVERLAY_OPACITY - Overlay opacity
@@ -30,15 +30,15 @@
  */
 
 /**
- * @typedef {Object} A11yConfig
+ * @typedef {object} A11yConfig
  * @property {PerformanceConfig} PERFORMANCE - Performance-related configuration
  * @property {VisualConfig} VISUAL - Visual styling configuration
  * @property {string[]} PROHIBITED_TABLE_SUMMARIES - Array of prohibited table summary values
  * @property {string[]} PROHIBITED_ALT_VALUES - Array of prohibited alt text values
  * @property {string[]} PROHIBITED_LINK_TEXT - Array of prohibited link text values
- * @property {Object} SELECTORS - CSS selectors and element arrays
- * @property {Object} MESSAGES - Error and warning messages
- * @property {Object} CSS_CLASSES - CSS class names
+ * @property {object} SELECTORS - CSS selectors and element arrays
+ * @property {object} MESSAGES - Error and warning messages
+ * @property {object} CSS_CLASSES - CSS class names
  */
 
 /**
@@ -227,7 +227,7 @@ const A11Y_CONFIG = {
 
 /**
  * Default filter settings for accessibility results.
- * @type {Object}
+ * @type {object}
  */
 const DEFAULT_FILTERS = {
   showErrors: true,
@@ -244,7 +244,7 @@ const DEFAULT_FILTERS = {
 
 /**
  * Default customizable rules configuration for accessibility checks.
- * @type {Object}
+ * @type {object}
  */
 const DEFAULT_CUSTOM_RULES = {
   // Image accessibility rules
@@ -315,7 +315,7 @@ const DEFAULT_CUSTOM_RULES = {
 
 /**
  * Configuration for incremental scanning performance optimization.
- * @type {Object}
+ * @type {object}
  */
 const INCREMENTAL_CONFIG = {
   CHUNK_SIZE: 100, // Number of elements to process per chunk
@@ -326,7 +326,7 @@ const INCREMENTAL_CONFIG = {
 
 /**
  * Loads custom rules from Chrome storage.
- * @returns {Promise<Object>} Promise that resolves to custom rules object
+ * @returns {Promise<object>} Promise that resolves to custom rules object
  */
 async function loadCustomRules() {
   try {
@@ -353,7 +353,7 @@ async function loadCustomRules() {
 
 /**
  * Saves custom rules to Chrome storage.
- * @param {Object} rules - Custom rules object to save
+ * @param {object} rules - Custom rules object to save
  * @returns {Promise<void>} Promise that resolves when rules are saved
  */
 async function saveCustomRules(rules) {
@@ -377,7 +377,7 @@ async function saveCustomRules(rules) {
 
 /**
  * Resets custom rules to default values.
- * @returns {Promise<Object>} Promise that resolves to default rules
+ * @returns {Promise<object>} Promise that resolves to default rules
  */
 async function resetCustomRules() {
   const defaultRules = JSON.parse(JSON.stringify(DEFAULT_CUSTOM_RULES));
@@ -387,7 +387,7 @@ async function resetCustomRules() {
 
 /**
  * Loads filter settings from Chrome storage.
- * @returns {Promise<Object>} Promise that resolves to filter settings
+ * @returns {Promise<object>} Promise that resolves to filter settings
  */
 async function loadFilterSettings() {
   try {
@@ -413,7 +413,7 @@ async function loadFilterSettings() {
 
 /**
  * Saves filter settings to Chrome storage.
- * @param {Object} filters - Filter settings object to save
+ * @param {object} filters - Filter settings object to save
  * @returns {Promise<void>} Promise that resolves when settings are saved
  */
 async function saveFilterSettings(filters) {
@@ -437,18 +437,18 @@ async function saveFilterSettings(filters) {
 
 /**
  * Merges user settings with default settings, ensuring all required properties exist.
- * @param {Object} userSettings - User's custom settings
- * @param {Object} defaultSettings - Default settings to merge with
- * @returns {Object} Merged settings object
+ * @param {object} userSettings - User's custom settings
+ * @param {object} defaultSettings - Default settings to merge with
+ * @returns {object} Merged settings object
  */
 function mergeWithDefaults(userSettings, defaultSettings) {
   const merged = JSON.parse(JSON.stringify(defaultSettings));
 
   /**
    * Deep merge two objects with prototype pollution protection
-   * @param {Object} target - Target object
-   * @param {Object} source - Source object
-   * @returns {Object} Merged object
+   * @param {object} target - Target object
+   * @param {object} source - Source object
+   * @returns {object} Merged object
    */
   function deepMerge(target, source) {
     for (const key in source) {

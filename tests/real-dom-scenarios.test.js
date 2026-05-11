@@ -566,7 +566,7 @@ describe('Real DOM Scenarios Tests', () => {
           { width: 100, height: 50, visible: true }
         ];
 
-        const _results = _elements.map(el => {
+        return _elements.map(el => {
           const _isVisible = el.width > 0 && el.height > 0;
           return {
             ...el,
@@ -574,8 +574,6 @@ describe('Real DOM Scenarios Tests', () => {
             reason: _isVisible ? 'visible' : 'zero_dimensions'
           };
         });
-
-        return _results;
       };
 
       const _results = _handleZeroDimensionElements();

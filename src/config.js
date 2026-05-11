@@ -1,5 +1,5 @@
 /**
- * @fileoverview Accessibility Highlighter Configuration
+ * @file Accessibility Highlighter Configuration
  *
  * Centralized configuration and constants for the extension. This file contains
  * all configurable settings including:
