@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * @fileoverview Build script for Accessibility Highlighter extension
+ * @file Build script for Accessibility Highlighter extension
  * Generates distribution packages for Chrome, Firefox, and Edge
  */
 
@@ -10,15 +10,15 @@ const path = require('path');
 const { execSync } = require('child_process');
 
 const ROOT_DIR = path.resolve(__dirname, '..');
-const EXTENSION_DIR = path.join(ROOT_DIR, 'extension-package');
+const EXTENSION_DIR = path.join(ROOT_DIR, 'src');
+const MANIFEST_PATH = path.join(ROOT_DIR, 'manifest.json');
 const DIST_DIR = path.join(ROOT_DIR, 'dist');
 
 /**
- * Read and parse manifest.json
+ * Read and parse manifest.json from the repo root
  */
 function readManifest() {
-  const manifestPath = path.join(EXTENSION_DIR, 'manifest.json');
-  return JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  return JSON.parse(fs.readFileSync(MANIFEST_PATH, 'utf8'));
 }
 
 /**
@@ -37,7 +37,16 @@ function copyExtensionFiles(targetDir) {
   fs.mkdirSync(targetDir, { recursive: true });
 
   // Files and directories to copy
-  const items = ['background.js', 'contentScript.js', 'config.js', 'icons', 'modules'];
+  const items = [
+    'background.js',
+    'contentScript.js',
+    'elementChecks.js',
+    'uiPanels.js',
+    'reportGenerators.js',
+    'config.js',
+    'icons',
+    'modules'
+  ];
 
   items.forEach(item => {
     const src = path.join(EXTENSION_DIR, item);
