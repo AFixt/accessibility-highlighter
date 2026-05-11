@@ -94,20 +94,18 @@ const projectRules = {
 const pluginRules = {
   // sonarjs — code smells, dead code, redundancy
   'sonarjs/no-identical-functions': 'error',
-  // A handful of existing nested ifs are intentionally structured for clarity.
-  'sonarjs/no-collapsible-if': 'off',
+  'sonarjs/no-collapsible-if': 'error',
   'sonarjs/no-redundant-boolean': 'error',
   'sonarjs/no-redundant-jump': 'error',
   'sonarjs/no-unused-collection': 'error',
   'sonarjs/no-useless-catch': 'error',
-  'sonarjs/prefer-immediate-return': 'warn',
-  'sonarjs/prefer-single-boolean-return': 'warn',
+  'sonarjs/prefer-immediate-return': 'error',
+  'sonarjs/prefer-single-boolean-return': 'error',
 
   // security — common Node/browser pitfalls
   'security/detect-eval-with-expression': 'error',
-  'security/detect-non-literal-regexp': 'warn',
-  // Heuristic overreports on standard `\d+(\.\d+)?` patterns; surface as warning.
-  'security/detect-unsafe-regex': 'warn',
+  'security/detect-non-literal-regexp': 'error',
+  'security/detect-unsafe-regex': 'error',
   'security/detect-buffer-noassert': 'error',
   'security/detect-child-process': 'error',
   'security/detect-pseudoRandomBytes': 'error',
@@ -120,15 +118,16 @@ const pluginRules = {
   'unicorn/no-array-for-each': 'off',
   'unicorn/prefer-top-level-await': 'off',
   'unicorn/prefer-module': 'off',
-  'unicorn/explicit-length-check': 'warn',
+  'unicorn/explicit-length-check': 'error',
   'unicorn/no-array-reduce': 'off',
 
   // promise — async correctness
   'promise/no-return-wrap': 'error',
   'promise/param-names': 'error',
-  'promise/catch-or-return': 'warn',
-  // The legacy chrome.* API style nests .then/.catch under outer .then chains;
-  // refactoring to async/await is tracked as separate work.
+  'promise/catch-or-return': 'error',
+  // The legacy chrome.* callback API style in background.js nests promises
+  // under outer .then chains; refactoring to async/await is tracked
+  // separately. See background.js lines 131, 166, 170.
   'promise/no-nesting': 'off',
 
   // n — Node-specific rules (light touch; most of this project is browser)
@@ -148,9 +147,9 @@ const pluginRules = {
 
   // jsdoc — keep documentation accurate where it exists; do not force it on
   // every export yet (project has many undocumented internals).
-  'jsdoc/check-tag-names': ['warn', { definedTags: ['fileoverview'] }],
-  'jsdoc/check-param-names': 'warn',
-  'jsdoc/check-types': 'warn',
+  'jsdoc/check-tag-names': ['error', { definedTags: ['fileoverview'] }],
+  'jsdoc/check-param-names': 'error',
+  'jsdoc/check-types': 'error',
   'jsdoc/no-undefined-types': 'off',
   'jsdoc/require-jsdoc': 'off'
 };

@@ -328,14 +328,12 @@ describe('Real DOM Scenarios Tests', () => {
         if (_tbody) {
           _tbody.children.forEach((row, rowIndex) => {
             const _firstCell = row.children[0];
-            if (_firstCell && _firstCell.tagName === 'TH') {
-              if (!_firstCell.getAttribute('scope')) {
-                _issues.push({
-                  issue: 'missing_row_scope',
-                  message: `Row header at row ${rowIndex + 1} missing scope attribute`,
-                  element: _firstCell
-                });
-              }
+            if (_firstCell && _firstCell.tagName === 'TH' && !_firstCell.getAttribute('scope')) {
+              _issues.push({
+                issue: 'missing_row_scope',
+                message: `Row header at row ${rowIndex + 1} missing scope attribute`,
+                element: _firstCell
+              });
             }
           });
         }
