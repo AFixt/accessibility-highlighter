@@ -20,7 +20,6 @@ const projectIgnores = {
     'dist/**',
     'build/**',
     'coverage/**',
-    'extension-package/**',
     'reports/**',
     'scratchpads/**',
     '**/*.bak',
@@ -70,7 +69,10 @@ const projectRules = {
         'data_a11ymessage',
         'aria_label',
         'aria_labelledby',
-        'aria_describedby'
+        'aria_describedby',
+        // Firefox WebExtensions manifest keys (scripts/build.js)
+        'browser_specific_settings',
+        'strict_min_version'
       ]
     }
   ],
@@ -86,7 +88,17 @@ const projectRules = {
   'no-restricted-globals': [
     'error',
     { name: 'event', message: 'Use local parameter instead of global event' }
-  ]
+  ],
+
+  // Size and complexity gates. Thresholds are set so the current codebase
+  // passes after the Phase 2b contentScript.js split; tighten further as
+  // individual functions are refactored.
+  'max-lines': ['error', { max: 1500, skipBlankLines: true, skipComments: true }],
+  'max-lines-per-function': ['error', { max: 250, skipBlankLines: true, skipComments: true }],
+  complexity: ['error', { max: 40 }],
+  'max-depth': ['error', 6],
+  'max-nested-callbacks': ['error', 5],
+  'max-params': ['error', 5]
 };
 
 // Plugin-recommended rules, scoped to severities that won't blow up the existing
@@ -205,7 +217,13 @@ module.exports = [
       // Test assertions use simple anchored patterns like /^\d+(\.\d+)?(px|em)$/
       // which the heuristic flags but are non-backtracking.
       'security/detect-unsafe-regex': 'off',
-      'jsdoc/check-tag-names': 'off'
+      'jsdoc/check-tag-names': 'off',
+      // Jest `describe(...)` callbacks legitimately wrap entire test files;
+      // size and nesting gates do not apply to test scaffolding.
+      'max-lines': 'off',
+      'max-lines-per-function': 'off',
+      'max-nested-callbacks': 'off',
+      complexity: 'off'
     }
   },
 
