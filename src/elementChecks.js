@@ -145,6 +145,82 @@ function checkButtonElement(element) {
 }
 
 /**
+ * Determines whether an aria-labelledby value resolves to a non-empty name.
+ *
+ * aria-labelledby holds a space-separated list of element IDs; the accessible
+ * name is the concatenation of the referenced elements' text. A reference that
+ * points at a missing or empty element contributes nothing, so it must be
+ * resolved rather than assumed to supply a name.
+ *
+ * @param {string|null} value - The aria-labelledby attribute value
+ * @returns {boolean} True if at least one referenced element has visible text
+ */
+function ariaLabelledbyResolvesToText(value) {
+  if (!value) {
+    return false;
+  }
+  return value
+    .split(/\s+/)
+    .filter(id => id !== '')
+    .some(id => {
+      const target = document.getElementById(id);
+      return Boolean(target && target.textContent && target.textContent.trim() !== '');
+    });
+}
+
+/**
+ * Determines whether an element supplies its own accessible name via ARIA.
+ *
+ * @param {Element} el - The element to inspect
+ * @returns {boolean} True if a non-empty aria-label or resolvable
+ *   aria-labelledby is present
+ */
+function elementHasAriaName(el) {
+  const label = el.getAttribute('aria-label');
+  if (label && label.trim() !== '') {
+    return true;
+  }
+  return ariaLabelledbyResolvesToText(el.getAttribute('aria-labelledby'));
+}
+
+/**
+ * Determines whether an interactive element (link, or role=link/button)
+ * derives an accessible name from its contents.
+ *
+ * Such an element with no text content is not empty when it wraps content that
+ * itself exposes an accessible name — most commonly a linked image whose `alt`
+ * text becomes the accessible name. This covers images, SVG graphics, and any
+ * descendant carrying its own ARIA label.
+ *
+ * @param {Element} element - The element to inspect
+ * @returns {boolean} True if a descendant supplies an accessible name
+ */
+function hasAccessibleNameFromContent(element) {
+  // A descendant with its own non-empty aria-label or resolvable
+  // aria-labelledby contributes an accessible name.
+  const labelled = element.querySelectorAll('[aria-label], [aria-labelledby]');
+  for (const node of labelled) {
+    if (elementHasAriaName(node)) {
+      return true;
+    }
+  }
+
+  // An image with non-empty alt or title supplies the accessible name.
+  const images = element.querySelectorAll('img');
+  for (const img of images) {
+    const alt = img.getAttribute('alt');
+    const title = img.getAttribute('title');
+    if ((alt && alt.trim() !== '') || (title && title.trim() !== '')) {
+      return true;
+    }
+  }
+
+  // An SVG with a non-empty <title> exposes an accessible name.
+  const svgTitle = element.querySelector('svg title');
+  return Boolean(svgTitle && svgTitle.textContent && svgTitle.textContent.trim() !== '');
+}
+
+/**
  * Checks link elements for accessibility issues.
  * @param {HTMLAnchorElement} element - The link element to check
  * @returns {void}
@@ -162,8 +238,17 @@ function checkLinkElement(element) {
     return;
   }
 
-  // Check for empty links
-  if (!hasAriaLabel && !hasAriaLabelledby && textContent === '') {
+  // Check for empty links. A link with no text content is still accessible
+  // when its own title or its contents (e.g. a linked image's alt text) supply
+  // an accessible name, so those cases must not be flagged as empty.
+  const hasTitle = titleValue && titleValue.trim() !== '';
+  if (
+    !hasAriaLabel &&
+    !hasAriaLabelledby &&
+    textContent === '' &&
+    !hasTitle &&
+    !hasAccessibleNameFromContent(element)
+  ) {
     console.log(element);
     overlay.call(element, 'overlay', 'error', A11Y_CONFIG.MESSAGES.LINK_NO_CONTENT);
     return;
@@ -316,7 +401,14 @@ function checkRoleBasedElement(element, role) {
       break;
     case 'button': {
       const hasTextContent = element.textContent && element.textContent.trim() !== '';
-      if (!hasAriaLabel && !hasAriaLabelledby && !hasTextContent) {
+      // A button's accessible name may come from its contents (e.g. a child
+      // image's alt text), so those cases must not be flagged as unlabeled.
+      if (
+        !hasAriaLabel &&
+        !hasAriaLabelledby &&
+        !hasTextContent &&
+        !hasAccessibleNameFromContent(element)
+      ) {
         console.log(element);
         overlay.call(element, 'overlay', 'error', A11Y_CONFIG.MESSAGES.BUTTON_NO_LABEL);
       }
@@ -324,7 +416,14 @@ function checkRoleBasedElement(element, role) {
     }
     case 'link': {
       const textContent = element.textContent ? element.textContent.trim() : '';
-      if (!hasAriaLabel && !hasAriaLabelledby && textContent === '') {
+      // As with native anchors, a role=link element with no text is still
+      // accessible when its contents (e.g. a linked image's alt) supply a name.
+      if (
+        !hasAriaLabel &&
+        !hasAriaLabelledby &&
+        textContent === '' &&
+        !hasAccessibleNameFromContent(element)
+      ) {
         console.log(element);
         overlay.call(element, 'overlay', 'error', A11Y_CONFIG.MESSAGES.LINK_NO_CONTENT);
       }
