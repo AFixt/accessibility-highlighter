@@ -203,6 +203,71 @@ describe('Element Checker Edge Cases', () => {
         console.log.mockClear();
       });
     });
+
+    test('should not flag a linked image with non-empty alt as empty (issue #8)', () => {
+      const _link = document.createElement('a');
+      _link.href = 'https://example.com';
+      const _img = document.createElement('img');
+      _img.src = 'home.png';
+      _img.alt = 'Home';
+      _link.appendChild(_img);
+      document.body.appendChild(_link);
+
+      global.checkLinkElement(_link);
+
+      expect(console.log).not.toHaveBeenCalled();
+    });
+
+    test('should flag a linked image with empty alt as an empty link', () => {
+      const _link = document.createElement('a');
+      _link.href = 'https://example.com';
+      const _img = document.createElement('img');
+      _img.src = 'home.png';
+      _img.alt = '';
+      _link.appendChild(_img);
+      document.body.appendChild(_link);
+
+      global.checkLinkElement(_link);
+
+      expect(console.log).toHaveBeenCalledWith(_link);
+    });
+
+    test('should not flag a linked image whose accessible name comes from aria-label', () => {
+      const _link = document.createElement('a');
+      _link.href = 'https://example.com';
+      const _img = document.createElement('img');
+      _img.src = 'home.png';
+      _img.setAttribute('aria-label', 'Home');
+      _link.appendChild(_img);
+      document.body.appendChild(_link);
+
+      global.checkLinkElement(_link);
+
+      expect(console.log).not.toHaveBeenCalled();
+    });
+
+    test('should not flag a link wrapping an SVG with a title', () => {
+      const _link = document.createElement('a');
+      _link.href = 'https://example.com';
+      _link.innerHTML =
+        '<svg viewBox="0 0 10 10"><title>Home</title><rect width="10" height="10"></rect></svg>';
+      document.body.appendChild(_link);
+
+      global.checkLinkElement(_link);
+
+      expect(console.log).not.toHaveBeenCalled();
+    });
+
+    test('should not flag a link whose only accessible name is its own title', () => {
+      const _link = document.createElement('a');
+      _link.href = 'https://example.com';
+      _link.setAttribute('title', 'Home');
+      document.body.appendChild(_link);
+
+      global.checkLinkElement(_link);
+
+      expect(console.log).not.toHaveBeenCalled();
+    });
   });
 
   describe('Table Element Edge Cases', () => {

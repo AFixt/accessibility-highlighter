@@ -2833,6 +2833,44 @@ function checkButtonElement(element) {
 }
 
 /**
+ * Determines whether a link derives an accessible name from its contents.
+ *
+ * A link with no text content is not empty when it wraps content that itself
+ * exposes an accessible name — most commonly a linked image whose `alt` text
+ * becomes the link's accessible name. This covers images, image inputs, image
+ * map areas, SVG graphics, and any descendant carrying its own ARIA label.
+ *
+ * @param {HTMLAnchorElement} element - The link element to inspect
+ * @returns {boolean} True if a descendant supplies an accessible name
+ */
+function linkHasAccessibleNameFromContent(element) {
+  // A descendant with a non-empty aria-label or an aria-labelledby reference
+  // contributes an accessible name to the link.
+  const labelledDescendant = element.querySelector('[aria-label], [aria-labelledby]');
+  if (labelledDescendant) {
+    const label = labelledDescendant.getAttribute('aria-label');
+    if (labelledDescendant.hasAttribute('aria-labelledby') || (label && label.trim() !== '')) {
+      return true;
+    }
+  }
+
+  // An image (or image input / image map area) with non-empty alt or a title
+  // supplies the link's accessible name.
+  const imgLike = element.querySelectorAll('img, input[type="image"], area');
+  for (const img of imgLike) {
+    const alt = img.getAttribute('alt');
+    const title = img.getAttribute('title');
+    if ((alt && alt.trim() !== '') || (title && title.trim() !== '')) {
+      return true;
+    }
+  }
+
+  // An SVG with a non-empty <title> exposes an accessible name.
+  const svgTitle = element.querySelector('svg title');
+  return Boolean(svgTitle && svgTitle.textContent && svgTitle.textContent.trim() !== '');
+}
+
+/**
  * Checks link elements for accessibility issues.
  * @param {HTMLAnchorElement} element - The link element to check
  * @returns {void}
@@ -2850,8 +2888,17 @@ function checkLinkElement(element) {
     return;
   }
 
-  // Check for empty links
-  if (!hasAriaLabel && !hasAriaLabelledby && textContent === '') {
+  // Check for empty links. A link with no text content is still accessible
+  // when its own title or its contents (e.g. a linked image's alt text) supply
+  // an accessible name, so those cases must not be flagged as empty.
+  const hasTitle = titleValue && titleValue.trim() !== '';
+  if (
+    !hasAriaLabel &&
+    !hasAriaLabelledby &&
+    textContent === '' &&
+    !hasTitle &&
+    !linkHasAccessibleNameFromContent(element)
+  ) {
     console.log(element);
     overlay.call(element, 'overlay', 'error', A11Y_CONFIG.MESSAGES.LINK_NO_CONTENT);
     return;
