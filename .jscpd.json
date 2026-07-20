@@ -6,7 +6,6 @@
     "**/dist/**",
     "**/build/**",
     "**/coverage/**",
-    "**/extension-package/**",
     "**/*.min.js",
     "**/*.min.css",
     "**/package-lock.json",
