@@ -1,0 +1,5 @@
+changed=$(git diff HEAD@{1} HEAD --name-only)
+if echo "$changed" | grep -q "package-lock.json"; then
+  echo "Lockfile changed; installing dependencies..."
+  npm install
+fi

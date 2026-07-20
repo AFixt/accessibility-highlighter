@@ -92,7 +92,10 @@ describe('Extension Workflow Tests', () => {
           addEventListener: jest.fn(),
           click: jest.fn(),
           getBoundingClientRect: jest.fn(() => ({
-            top: 100, left: 200, width: 150, height: 100
+            top: 100,
+            left: 200,
+            width: 150,
+            height: 100
           }))
         };
         return _element;
@@ -176,8 +179,7 @@ describe('Extension Workflow Tests', () => {
 
       const _sendMessageToTab = async (tabId, message) => {
         try {
-          const _response = await mockChrome.tabs.sendMessage(tabId, message);
-          return _response;
+          return await mockChrome.tabs.sendMessage(tabId, message);
         } catch (error) {
           _mockConsole.error('Error sending message to tab:', error);
           throw error;
@@ -251,7 +253,9 @@ describe('Extension Workflow Tests', () => {
               await mockChrome.tabs.sendMessage(1, { action: 'test' });
               break;
             case 'storage_error':
-              mockChrome.storage.local.get.mockRejectedValueOnce(new Error('Storage access failed'));
+              mockChrome.storage.local.get.mockRejectedValueOnce(
+                new Error('Storage access failed')
+              );
               await mockChrome.storage.local.get(['isEnabled']);
               break;
           }
@@ -310,7 +314,11 @@ describe('Extension Workflow Tests', () => {
           _steps.push('sent_message_to_content');
 
           // Step 6: Content script responds
-          if (_response === 'response' || _response === 'highlighted' || _response === 'unhighlighted') {
+          if (
+            _response === 'response' ||
+            _response === 'highlighted' ||
+            _response === 'unhighlighted'
+          ) {
             _steps.push('content_script_responded');
           }
 
@@ -362,7 +370,11 @@ describe('Extension Workflow Tests', () => {
           // Step 3: Scan finds issues (mock findings)
           const _mockIssues = [
             { type: 'image', message: 'Missing alt attribute', element: '<img src="test.jpg">' },
-            { type: 'link', message: 'Uninformative link text', element: '<a href="#">click here</a>' },
+            {
+              type: 'link',
+              message: 'Uninformative link text',
+              element: '<a href="#">click here</a>'
+            },
             { type: 'form', message: 'Missing label', element: '<input type="text">' }
           ];
 
@@ -437,13 +449,18 @@ describe('Extension Workflow Tests', () => {
             return 'navigation_started';
           }
 
-          if (!_scenario.navigationActive) {return 'not_navigating';}
+          if (!_scenario.navigationActive) {
+            return 'not_navigating';
+          }
 
           switch (event.key) {
             case 'ArrowDown':
             case 'ArrowRight':
               event.preventDefault();
-              _scenario.currentIndex = Math.min(_scenario.currentIndex + 1, _scenario.overlays.length - 1);
+              _scenario.currentIndex = Math.min(
+                _scenario.currentIndex + 1,
+                _scenario.overlays.length - 1
+              );
               return 'moved_next';
             case 'ArrowUp':
             case 'ArrowLeft':
@@ -749,7 +766,10 @@ describe('Extension Workflow Tests', () => {
       expect(_recovery.attempts).toContain('attempt_2_success');
       expect(_recovery.success).toBe(true);
       expect(_recovery.finalState).toEqual({ isEnabled: false, scanInProgress: false });
-      expect(_mockConsole.warn).toHaveBeenCalledWith('State recovery attempt 1 failed:', 'Storage unavailable');
+      expect(_mockConsole.warn).toHaveBeenCalledWith(
+        'State recovery attempt 1 failed:',
+        'Storage unavailable'
+      );
     });
   });
 });

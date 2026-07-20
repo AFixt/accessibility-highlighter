@@ -21,19 +21,10 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": [
-    "src/**/*",
-    "tests/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "build"
-  ],
+  "include": ["src/**/*", "tests/**/*"],
+  "exclude": ["node_modules", "dist", "build"],
   "typeAcquisition": {
     "enable": true,
-    "include": [
-      "chrome"
-    ]
+    "include": ["chrome"]
   }
 }

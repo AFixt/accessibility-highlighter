@@ -1,2 +1,6 @@
-npm run lint:check
-npm test
+npx lint-staged
+
+# Optional: gitleaks scan of staged changes (skipped if binary not installed)
+if command -v gitleaks >/dev/null 2>&1; then
+  gitleaks protect --staged --no-banner
+fi

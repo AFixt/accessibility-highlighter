@@ -1,0 +1,162 @@
+name: Security Scanning
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    - cron: '0 6 * * 1' # Monday 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+env:
+  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+jobs:
+  # Quick scan on every push/PR
+  npm-audit:
+    name: NPM Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Run npm audit
+        run: npm audit --audit-level=high
+        continue-on-error: true
+
+      - name: Run npm audit (JSON output)
+        run: npm audit --json > npm-audit-results.json || true
+
+      - name: Upload audit results
+        uses: actions/upload-artifact@v6
+        with:
+          name: npm-audit-results
+          path: npm-audit-results.json
+          retention-days: 30
+
+  # Secret scanning (every push/PR) — installs gitleaks binary directly to
+  # avoid the gitleaks-action org-licensing dependency.
+  gitleaks:
+    name: Gitleaks (secrets)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Install gitleaks
+        run: |
+          curl -sSL https://github.com/gitleaks/gitleaks/releases/download/v8.21.2/gitleaks_8.21.2_linux_x64.tar.gz \
+            | tar -xz -C /usr/local/bin gitleaks
+          gitleaks version
+
+      - name: Run gitleaks
+        run: gitleaks detect --no-banner --redact --verbose
+        continue-on-error: true
+
+  # OSV-Scanner — Google vulnerability scanner (every push/PR)
+  osv-scanner:
+    name: OSV-Scanner
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Run OSV-Scanner
+        uses: google/osv-scanner-action/osv-scanner-action@v2.1.0
+        with:
+          scan-args: |-
+            --lockfile=package-lock.json
+            --recursive
+            .
+        continue-on-error: true
+
+  # OWASP Dependency Check (comprehensive - weekly only)
+  owasp-dependency-check:
+    name: OWASP Dependency Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: OWASP Dependency Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: ${{ github.repository }}
+          path: '.'
+          format: 'HTML,JSON,SARIF'
+          args: >
+            --enableExperimental
+            --nodeAuditAnalyzer
+            --nodePackageSkipDevDependencies false
+
+      - name: Upload OWASP results
+        uses: actions/upload-artifact@v6
+        with:
+          name: owasp-dependency-check-report
+          path: reports/
+          retention-days: 90
+
+      - name: Upload SARIF to GitHub Security
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: reports/dependency-check-report.sarif
+        if: always()
+
+  # License compliance check
+  license-check:
+    name: License Compliance
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Install license-checker
+        run: npm install -g license-checker
+
+      - name: Check licenses
+        run: |
+          license-checker --json --out licenses.json
+          license-checker --summary
+
+      - name: Check for problematic licenses
+        run: |
+          # Fail if GPL, AGPL, or unknown licenses found (customize as needed)
+          license-checker --failOn 'GPL;AGPL;UNKNOWN' || echo "Review licenses above"
+
+      - name: Upload license report
+        uses: actions/upload-artifact@v6
+        with:
+          name: license-report
+          path: licenses.json
+          retention-days: 90

@@ -152,11 +152,18 @@ describe('overlayManager.js', () => {
     });
 
     test('should sanitize dangerous message content', () => {
-      overlay.call(_mockElement, 'a11y-error', 'error', '<script>alert("xss")</script>Test message');
+      overlay.call(
+        _mockElement,
+        'a11y-error',
+        'error',
+        '<script>alert("xss")</script>Test message'
+      );
 
       const _overlayEl = document.querySelector('.a11y-error');
       // Sanitization escapes HTML entities to prevent XSS
-      expect(_overlayEl.dataset.a11ymessage).toBe('&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;Test message');
+      expect(_overlayEl.dataset.a11ymessage).toBe(
+        '&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;Test message'
+      );
     });
 
     test('should handle invalid overlay class parameter', () => {
@@ -197,7 +204,10 @@ describe('overlayManager.js', () => {
       overlay.call(_mockElement, 'a11y-error', 'error', 'Test message');
 
       expect(document.querySelectorAll('.a11y-error').length).toBe(0);
-      expect(console.log).toHaveBeenCalledWith('Skipping overlay for zero-sized element:', _mockElement);
+      expect(console.log).toHaveBeenCalledWith(
+        'Skipping overlay for zero-sized element:',
+        _mockElement
+      );
     });
 
     test('should add log entry when creating overlay', () => {

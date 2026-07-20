@@ -33,6 +33,7 @@ The tests use Jest with JSDOM to simulate browser functionality. Since the exten
 3. Test fixtures are used to demonstrate passing and failing accessibility cases
 
 The tests verify:
+
 - That overlays are added for accessibility issues
 - That no overlays are added for accessible content
 - That overlays can be toggled on/off

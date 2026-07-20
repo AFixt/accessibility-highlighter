@@ -1,5 +1,5 @@
 /**
- * @fileoverview Configuration module for Accessibility Highlighter
+ * @file Configuration module for Accessibility Highlighter
  *
  * This module centralizes all configuration data including:
  * - Performance and visual settings
@@ -12,7 +12,7 @@
  */
 
 /**
- * @typedef {Object} PerformanceConfig
+ * @typedef {object} PerformanceConfig
  * @property {number} THROTTLE_DELAY - Throttle delay in milliseconds
  * @property {number} FONT_SIZE_THRESHOLD - Minimum font size threshold
  * @property {number} MAX_LOG_ELEMENT_LENGTH - Maximum element HTML length in logs
@@ -20,7 +20,7 @@
  */
 
 /**
- * @typedef {Object} VisualConfig
+ * @typedef {object} VisualConfig
  * @property {string} ERROR_COLOR - Error overlay color
  * @property {string} WARNING_COLOR - Warning overlay color
  * @property {number} OVERLAY_OPACITY - Overlay opacity
@@ -30,15 +30,15 @@
  */
 
 /**
- * @typedef {Object} A11yConfig
+ * @typedef {object} A11yConfig
  * @property {PerformanceConfig} PERFORMANCE - Performance-related configuration
  * @property {VisualConfig} VISUAL - Visual styling configuration
  * @property {string[]} PROHIBITED_TABLE_SUMMARIES - Array of prohibited table summary values
  * @property {string[]} PROHIBITED_ALT_VALUES - Array of prohibited alt text values
  * @property {string[]} PROHIBITED_LINK_TEXT - Array of prohibited link text values
- * @property {Object} SELECTORS - CSS selectors and element arrays
- * @property {Object} MESSAGES - Error and warning messages
- * @property {Object} CSS_CLASSES - CSS class names
+ * @property {object} SELECTORS - CSS selectors and element arrays
+ * @property {object} MESSAGES - Error and warning messages
+ * @property {object} CSS_CLASSES - CSS class names
  */
 
 /**
@@ -59,41 +59,132 @@ const A11Y_CONFIG = {
     OVERLAY_OPACITY: 0.4,
     BORDER_RADIUS: '5px',
     BORDER_WIDTH: '2px',
-    STRIPE_GRADIENT: 'repeating-linear-gradient(45deg, transparent, transparent 15px, rgba(255,255,255,.5) 15px, rgba(255,255,255,.5) 30px)'
+    STRIPE_GRADIENT:
+      'repeating-linear-gradient(45deg, transparent, transparent 15px, rgba(255,255,255,.5) 15px, rgba(255,255,255,.5) 30px)'
   },
 
   PROHIBITED_TABLE_SUMMARIES: [
-    'combobox', 'Layout', 'for layout', 'layout table', 'layout',
-    'Table for layout purposes', 'Calendar', 'Structural table', 'footer',
-    'This table is used for page layout', 'Text Ad', 'Calendar Display',
-    'Links', 'Content', 'Header', 'header', 'Navigation elements',
-    'top navbar', 'title and navigation', 'block', 'main heading',
-    'body', 'links', 'Event Calendar', 'Search', 'lightbox', 'Menu',
-    'all', 'HeadBox', 'Calendar of Events', 'Lightbox', 'Contents',
-    'management', 'contents', 'search form', 'This table is used for layout',
-    'Search Input Table', 'Content Area', 'Fullsize Image', 'Layout Structure',
-    'Page title', 'Main Table', 'left', 'category', 'Banner Design Table',
-    'Search Form', 'Site contents', 'pageinfo', 'breadcrumb',
-    'table used for layout purposes', 'Footer', 'main layout', 'tooltip', 'Logo'
+    'combobox',
+    'Layout',
+    'for layout',
+    'layout table',
+    'layout',
+    'Table for layout purposes',
+    'Calendar',
+    'Structural table',
+    'footer',
+    'This table is used for page layout',
+    'Text Ad',
+    'Calendar Display',
+    'Links',
+    'Content',
+    'Header',
+    'header',
+    'Navigation elements',
+    'top navbar',
+    'title and navigation',
+    'block',
+    'main heading',
+    'body',
+    'links',
+    'Event Calendar',
+    'Search',
+    'lightbox',
+    'Menu',
+    'all',
+    'HeadBox',
+    'Calendar of Events',
+    'Lightbox',
+    'Contents',
+    'management',
+    'contents',
+    'search form',
+    'This table is used for layout',
+    'Search Input Table',
+    'Content Area',
+    'Fullsize Image',
+    'Layout Structure',
+    'Page title',
+    'Main Table',
+    'left',
+    'category',
+    'Banner Design Table',
+    'Search Form',
+    'Site contents',
+    'pageinfo',
+    'breadcrumb',
+    'table used for layout purposes',
+    'Footer',
+    'main layout',
+    'tooltip',
+    'Logo'
   ],
 
   PROHIBITED_ALT_VALUES: [
-    'artwork', 'arrow', 'painting', 'bullet', 'graphic', 'graph',
-    'spacer', 'image', 'placeholder', 'photo', 'picture', 'photograph',
-    'logo', 'screenshot', 'back', 'bg', 'img', 'alt'
+    'artwork',
+    'arrow',
+    'painting',
+    'bullet',
+    'graphic',
+    'graph',
+    'spacer',
+    'image',
+    'placeholder',
+    'photo',
+    'picture',
+    'photograph',
+    'logo',
+    'screenshot',
+    'back',
+    'bg',
+    'img',
+    'alt'
   ],
 
   PROHIBITED_LINK_TEXT: [
-    'link', 'more', 'here', 'click', 'click here', 'read',
-    'read more', 'learn more', 'continue', 'go', 'continue reading',
-    'view', 'view more', 'less', 'see all', 'show', 'hide',
-    'show more', 'show less'
+    'link',
+    'more',
+    'here',
+    'click',
+    'click here',
+    'read',
+    'read more',
+    'learn more',
+    'continue',
+    'go',
+    'continue reading',
+    'view',
+    'view more',
+    'less',
+    'see all',
+    'show',
+    'hide',
+    'show more',
+    'show less'
   ],
 
   SELECTORS: {
-    ALL_CHECKABLE_ELEMENTS: 'img, button, [role="button"], a, [role="link"], fieldset, input, table, iframe, audio, video, [tabindex], [role="img"]',
-    LANDMARK_ELEMENTS: 'header, aside, footer, main, nav, [role="banner"], [role="complementary"], [role="contentinfo"], [role="main"], [role="navigation"], [role="search"]',
-    TEXT_ELEMENTS: ['p', 'span', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'td', 'th', 'label', 'a', 'button'],
+    ALL_CHECKABLE_ELEMENTS:
+      'img, button, [role="button"], a, [role="link"], fieldset, input, table, iframe, audio, video, [tabindex], [role="img"]',
+    LANDMARK_ELEMENTS:
+      'header, aside, footer, main, nav, [role="banner"], [role="complementary"], [role="contentinfo"], [role="main"], [role="navigation"], [role="search"]',
+    TEXT_ELEMENTS: [
+      'p',
+      'span',
+      'div',
+      'h1',
+      'h2',
+      'h3',
+      'h4',
+      'h5',
+      'h6',
+      'li',
+      'td',
+      'th',
+      'label',
+      'a',
+      'button'
+    ],
     INTERACTIVE_ELEMENTS: ['a', 'area', 'button', 'input', 'select', 'textarea'],
     OVERLAY_ELEMENTS: '.a11y-error, .a11y-warning, .overlay',
     PROGRESS_INDICATOR: '.a11y-progress-indicator'
@@ -105,7 +196,8 @@ const A11Y_CONFIG = {
     EMPTY_ALT_WITH_TITLE: 'Image element with empty alt and non-empty title',
     DIFFERENT_ALT_TITLE: 'Image element with different alt and title attributes',
     BUTTON_NO_LABEL: 'Button without aria-label or aria-labelledby or inner text content',
-    LINK_NO_CONTENT: 'Link without inner text, aria-label, aria-labelledby, or with empty text content',
+    LINK_NO_CONTENT:
+      'Link without inner text, aria-label, aria-labelledby, or with empty text content',
     INVALID_HREF: 'Invalid link href attribute',
     GENERIC_LINK_TEXT: 'Link element with matching text content found',
     MATCHING_TITLE_TEXT: 'Link element with matching title and text content found',
@@ -135,7 +227,7 @@ const A11Y_CONFIG = {
 
 /**
  * Default filter settings for accessibility results.
- * @type {Object}
+ * @type {object}
  */
 const DEFAULT_FILTERS = {
   showErrors: true,
@@ -152,7 +244,7 @@ const DEFAULT_FILTERS = {
 
 /**
  * Default customizable rules configuration for accessibility checks.
- * @type {Object}
+ * @type {object}
  */
 const DEFAULT_CUSTOM_RULES = {
   // Image accessibility rules
@@ -223,7 +315,7 @@ const DEFAULT_CUSTOM_RULES = {
 
 /**
  * Configuration for incremental scanning performance optimization.
- * @type {Object}
+ * @type {object}
  */
 const INCREMENTAL_CONFIG = {
   CHUNK_SIZE: 100, // Number of elements to process per chunk
@@ -234,7 +326,7 @@ const INCREMENTAL_CONFIG = {
 
 /**
  * Loads custom rules from Chrome storage.
- * @returns {Promise<Object>} Promise that resolves to custom rules object
+ * @returns {Promise<object>} Promise that resolves to custom rules object
  */
 async function loadCustomRules() {
   try {
@@ -261,7 +353,7 @@ async function loadCustomRules() {
 
 /**
  * Saves custom rules to Chrome storage.
- * @param {Object} rules - Custom rules object to save
+ * @param {object} rules - Custom rules object to save
  * @returns {Promise<void>} Promise that resolves when rules are saved
  */
 async function saveCustomRules(rules) {
@@ -285,7 +377,7 @@ async function saveCustomRules(rules) {
 
 /**
  * Resets custom rules to default values.
- * @returns {Promise<Object>} Promise that resolves to default rules
+ * @returns {Promise<object>} Promise that resolves to default rules
  */
 async function resetCustomRules() {
   const defaultRules = JSON.parse(JSON.stringify(DEFAULT_CUSTOM_RULES));
@@ -295,7 +387,7 @@ async function resetCustomRules() {
 
 /**
  * Loads filter settings from Chrome storage.
- * @returns {Promise<Object>} Promise that resolves to filter settings
+ * @returns {Promise<object>} Promise that resolves to filter settings
  */
 async function loadFilterSettings() {
   try {
@@ -321,7 +413,7 @@ async function loadFilterSettings() {
 
 /**
  * Saves filter settings to Chrome storage.
- * @param {Object} filters - Filter settings object to save
+ * @param {object} filters - Filter settings object to save
  * @returns {Promise<void>} Promise that resolves when settings are saved
  */
 async function saveFilterSettings(filters) {
@@ -345,18 +437,18 @@ async function saveFilterSettings(filters) {
 
 /**
  * Merges user settings with default settings, ensuring all required properties exist.
- * @param {Object} userSettings - User's custom settings
- * @param {Object} defaultSettings - Default settings to merge with
- * @returns {Object} Merged settings object
+ * @param {object} userSettings - User's custom settings
+ * @param {object} defaultSettings - Default settings to merge with
+ * @returns {object} Merged settings object
  */
 function mergeWithDefaults(userSettings, defaultSettings) {
   const merged = JSON.parse(JSON.stringify(defaultSettings));
 
   /**
    * Deep merge two objects with prototype pollution protection
-   * @param {Object} target - Target object
-   * @param {Object} source - Source object
-   * @returns {Object} Merged object
+   * @param {object} target - Target object
+   * @param {object} source - Source object
+   * @returns {object} Merged object
    */
   function deepMerge(target, source) {
     for (const key in source) {
@@ -366,7 +458,11 @@ function mergeWithDefaults(userSettings, defaultSettings) {
       }
 
       if (Object.prototype.hasOwnProperty.call(source, key)) {
-        if (typeof source[key] === 'object' && source[key] !== null && !Array.isArray(source[key])) {
+        if (
+          typeof source[key] === 'object' &&
+          source[key] !== null &&
+          !Array.isArray(source[key])
+        ) {
           if (!target[key] || typeof target[key] !== 'object') {
             target[key] = {};
           }

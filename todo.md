@@ -16,7 +16,7 @@
 ## Testing Approach
 
 1. **One Test at a Time**: Work through tasks sequentially, completing each fully before moving to the next
-2. **Incremental Coverage**: Run coverage after each test to track progress  
+2. **Incremental Coverage**: Run coverage after each test to track progress
 3. **Function-Level Focus**: Test individual functions comprehensively before moving to the next
 4. **Mock Properly**: Use Jest mocks for Chrome APIs and DOM manipulation
 5. **Verify Fixes**: Run full test suite after each addition to ensure no regressions

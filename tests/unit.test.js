@@ -21,15 +21,25 @@ describe('Accessibility Highlighter Unit Tests', () => {
         BORDER_WIDTH: '2px'
       },
       PROHIBITED_ALT_VALUES: [
-        'artwork', 'arrow', 'painting', 'bullet', 'graphic', 'graph',
-        'spacer', 'image', 'placeholder', 'photo', 'picture', 'logo'
+        'artwork',
+        'arrow',
+        'painting',
+        'bullet',
+        'graphic',
+        'graph',
+        'spacer',
+        'image',
+        'placeholder',
+        'photo',
+        'picture',
+        'logo'
       ],
-      PROHIBITED_LINK_TEXT: [
-        'link', 'more', 'here', 'click', 'click here', 'read'
-      ],
+      PROHIBITED_LINK_TEXT: ['link', 'more', 'here', 'click', 'click here', 'read'],
       SELECTORS: {
-        ALL_CHECKABLE_ELEMENTS: 'img, button, [role="button"], a, [role="link"], fieldset, input, table, iframe, audio, video, [tabindex], [role="img"]',
-        LANDMARK_ELEMENTS: 'header, aside, footer, main, nav, [role="banner"], [role="complementary"], [role="contentinfo"], [role="main"], [role="navigation"], [role="search"]'
+        ALL_CHECKABLE_ELEMENTS:
+          'img, button, [role="button"], a, [role="link"], fieldset, input, table, iframe, audio, video, [tabindex], [role="img"]',
+        LANDMARK_ELEMENTS:
+          'header, aside, footer, main, nav, [role="banner"], [role="complementary"], [role="contentinfo"], [role="main"], [role="navigation"], [role="search"]'
       },
       MESSAGES: {
         MISSING_ALT: 'img does not have an alt attribute',
@@ -138,7 +148,7 @@ describe('Accessibility Highlighter Unit Tests', () => {
 
       function throttledFunction() {
         const now = Date.now();
-        if (isRunning || (now - lastRunTime) < THROTTLE_DELAY) {
+        if (isRunning || now - lastRunTime < THROTTLE_DELAY) {
           return false; // Throttled
         }
 
@@ -213,8 +223,12 @@ describe('Accessibility Highlighter Unit Tests', () => {
         const ariaLabel = inputElement.getAttribute('aria-label');
         const ariaLabelledby = inputElement.getAttribute('aria-labelledby');
 
-        if (ariaLabel || ariaLabelledby) {return true;}
-        if (!id) {return false;}
+        if (ariaLabel || ariaLabelledby) {
+          return true;
+        }
+        if (!id) {
+          return false;
+        }
 
         // Check if there's a label with matching for attribute
         const label = document.querySelector(`label[for="${id}"]`);
@@ -245,7 +259,12 @@ describe('Accessibility Highlighter Unit Tests', () => {
     test('should identify invalid href attributes', () => {
       function isInvalidHref(href) {
         const lowerHref = href ? href.toLowerCase() : '';
-        return href === '#' || lowerHref.startsWith('javascript:') || lowerHref.startsWith('data:') || lowerHref.startsWith('vbscript:');
+        return (
+          href === '#' ||
+          lowerHref.startsWith('javascript:') ||
+          lowerHref.startsWith('data:') ||
+          lowerHref.startsWith('vbscript:')
+        );
       }
 
       expect(isInvalidHref('#')).toBe(true);
@@ -262,7 +281,8 @@ describe('Accessibility Highlighter Unit Tests', () => {
   describe('Performance Optimizations', () => {
     test('should use efficient DOM traversal methods', () => {
       // Test that a comprehensive selector is used for efficiency
-      const comprehensiveSelector = 'img, button, [role="button"], a, [role="link"], fieldset, input, table, iframe, audio, video, [tabindex], [role="img"]';
+      const comprehensiveSelector =
+        'img, button, [role="button"], a, [role="link"], fieldset, input, table, iframe, audio, video, [tabindex], [role="img"]';
 
       // Test that the selector includes all major interactive elements
       expect(comprehensiveSelector).toContain('img');
@@ -276,10 +296,28 @@ describe('Accessibility Highlighter Unit Tests', () => {
     });
 
     test('should limit font size checks to text elements only', () => {
-      const textElements = ['p', 'span', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'td', 'th', 'label', 'a', 'button'];
+      const textElements = [
+        'p',
+        'span',
+        'div',
+        'h1',
+        'h2',
+        'h3',
+        'h4',
+        'h5',
+        'h6',
+        'li',
+        'td',
+        'th',
+        'label',
+        'a',
+        'button'
+      ];
 
       function shouldCheckFontSize(element) {
-        if (!element || !element.tagName) {return false;}
+        if (!element || !element.tagName) {
+          return false;
+        }
         const tagName = element.tagName.toLowerCase();
         const hasTextContent = element.textContent && element.textContent.trim().length > 0;
         return textElements.includes(tagName) && hasTextContent;

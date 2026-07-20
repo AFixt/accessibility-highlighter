@@ -17,18 +17,21 @@ The Accessibility Highlighter is a Chrome extension that helps identify accessib
 If you want to install directly from the source code:
 
 1. Clone the repository:
-   ```
+
+   ```sh
    git clone https://github.com/AFixt/a11y-highlighter.git
    cd a11y-highlighter
    ```
 
 2. Install dependencies:
-   ```
+
+   ```sh
    npm install
    ```
 
 3. Build the extension:
-   ```
+
+   ```sh
    npm run build
    ```
 

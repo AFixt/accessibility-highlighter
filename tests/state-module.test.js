@@ -48,23 +48,23 @@ describe('State Module Functionality Tests', () => {
 
   // State management functions (simplified versions of the actual functions)
   const _addLogEntry = logEntry => LOGS.push(logEntry);
-  const _clearLogs = () => LOGS.length = 0;
+  const _clearLogs = () => (LOGS.length = 0);
   const _getLogs = () => LOGS;
   const _getLogCount = () => LOGS.length;
 
-  const _setCurrentOverlayIndex = index => currentOverlayIndex = index;
+  const _setCurrentOverlayIndex = index => (currentOverlayIndex = index);
   const _getCurrentOverlayIndex = () => currentOverlayIndex;
 
-  const _setKeyboardNavigationActive = active => keyboardNavigationActive = active;
+  const _setKeyboardNavigationActive = active => (keyboardNavigationActive = active);
   const _isKeyboardNavigationActive = () => keyboardNavigationActive;
 
-  const _setProgressIndicator = element => progressIndicator = element;
+  const _setProgressIndicator = element => (progressIndicator = element);
   const _getProgressIndicator = () => progressIndicator;
 
-  const _setIsRunning = running => isRunning = running;
+  const _setIsRunning = running => (isRunning = running);
   const _getIsRunning = () => isRunning;
 
-  const _setLastRunTime = time => lastRunTime = time;
+  const _setLastRunTime = time => (lastRunTime = time);
   const _getLastRunTime = () => lastRunTime;
 
   const _updateCurrentFilters = newFilters => {

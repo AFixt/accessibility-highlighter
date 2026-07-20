@@ -23,9 +23,11 @@ const __backgroundScriptFunctions = {
 function setupDom(type) {
   // Set HTML content based on the test type
   if (type === 'failing') {
-    document.body.innerHTML = '<div>Test fixture with errors</div><img src="test.jpg"><input type="text"><table><tr><td>Cell</td></tr></table><iframe src="test.html"></iframe>';
+    document.body.innerHTML =
+      '<div>Test fixture with errors</div><img src="test.jpg"><input type="text"><table><tr><td>Cell</td></tr></table><iframe src="test.html"></iframe>';
   } else {
-    document.body.innerHTML = '<div>Test fixture without errors</div><img src="test.jpg" alt="Test image"><label for="test">Label</label><input type="text" id="test"><table><tr><th>Header</th></tr></table><iframe src="test.html" title="Test frame"></iframe>';
+    document.body.innerHTML =
+      '<div>Test fixture without errors</div><img src="test.jpg" alt="Test image"><label for="test">Label</label><input type="text" id="test"><table><tr><th>Header</th></tr></table><iframe src="test.html" title="Test frame"></iframe>';
   }
 
   // Reset logs array for each test
@@ -118,15 +120,21 @@ describe('Accessibility Highlighter', () => {
     });
 
     test('should detect images without alt attributes', () => {
-      expect(global.logs.some(log => log.Message.includes('img does not have an alt attribute'))).toBe(true);
+      expect(
+        global.logs.some(log => log.Message.includes('img does not have an alt attribute'))
+      ).toBe(true);
     });
 
     test('should detect form fields without labels', () => {
-      expect(global.logs.some(log => log.Message.includes('Form field without a corresponding label'))).toBe(true);
+      expect(
+        global.logs.some(log => log.Message.includes('Form field without a corresponding label'))
+      ).toBe(true);
     });
 
     test('should detect tables without th elements', () => {
-      expect(global.logs.some(log => log.Message.includes('table without any th elements'))).toBe(true);
+      expect(global.logs.some(log => log.Message.includes('table without any th elements'))).toBe(
+        true
+      );
     });
 
     test('should detect nested tables', () => {
@@ -134,23 +142,35 @@ describe('Accessibility Highlighter', () => {
     });
 
     test('should detect iframe without title', () => {
-      expect(global.logs.some(log => log.Message.includes('iframe element without a title attribute'))).toBe(true);
+      expect(
+        global.logs.some(log => log.Message.includes('iframe element without a title attribute'))
+      ).toBe(true);
     });
 
     test('should detect uninformative alt text', () => {
-      expect(global.logs.some(log => log.Message.includes('Uninformative alt attribute value found'))).toBe(true);
+      expect(
+        global.logs.some(log => log.Message.includes('Uninformative alt attribute value found'))
+      ).toBe(true);
     });
 
     test('should detect generic link text', () => {
-      expect(global.logs.some(log => log.Message.includes('Link element with matching text content found'))).toBe(true);
+      expect(
+        global.logs.some(log =>
+          log.Message.includes('Link element with matching text content found')
+        )
+      ).toBe(true);
     });
 
     test('should detect tables with uninformative summary attributes', () => {
-      expect(global.logs.some(log => log.Message.includes('Table with uninformative summary attribute'))).toBe(true);
+      expect(
+        global.logs.some(log => log.Message.includes('Table with uninformative summary attribute'))
+      ).toBe(true);
     });
 
     test('should detect non-actionable elements with positive tabindex', () => {
-      expect(global.logs.some(log => log.Message.includes('Non-actionable element with tabindex=0'))).toBe(true);
+      expect(
+        global.logs.some(log => log.Message.includes('Non-actionable element with tabindex=0'))
+      ).toBe(true);
     });
 
     test('should not flag elements with negative tabindex', () => {

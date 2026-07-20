@@ -23,10 +23,7 @@ module.exports = {
         ...require('@playwright/test').devices['Desktop Chrome'],
         // Enable Chrome extension testing
         launchOptions: {
-          args: [
-            '--disable-extensions-except=./dist',
-            '--load-extension=./dist'
-          ]
+          args: ['--disable-extensions-except=./dist', '--load-extension=./dist']
         }
       }
     }
