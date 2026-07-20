@@ -268,6 +268,89 @@ describe('Element Checker Edge Cases', () => {
 
       expect(console.log).not.toHaveBeenCalled();
     });
+
+    test('should not flag a linked image named via a resolvable aria-labelledby', () => {
+      document.body.innerHTML =
+        '<span id="home-label">Home</span>' +
+        '<a href="https://example.com"><img src="home.png" aria-labelledby="home-label"></a>';
+      const _link = document.body.querySelector('a');
+
+      global.checkLinkElement(_link);
+
+      expect(console.log).not.toHaveBeenCalled();
+    });
+
+    test('should flag a linked image whose aria-labelledby points at a missing element', () => {
+      const _link = document.createElement('a');
+      _link.href = 'https://example.com';
+      const _img = document.createElement('img');
+      _img.src = 'home.png';
+      _img.setAttribute('aria-labelledby', 'does-not-exist');
+      _link.appendChild(_img);
+      document.body.appendChild(_link);
+
+      global.checkLinkElement(_link);
+
+      expect(console.log).toHaveBeenCalledWith(_link);
+    });
+  });
+
+  describe('Role-Based Link and Button Accessible Name (issue #8)', () => {
+    test('should not flag a role="link" element wrapping an image with alt', () => {
+      const _link = document.createElement('span');
+      _link.setAttribute('role', 'link');
+      const _img = document.createElement('img');
+      _img.src = 'home.png';
+      _img.alt = 'Home';
+      _link.appendChild(_img);
+      document.body.appendChild(_link);
+
+      global.checkRoleBasedElement(_link, 'link');
+
+      expect(console.log).not.toHaveBeenCalled();
+    });
+
+    test('should flag a role="link" element wrapping an image with empty alt', () => {
+      const _link = document.createElement('span');
+      _link.setAttribute('role', 'link');
+      const _img = document.createElement('img');
+      _img.src = 'home.png';
+      _img.alt = '';
+      _link.appendChild(_img);
+      document.body.appendChild(_link);
+
+      global.checkRoleBasedElement(_link, 'link');
+
+      expect(console.log).toHaveBeenCalledWith(_link);
+    });
+
+    test('should not flag a role="button" element wrapping an image with alt', () => {
+      const _button = document.createElement('span');
+      _button.setAttribute('role', 'button');
+      const _img = document.createElement('img');
+      _img.src = 'close.png';
+      _img.alt = 'Close';
+      _button.appendChild(_img);
+      document.body.appendChild(_button);
+
+      global.checkRoleBasedElement(_button, 'button');
+
+      expect(console.log).not.toHaveBeenCalled();
+    });
+
+    test('should flag a role="button" element with no accessible name', () => {
+      const _button = document.createElement('span');
+      _button.setAttribute('role', 'button');
+      const _img = document.createElement('img');
+      _img.src = 'close.png';
+      _img.alt = '';
+      _button.appendChild(_img);
+      document.body.appendChild(_button);
+
+      global.checkRoleBasedElement(_button, 'button');
+
+      expect(console.log).toHaveBeenCalledWith(_button);
+    });
   });
 
   describe('Table Element Edge Cases', () => {
