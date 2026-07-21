@@ -84,13 +84,23 @@ jobs:
         run: |
           VERSION="${{ needs.validate.outputs.version }}"
           VERSION_NUM="${VERSION#v}"
-          npm version $VERSION_NUM --no-git-tag-version
+          CURRENT_VERSION="$(node -p "require('./package.json').version")"
+          if [ "$CURRENT_VERSION" = "$VERSION_NUM" ]; then
+            echo "package.json already at $VERSION_NUM; skipping npm version"
+          else
+            echo "Bumping package.json from $CURRENT_VERSION to $VERSION_NUM"
+            npm version "$VERSION_NUM" --no-git-tag-version
+          fi
 
-      - name: Build extension
-        run: npm run build
+      - name: Build per-browser packages
+        run: npm run build:all
 
-      - name: Package extension
-        run: npm run package
+      - name: Package generic extension
+        run: |
+          VERSION="${{ needs.validate.outputs.version }}"
+          VERSION_NUM="${VERSION#v}"
+          npm run package
+          mv a11y-highlighter.zip "accessibility-highlighter-v${VERSION_NUM}.zip"
 
       - name: Create release notes
         id: release_notes
@@ -138,8 +148,7 @@ jobs:
         with:
           name: release-build-${{ needs.validate.outputs.version }}
           path: |
-            dist/
-            a11y-highlighter.zip
+            accessibility-highlighter-v*.zip
             manifest.json
             package.json
             release_notes.md
@@ -163,42 +172,29 @@ jobs:
           name: release-build-${{ needs.validate.outputs.version }}
           path: ./release/
 
-      - name: Create GitHub Release
-        uses: actions/create-release@v1
-        id: create_release
+      - name: Create or update GitHub Release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ needs.validate.outputs.version }}
-          release_name: Accessibility Highlighter ${{ needs.validate.outputs.version }}
-          body_path: ./release/release_notes.md
-          draft: false
-          prerelease: false
-
-      - name: Upload Extension Package
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./release/a11y-highlighter.zip
-          asset_name: accessibility-highlighter-${{ needs.validate.outputs.version }}.zip
-          asset_content_type: application/zip
-
-      - name: Upload Source Code
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          cd release
-          zip -r ../accessibility-highlighter-${{ needs.validate.outputs.version }}-source.zip . -x "a11y-highlighter.zip"
+          VERSION="${{ needs.validate.outputs.version }}"
+          if gh release view "$VERSION" >/dev/null 2>&1; then
+            echo "Release $VERSION already exists; updating notes"
+            gh release edit "$VERSION" \
+              --title "Accessibility Highlighter $VERSION" \
+              --notes-file ./release/release_notes.md
+          else
+            echo "Creating release $VERSION"
+            gh release create "$VERSION" \
+              --title "Accessibility Highlighter $VERSION" \
+              --notes-file ./release/release_notes.md
+          fi
 
-      - name: Upload Source Package
-        uses: actions/upload-release-asset@v1
+      - name: Upload release assets
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./accessibility-highlighter-${{ needs.validate.outputs.version }}-source.zip
-          asset_name: accessibility-highlighter-${{ needs.validate.outputs.version }}-source.zip
-          asset_content_type: application/zip
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ needs.validate.outputs.version }}"
+          gh release upload "$VERSION" ./release/accessibility-highlighter-v*.zip --clobber
 
   publish-chrome-store:
     name: Publish to Chrome Web Store
@@ -221,10 +217,10 @@ jobs:
         # See: https://developer.chrome.com/docs/webstore/using_webstore_api/
         run: |
           echo "Chrome Web Store publishing would happen here"
-          echo "Extension package: ./release/a11y-highlighter.zip"
+          echo "Extension package: ./release/accessibility-highlighter-${{ needs.validate.outputs.version }}-chrome.zip"
           echo "Version: ${{ needs.validate.outputs.version }}"
           # Example using chrome-webstore-upload-cli:
-          # npx chrome-webstore-upload-cli upload --source ./release/a11y-highlighter.zip --extension-id $EXTENSION_ID --client-id $CLIENT_ID --client-secret $CLIENT_SECRET --refresh-token $REFRESH_TOKEN
+          # npx chrome-webstore-upload-cli upload --source ./release/accessibility-highlighter-${{ needs.validate.outputs.version }}-chrome.zip --extension-id $EXTENSION_ID --client-id $CLIENT_ID --client-secret $CLIENT_SECRET --refresh-token $REFRESH_TOKEN
 
   notify:
     name: Notify Release
