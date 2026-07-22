@@ -36,11 +36,13 @@ jobs:
 
       - name: Lint Markdown
         run: npm run lint:md
-        continue-on-error: true
 
+      # lint:cpd:ci runs with --threshold 5, which overrides the threshold 0 in
+      # .jscpd.json. Duplication is currently 2.36%, so this gates with room to
+      # spare; crossing 5% should be a deliberate decision (dedupe, or raise the
+      # threshold on purpose) rather than a line in a log nobody reads.
       - name: Check for code duplication (jscpd)
         run: npm run lint:cpd:ci
-        continue-on-error: true
 
       - name: Upload lint results
         uses: actions/upload-artifact@v6
