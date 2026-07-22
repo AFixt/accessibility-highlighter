@@ -75,7 +75,6 @@
     "husky": "^9.1.7",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
-    "jest-html-loader": "^1.0.0",
     "jscpd": "^4.0.5",
     "license-checker-rseidelsohn": "^4.4.2",
     "lint-staged": "^17.0.4",
