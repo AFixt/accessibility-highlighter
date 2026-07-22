@@ -247,7 +247,12 @@ jobs:
         with:
           project: ${{ github.repository }}
           path: '.'
-          format: 'HTML,JSON,SARIF'
+          # `--format` takes a single value, not a comma-separated list, and
+          # the action offers no way to repeat it — 'HTML,JSON,SARIF' was
+          # rejected outright. 'ALL' is the supported way to get more than one,
+          # and it still writes dependency-check-report.sarif, which is the
+          # path the SARIF upload step below reads.
+          format: 'ALL'
           # Only --enableExperimental is needed. The two flags that used to be
           # here were both wrong:
           #
