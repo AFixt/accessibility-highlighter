@@ -6,12 +6,6 @@
 // Set test environment
 process.env.NODE_ENV = 'test';
 
-describe('Setup test', () => {
-  test('should pass', () => {
-    expect(true).toBe(true);
-  });
-});
-
 describe('Content Script Extended Functionality Tests', () => {
   beforeEach(() => {
     // Mock console methods

@@ -172,10 +172,3 @@ global.toggleAccessibilityHighlight = jest.fn().mockImplementation(isEnabled => 
 });
 
 global.getCurrentTab = jest.fn().mockResolvedValue({ id: 123 });
-
-// Export a dummy test to avoid the "Your test suite must contain at least one test" error
-describe('Setup test', () => {
-  it('should pass', () => {
-    expect(true).toBe(true);
-  });
-});

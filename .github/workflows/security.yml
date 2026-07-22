@@ -33,19 +33,161 @@ jobs:
       - name: Install dependencies
         run: npm ci --ignore-scripts
 
-      - name: Run npm audit
-        run: npm audit --audit-level=high
-        continue-on-error: true
+      # Gating: only production dependencies ship to users. See ci.yml for the
+      # rationale — this is the one audit result that warrants failing a build.
+      - name: Run npm audit (production dependencies)
+        run: npm audit --omit=dev --audit-level=high
+
+      # Non-gating: dev-toolchain advisories are reported, not enforced.
+      - name: Run npm audit (all dependencies, report only)
+        if: always()
+        run: |
+          npm audit --audit-level=high > audit.txt 2>&1 && status=0 || status=$?
+          {
+            echo "### npm audit (dev + production)"
+            echo
+            if [ "$status" -eq 0 ]; then
+              echo "No advisories at high or above."
+            else
+              echo "Advisories found (dev-only unless the production step failed)."
+              echo
+              echo '```'
+              cat audit.txt
+              echo '```'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+          cat audit.txt
 
       - name: Run npm audit (JSON output)
+        if: always()
         run: npm audit --json > npm-audit-results.json || true
 
       - name: Upload audit results
         uses: actions/upload-artifact@v6
+        if: always()
         with:
           name: npm-audit-results
           path: npm-audit-results.json
           retention-days: 30
+
+  # Dev-dependency advisories are deliberately non-gating, which means nothing
+  # about them reaches a human on a normal PR. This weekly job is the mechanism
+  # that surfaces them: it opens (or refreshes) a single tracking issue so the
+  # backlog stays visible, and closes it once the tree is clean.
+  audit-report:
+    name: Report audit findings
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Collect audit summary
+        id: audit
+        run: |
+          npm audit --json > audit.json 2>/dev/null || true
+          node -e "
+            const fs = require('fs');
+            const a = JSON.parse(fs.readFileSync('audit.json', 'utf8'));
+            const m = a.metadata.vulnerabilities;
+            const total = m.critical + m.high + m.moderate + m.low;
+            const lines = [];
+            for (const [name, v] of Object.entries(a.vulnerabilities || {})) {
+              const fix = v.fixAvailable === false
+                ? 'no fix available'
+                : v.fixAvailable === true
+                  ? 'non-breaking fix'
+                  : \`requires \${v.fixAvailable.name}@\${v.fixAvailable.version} (major)\`;
+              lines.push(\`| \${name} | \${v.severity} | \${fix} |\`);
+            }
+            const body = [
+              \`Weekly \\\`npm audit\\\` found **\${total}** advisories \` +
+                \`(\${m.critical} critical, \${m.high} high, \${m.moderate} moderate, \${m.low} low).\`,
+              '',
+              'This extension ships **zero production dependencies**, so these are',
+              'dev-toolchain only and do not affect published builds. They are tracked',
+              'here because the PR-time audit steps are intentionally non-gating for',
+              'dev dependencies.',
+              '',
+              '| Package | Severity | Fix |',
+              '| --- | --- | --- |',
+              ...lines,
+              '',
+              \`Run: \${process.env.RUN_URL}\`,
+            ].join('\n');
+            fs.writeFileSync('audit-body.md', body);
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, \`total=\${total}\n\`);
+          "
+          cat audit-body.md >> "$GITHUB_STEP_SUMMARY"
+        env:
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+      - name: Open or update tracking issue
+        uses: actions/github-script@v8
+        # Pass the count through the environment rather than interpolating
+        # ${{ }} into the script body: expression interpolation is substituted
+        # as raw text before the script is parsed, so it is the standard
+        # script-injection vector even when the current source is trusted.
+        env:
+          AUDIT_TOTAL: ${{ steps.audit.outputs.total }}
+        with:
+          script: |
+            const fs = require('fs');
+            const total = Number(process.env.AUDIT_TOTAL);
+            const title = 'chore(security): npm audit findings (dev dependencies)';
+            // Look the issue up by label rather than via the search API: search
+            // is eventually consistent, so a freshly opened issue can be missed
+            // and duplicated on the next run.
+            const found = await github.paginate(github.rest.issues.listForRepo, {
+              ...context.repo,
+              state: 'open',
+              labels: 'npm-audit',
+              per_page: 100,
+            });
+            const existing = found.find((i) => i.title === title && !i.pull_request);
+
+            if (total === 0) {
+              if (existing) {
+                await github.rest.issues.createComment({
+                  ...context.repo,
+                  issue_number: existing.number,
+                  body: 'npm audit is now clean. Closing.',
+                });
+                await github.rest.issues.update({
+                  ...context.repo,
+                  issue_number: existing.number,
+                  state: 'closed',
+                });
+              }
+              return;
+            }
+
+            const body = fs.readFileSync('audit-body.md', 'utf8');
+            if (existing) {
+              await github.rest.issues.update({
+                ...context.repo,
+                issue_number: existing.number,
+                body,
+              });
+            } else {
+              await github.rest.issues.create({
+                ...context.repo,
+                title,
+                body,
+                labels: ['security', 'dependencies', 'npm-audit'],
+              });
+            }
 
   # Secret scanning (every push/PR) — installs gitleaks binary directly to
   # avoid the gitleaks-action org-licensing dependency.
@@ -105,11 +247,30 @@ jobs:
         with:
           project: ${{ github.repository }}
           path: '.'
-          format: 'HTML,JSON,SARIF'
+          # `--format` takes a single value, not a comma-separated list, and
+          # the action offers no way to repeat it — 'HTML,JSON,SARIF' was
+          # rejected outright. 'ALL' is the supported way to get more than one,
+          # and it still writes dependency-check-report.sarif, which is the
+          # path the SARIF upload step below reads.
+          format: 'ALL'
+          # Only --enableExperimental is needed. The two flags that used to be
+          # here were both wrong:
+          #
+          #   --nodeAuditAnalyzer                  does not exist; it aborted
+          #                                        the whole scan. The Node
+          #                                        Audit Analyzer is on by
+          #                                        default (--disableNodeAudit
+          #                                        turns it off).
+          #   --nodePackageSkipDevDependencies     is a bare switch, so the
+          #     false                              trailing "false" was a stray
+          #                                        argument — and the switch
+          #                                        *skips* dev dependencies,
+          #                                        the opposite of the intent.
+          #
+          # Skipping dev dependencies would make this job scan nothing at all:
+          # the extension ships zero production dependencies.
           args: >
             --enableExperimental
-            --nodeAuditAnalyzer
-            --nodePackageSkipDevDependencies false
 
       - name: Upload OWASP results
         uses: actions/upload-artifact@v6

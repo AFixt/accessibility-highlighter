@@ -36,11 +36,13 @@ jobs:
 
       - name: Lint Markdown
         run: npm run lint:md
-        continue-on-error: true
 
+      # lint:cpd:ci runs with --threshold 5, which overrides the threshold 0 in
+      # .jscpd.json. Duplication is currently 2.36%, so this gates with room to
+      # spare; crossing 5% should be a deliberate decision (dedupe, or raise the
+      # threshold on purpose) rather than a line in a log nobody reads.
       - name: Check for code duplication (jscpd)
         run: npm run lint:cpd:ci
-        continue-on-error: true
 
       - name: Upload lint results
         uses: actions/upload-artifact@v6
@@ -83,7 +85,7 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
-          file: ./coverage/lcov.info
+          files: ./coverage/lcov.info
           flags: unittests
           name: codecov-umbrella
           fail_ci_if_error: false
@@ -199,9 +201,36 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run npm audit
-        run: npm audit --audit-level moderate
-        continue-on-error: true
+      # Gating: production dependencies are what ship to users, so any
+      # high/critical advisory there must block. The extension currently has
+      # zero production dependencies, so this is free today and becomes a real
+      # gate the moment a runtime dependency is introduced.
+      - name: Run npm audit (production dependencies)
+        run: npm audit --omit=dev --audit-level=high
+
+      # Non-gating: dev-only advisories affect the build toolchain, not the
+      # shipped extension, so they must not block PRs. They are written to the
+      # job summary so they are visible on the run page instead of buried in
+      # log output behind a green check.
+      - name: Run npm audit (all dependencies, report only)
+        if: always()
+        run: |
+          npm audit --audit-level=moderate > audit.txt 2>&1 && status=0 || status=$?
+          {
+            echo "### npm audit (dev + production)"
+            echo
+            if [ "$status" -eq 0 ]; then
+              echo "No advisories at moderate or above."
+            else
+              echo "Advisories found. These are **dev-only** unless the"
+              echo "production audit step above also failed."
+              echo
+              echo '```'
+              cat audit.txt
+              echo '```'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+          cat audit.txt
 
       - name: Run security scan with njsscan
         uses: ajinabraham/njsscan-action@master
