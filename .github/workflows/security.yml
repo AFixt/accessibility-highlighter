@@ -135,10 +135,16 @@ jobs:
 
       - name: Open or update tracking issue
         uses: actions/github-script@v8
+        # Pass the count through the environment rather than interpolating
+        # ${{ }} into the script body: expression interpolation is substituted
+        # as raw text before the script is parsed, so it is the standard
+        # script-injection vector even when the current source is trusted.
+        env:
+          AUDIT_TOTAL: ${{ steps.audit.outputs.total }}
         with:
           script: |
             const fs = require('fs');
-            const total = Number('${{ steps.audit.outputs.total }}');
+            const total = Number(process.env.AUDIT_TOTAL);
             const title = 'chore(security): npm audit findings (dev dependencies)';
             // Look the issue up by label rather than via the search API: search
             // is eventually consistent, so a freshly opened issue can be missed
