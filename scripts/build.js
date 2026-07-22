@@ -15,10 +15,20 @@ const MANIFEST_PATH = path.join(ROOT_DIR, 'manifest.json');
 const DIST_DIR = path.join(ROOT_DIR, 'dist');
 
 /**
- * Read and parse manifest.json from the repo root
+ * Read and parse manifest.json from the repo root.
+ *
+ * The version is always taken from package.json, which is the single source of
+ * truth, rather than from whatever manifest.json happens to hold. A build must
+ * never be able to stamp a stale version into a package that gets uploaded to
+ * a web store — that used to be possible, and shipped v1.0.3 artifacts while
+ * package.json said 1.0.5.
  */
 function readManifest() {
-  return JSON.parse(fs.readFileSync(MANIFEST_PATH, 'utf8'));
+  const manifest = JSON.parse(fs.readFileSync(MANIFEST_PATH, 'utf8'));
+  manifest.version = JSON.parse(
+    fs.readFileSync(path.join(ROOT_DIR, 'package.json'), 'utf8')
+  ).version;
+  return manifest;
 }
 
 /**
@@ -173,7 +183,8 @@ function buildEdge(version) {
 function build(target = 'all') {
   console.log('🚀 Accessibility Highlighter Build Script\n');
 
-  // Get version from manifest
+  // Version comes from package.json via readManifest(), so the zip filenames
+  // and the packaged manifest.json can never disagree.
   const manifest = readManifest();
   const version = manifest.version;
   console.log(`Version: ${version}`);
