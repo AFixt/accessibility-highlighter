@@ -3,7 +3,11 @@ module.exports = {
   verbose: true,
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['./tests/setup-jest.js'],
-  testMatch: ['**/tests/**/*.js'],
+  // Only *.test.js are suites. Matching every .js under tests/ also collected
+  // the setup helpers, which contain no tests — Jest errors on those, and the
+  // workaround was a dummy `expect(true).toBe(true)` registered into every
+  // suite from setup-jest.js.
+  testMatch: ['**/tests/**/*.test.js'],
   collectCoverage: true,
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov'],

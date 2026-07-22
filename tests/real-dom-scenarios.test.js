@@ -10,12 +10,6 @@
 // Set test environment
 process.env.NODE_ENV = 'test';
 
-describe('Setup test', () => {
-  test('should pass', () => {
-    expect(true).toBe(true);
-  });
-});
-
 describe('Real DOM Scenarios Tests', () => {
   let _mockDocument;
   let mockWindow;

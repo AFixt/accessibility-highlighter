@@ -9,12 +9,6 @@
 // Set test environment
 process.env.NODE_ENV = 'test';
 
-describe('Setup test', () => {
-  test('should pass', () => {
-    expect(true).toBe(true);
-  });
-});
-
 describe('Structure Functions Tests', () => {
   let _mockDocument;
   let mockOverlay;
