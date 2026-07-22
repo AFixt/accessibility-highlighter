@@ -248,10 +248,24 @@ jobs:
           project: ${{ github.repository }}
           path: '.'
           format: 'HTML,JSON,SARIF'
+          # Only --enableExperimental is needed. The two flags that used to be
+          # here were both wrong:
+          #
+          #   --nodeAuditAnalyzer                  does not exist; it aborted
+          #                                        the whole scan. The Node
+          #                                        Audit Analyzer is on by
+          #                                        default (--disableNodeAudit
+          #                                        turns it off).
+          #   --nodePackageSkipDevDependencies     is a bare switch, so the
+          #     false                              trailing "false" was a stray
+          #                                        argument — and the switch
+          #                                        *skips* dev dependencies,
+          #                                        the opposite of the intent.
+          #
+          # Skipping dev dependencies would make this job scan nothing at all:
+          # the extension ships zero production dependencies.
           args: >
             --enableExperimental
-            --nodeAuditAnalyzer
-            --nodePackageSkipDevDependencies false
 
       - name: Upload OWASP results
         uses: actions/upload-artifact@v6
