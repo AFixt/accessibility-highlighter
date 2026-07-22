@@ -10,12 +10,6 @@
 // Set test environment
 process.env.NODE_ENV = 'test';
 
-describe('Setup test', () => {
-  test('should pass', () => {
-    expect(true).toBe(true);
-  });
-});
-
 describe('Extension Workflow Tests', () => {
   let mockChrome;
   let _mockDocument;
