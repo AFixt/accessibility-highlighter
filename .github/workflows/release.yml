@@ -174,13 +174,23 @@ jobs:
         run: |
           VERSION="${{ needs.validate.outputs.version }}"
           # Upsert: the release may already exist (e.g. created during the tagging flow).
-          if gh release view "$VERSION" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            echo "Release $VERSION exists; updating notes."
+          # Distinguish "not found" from a transient/auth failure so the latter fails
+          # loudly here instead of surfacing as a confusing "already exists" on create.
+          VIEW_ERR="$(gh release view "$VERSION" --repo "$GITHUB_REPOSITORY" 2>&1 >/dev/null)" && VIEW_RC=0 || VIEW_RC=$?
+          if [ "$VIEW_RC" -ne 0 ] && ! grep -qi "release not found" <<<"$VIEW_ERR"; then
+            echo "::error::Unable to query release $VERSION: $VIEW_ERR"
+            exit 1
+          fi
+          if [ "$VIEW_RC" -eq 0 ]; then
+            echo "Release $VERSION exists; updating title and notes."
             gh release edit "$VERSION" --repo "$GITHUB_REPOSITORY" \
+              --title "Accessibility Highlighter $VERSION" \
               --notes-file ./release/release_notes.md
           else
             echo "Creating release $VERSION."
-            gh release create "$VERSION" --repo "$GITHUB_REPOSITORY" --target main \
+            # --verify-tag: releases are always cut from an existing tag. Without it a
+            # workflow_dispatch for an unpushed version would silently tag main's HEAD.
+            gh release create "$VERSION" --repo "$GITHUB_REPOSITORY" --verify-tag \
               --title "Accessibility Highlighter $VERSION" \
               --notes-file ./release/release_notes.md
           fi
