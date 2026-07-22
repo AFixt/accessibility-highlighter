@@ -106,11 +106,11 @@ jobs:
           VERSION="${{ needs.validate.outputs.version }}"
           echo "Creating release notes for $VERSION"
 
-          # Extract changelog for this version if it exists
-          if [ -f CHANGELOG.md ]; then
-            # Try to extract changelog section for this version
-            awk "/^## \[$VERSION\]/{flag=1; next} /^## \[/{flag=0} flag" CHANGELOG.md > release_notes.md || true
-          fi
+          # Extract the CHANGELOG section for this version, if it has one. The
+          # tag is v-prefixed but standard-version writes the version bare in
+          # the heading, so the matching lives in a tested script rather than
+          # an inline one-liner (see tests/extract-release-notes.test.js).
+          ./scripts/extract-release-notes.sh "$VERSION" CHANGELOG.md > release_notes.md || true
 
           # If no specific changelog, create generic notes
           if [ ! -s release_notes.md ]; then
