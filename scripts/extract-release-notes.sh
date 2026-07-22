@@ -32,10 +32,13 @@ export RELEASE_NOTES_VERSION_RE
 
 # The section ends at the next *version* heading — one whose text starts with a
 # digit or "[" — so that the per-type headings inside it ("### Features") are
-# kept rather than treated as terminators.
+# kept rather than treated as terminators. An h1 also ends it: the last section
+# in the file has no following version heading, so anything appended after it
+# (a link-reference block, a trailing title) would otherwise be swallowed.
 awk '
   BEGIN { start = "^###? \\[?" ENVIRON["RELEASE_NOTES_VERSION_RE"] "(\\]| )" }
   $0 ~ start { flag = 1; next }
+  /^# / { flag = 0 }
   /^###? \[?[0-9]/ { flag = 0 }
   flag
 ' "$CHANGELOG" | awk '

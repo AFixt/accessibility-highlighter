@@ -162,4 +162,26 @@ describe('extract-release-notes.sh', () => {
     fs.writeFileSync(bare, '# Changelog\n\nAll notable changes...\n');
     expect(extract('v1.0.5', bare)).toBe('');
   });
+
+  it('stops the oldest section at a trailing h1 rather than swallowing it', () => {
+    const trailing = path.join(tmpDir, 'TRAILING.md');
+    fs.writeFileSync(
+      trailing,
+      [
+        '## 1.0.0 (2026-07-18)',
+        '',
+        '### Features',
+        '',
+        '* initial release 5566778',
+        '',
+        '# Older releases',
+        '',
+        'See the v0 tags.',
+        ''
+      ].join('\n')
+    );
+    expect(extract('v1.0.0', trailing)).toBe(
+      ['### Features', '', '* initial release 5566778'].join('\n') + '\n'
+    );
+  });
 });
