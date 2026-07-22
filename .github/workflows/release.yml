@@ -84,13 +84,21 @@ jobs:
         run: |
           VERSION="${{ needs.validate.outputs.version }}"
           VERSION_NUM="${VERSION#v}"
-          npm version $VERSION_NUM --no-git-tag-version
+          CURRENT_VERSION="$(node -p "require('./package.json').version")"
+          if [ "$CURRENT_VERSION" = "$VERSION_NUM" ]; then
+            echo "package.json already at $VERSION_NUM; skipping bump"
+          else
+            npm version "$VERSION_NUM" --no-git-tag-version
+          fi
 
-      - name: Build extension
-        run: npm run build
-
-      - name: Package extension
-        run: npm run package
+      - name: Build extension packages
+        run: |
+          VERSION="${{ needs.validate.outputs.version }}"
+          # Per-browser packages (chrome/firefox/edge) -> accessibility-highlighter-v<ver>-<browser>.zip
+          npm run build:all
+          # Generic package built from dist/ -> a11y-highlighter.zip, renamed to the release convention
+          npm run package
+          mv a11y-highlighter.zip "accessibility-highlighter-${VERSION}.zip"
 
       - name: Create release notes
         id: release_notes
@@ -138,10 +146,7 @@ jobs:
         with:
           name: release-build-${{ needs.validate.outputs.version }}
           path: |
-            dist/
-            a11y-highlighter.zip
-            manifest.json
-            package.json
+            accessibility-highlighter-${{ needs.validate.outputs.version }}*.zip
             release_notes.md
           retention-days: 365
 
@@ -163,42 +168,35 @@ jobs:
           name: release-build-${{ needs.validate.outputs.version }}
           path: ./release/
 
-      - name: Create GitHub Release
-        uses: actions/create-release@v1
-        id: create_release
+      - name: Create or update GitHub Release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ needs.validate.outputs.version }}
-          release_name: Accessibility Highlighter ${{ needs.validate.outputs.version }}
-          body_path: ./release/release_notes.md
-          draft: false
-          prerelease: false
-
-      - name: Upload Extension Package
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./release/a11y-highlighter.zip
-          asset_name: accessibility-highlighter-${{ needs.validate.outputs.version }}.zip
-          asset_content_type: application/zip
-
-      - name: Upload Source Code
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          cd release
-          zip -r ../accessibility-highlighter-${{ needs.validate.outputs.version }}-source.zip . -x "a11y-highlighter.zip"
-
-      - name: Upload Source Package
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./accessibility-highlighter-${{ needs.validate.outputs.version }}-source.zip
-          asset_name: accessibility-highlighter-${{ needs.validate.outputs.version }}-source.zip
-          asset_content_type: application/zip
+          VERSION="${{ needs.validate.outputs.version }}"
+          # Upsert: the release may already exist (e.g. created during the tagging flow).
+          # Distinguish "not found" from a transient/auth failure so the latter fails
+          # loudly here instead of surfacing as a confusing "already exists" on create.
+          VIEW_ERR="$(gh release view "$VERSION" --repo "$GITHUB_REPOSITORY" 2>&1 >/dev/null)" && VIEW_RC=0 || VIEW_RC=$?
+          if [ "$VIEW_RC" -ne 0 ] && ! grep -qi "release not found" <<<"$VIEW_ERR"; then
+            echo "::error::Unable to query release $VERSION: $VIEW_ERR"
+            exit 1
+          fi
+          if [ "$VIEW_RC" -eq 0 ]; then
+            echo "Release $VERSION exists; updating title and notes."
+            gh release edit "$VERSION" --repo "$GITHUB_REPOSITORY" \
+              --title "Accessibility Highlighter $VERSION" \
+              --notes-file ./release/release_notes.md
+          else
+            echo "Creating release $VERSION."
+            # --verify-tag: releases are always cut from an existing tag. Without it a
+            # workflow_dispatch for an unpushed version would silently tag main's HEAD.
+            gh release create "$VERSION" --repo "$GITHUB_REPOSITORY" --verify-tag \
+              --title "Accessibility Highlighter $VERSION" \
+              --notes-file ./release/release_notes.md
+          fi
+          # Attach/refresh all build artifacts (chrome/firefox/edge + generic package).
+          gh release upload "$VERSION" --repo "$GITHUB_REPOSITORY" --clobber \
+            ./release/accessibility-highlighter-"$VERSION"*.zip
 
   publish-chrome-store:
     name: Publish to Chrome Web Store
@@ -221,10 +219,10 @@ jobs:
         # See: https://developer.chrome.com/docs/webstore/using_webstore_api/
         run: |
           echo "Chrome Web Store publishing would happen here"
-          echo "Extension package: ./release/a11y-highlighter.zip"
+          echo "Extension package: ./release/accessibility-highlighter-${{ needs.validate.outputs.version }}-chrome.zip"
           echo "Version: ${{ needs.validate.outputs.version }}"
           # Example using chrome-webstore-upload-cli:
-          # npx chrome-webstore-upload-cli upload --source ./release/a11y-highlighter.zip --extension-id $EXTENSION_ID --client-id $CLIENT_ID --client-secret $CLIENT_SECRET --refresh-token $REFRESH_TOKEN
+          # npx chrome-webstore-upload-cli upload --source ./release/accessibility-highlighter-${{ needs.validate.outputs.version }}-chrome.zip --extension-id $EXTENSION_ID --client-id $CLIENT_ID --client-secret $CLIENT_SECRET --refresh-token $REFRESH_TOKEN
 
   notify:
     name: Notify Release
