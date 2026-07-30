@@ -70,8 +70,16 @@ jobs:
           # overwrite a developer's own binary, which is what hardcoding
           # linux_amd64 into /usr/local/bin used to do when the workflow was
           # reproduced locally on macOS.
-          if [ -z "${GITHUB_ACTIONS:-}" ] && command -v actionlint >/dev/null 2>&1; then
-            echo "Not on CI; reusing installed $(actionlint --version | head -1)"
+          # Probe by running it, not with `command -v`: that only checks for an
+          # executable bit, so a binary for the wrong architecture — the exact
+          # mess this step used to create — would be "reused" and then fail in
+          # the next step. Failing the probe falls through to the download and
+          # self-heals.
+          # No pipe in the condition: under `pipefail` a SIGPIPE from the tool
+          # writing into a closed `head` would make a working binary look
+          # broken. `--version` prints three lines; keep only the first.
+          if [ -z "${GITHUB_ACTIONS:-}" ] && installed=$(actionlint --version 2>/dev/null); then
+            echo "Not on CI; reusing installed actionlint ${installed%%$'\n'*} (CI pins ${ACTIONLINT_VERSION})"
             exit 0
           fi
 

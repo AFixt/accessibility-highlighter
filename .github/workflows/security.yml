@@ -210,8 +210,13 @@ jobs:
           # overwrite a developer's own binary, which is what hardcoding
           # linux_x64 into /usr/local/bin used to do when the workflow was
           # reproduced locally on macOS.
-          if [ -z "${GITHUB_ACTIONS:-}" ] && command -v gitleaks >/dev/null 2>&1; then
-            echo "Not on CI; reusing installed gitleaks $(gitleaks version)"
+          # Probe by running it, not with `command -v`: that only checks for an
+          # executable bit, so a binary for the wrong architecture — the exact
+          # mess this step used to create — would be "reused" and then fail in
+          # the next step. Failing the probe falls through to the download and
+          # self-heals.
+          if [ -z "${GITHUB_ACTIONS:-}" ] && installed=$(gitleaks version 2>/dev/null); then
+            echo "Not on CI; reusing installed gitleaks ${installed} (CI pins ${GITLEAKS_VERSION})"
             exit 0
           fi
 
