@@ -1,4 +1,4 @@
-# ADR 0005: Accept the residual `brace-expansion` advisory in the dev toolchain
+# ADR 0005: The residual `brace-expansion` audit findings are false positives
 
 - **Status**: Accepted
 - **Date**: 2026-07-29
@@ -6,46 +6,80 @@
 
 ## Context
 
-The weekly `npm audit` job in `.github/workflows/security.yml` opens a
-tracking issue whenever the full (dev + production) audit is non-empty.
-Issue #82 reported 27 high advisories.
+The weekly `npm audit` job in `.github/workflows/security.yml` opens a tracking
+issue whenever the full (dev + production) audit is non-empty. Issue #82
+reported 27 high advisories.
 
-The extension ships **zero production dependencies** — `npm audit
---omit=dev --audit-level=high` reports 0 vulnerabilities, and that is the
-only audit result that gates a build (see the comments in `ci.yml` and
-`security.yml`). Everything in issue #82 is dev-toolchain only and never
-reaches a published build.
+The extension ships **zero production dependencies** — `npm audit --omit=dev
+--audit-level=high` reports 0 vulnerabilities, and that is the only audit
+result that gates a build (see the comments in `ci.yml` and `security.yml`).
+Everything in issue #82 is dev-toolchain only and never reaches a published
+build.
 
-Behind the 27 entries were only **two** root advisories. The other 25
-entries were transitive fan-out — npm lists every package on the path to
-a vulnerable dependency as its own line item.
+Behind the 27 entries were only **two** root advisories. The other 25 entries
+were transitive fan-out — npm lists every package on the path to a vulnerable
+dependency as its own line item.
 
-| Root advisory                                                                                                                    | Range             | Vulnerable versions in tree                  |
-| -------------------------------------------------------------------------------------------------------------------------------- | ----------------- | -------------------------------------------- |
-| [GHSA-pm4m-ph32-ghv5](https://github.com/advisories/GHSA-pm4m-ph32-ghv5) — `js-yaml` DoS via exponential flow-collection parsing | `>=5.0.0 <=5.2.1` | `js-yaml@5.2.1`                              |
-| [GHSA-mh99-v99m-4gvg](https://github.com/advisories/GHSA-mh99-v99m-4gvg) — `brace-expansion` DoS via unbounded expansion length  | `<=5.0.7`         | `brace-expansion@1.1.16`, `@2.1.2`, `@5.0.7` |
+| Root advisory                                                                                                                                    | Range             | Versions in the tree **before** this change  |
+| ------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------- | -------------------------------------------- |
+| [GHSA-pm4m-ph32-ghv5](https://github.com/advisories/GHSA-pm4m-ph32-ghv5) — `js-yaml` DoS via exponential flow-collection parsing                 | `>=5.0.0 <=5.2.1` | `js-yaml@5.2.1`                              |
+| [GHSA-mh99-v99m-4gvg](https://github.com/advisories/GHSA-mh99-v99m-4gvg) — `brace-expansion` DoS via unbounded expansion length (CVE-2026-14257) | `<=5.0.7`         | `brace-expansion@1.1.16`, `@2.1.2`, `@5.0.7` |
 
-npm's own `fixAvailable` hints for most of these entries were useless —
-it proposed `jest@25.0.0`, `npm-run-all@1.1.3`, `standard-version@4.2.0`,
-and `license-checker-rseidelsohn@2.2.0`, all of which are _downgrades_ to
-years-old majors.
+npm's own `fixAvailable` hints were useless — it proposed `jest@25.0.0`,
+`npm-run-all@1.1.3`, `standard-version@4.2.0`, and
+`license-checker-rseidelsohn@2.2.0`, all of which are _downgrades_ to
+years-old majors. Ignore that column on reports from this job.
 
-### What made `brace-expansion` hard
+### The `brace-expansion` range is over-broad
 
-The advisory range is `<=5.0.7`, which covers **every** version the
-package has ever published except `5.0.8`. There are no backported
-patches on the 1.x, 2.x, 3.x, or 4.x lines.
+The advisory range `<=5.0.7` reads as "everything ever published except
+5.0.8", because every 1.x/2.x/3.x/4.x version sorts below `5.0.7` in semver.
+That is not what actually shipped. The maintainer backported the fix across
+all maintained lines:
 
-`brace-expansion@5` is not a drop-in replacement for its predecessors.
-1.x and 2.x set `module.exports = expand`, so CommonJS callers do:
+| Version  | Published  |
+| -------- | ---------- |
+| `5.0.8`  | 2026-07-23 |
+| `3.0.5`  | 2026-07-28 |
+| `2.1.3`  | 2026-07-28 |
+| `1.1.17` | 2026-07-29 |
+
+`1.1.17`, `2.1.3`, and `3.0.5` **are patched**, but the advisory range still
+covers them, so `npm audit` keeps reporting them. Verified behaviourally
+using the proof-of-concept from the advisory that ships inside the package
+(`ADVISORY-CVE-2026-14257.md`), under a constrained 512 MB heap:
+
+```console
+$ node --max-old-space-size=512 -e "require('brace-expansion').expand('{a,b}'.repeat(1500))"
+# 1.1.17 -> 2666 results, 3,999,000 chars, ~7s   (bounded)
+# 2.1.3  -> 2666 results, 3,999,000 chars, ~6s   (bounded)
+# 1.1.16 -> FATAL ERROR: JavaScript heap out of memory
+```
+
+The ~4,000,000-character ceiling is the `EXPANSION_MAX_LENGTH` bound the
+advisory's own Remediation section describes. `1.1.16` crashes under the same
+input, which confirms the test discriminates.
+
+Beware `1.1.16` specifically: it looks patched and isn't. It ships the fixed
+code in `dist/commonjs/` and `dist/esm/` plus the advisory write-up, but its
+`package.json` sets `main: index.js` with no `exports` map, and that root
+`index.js` is unpatched. Every CommonJS consumer — which is all of them, via
+`minimatch@3` — got the vulnerable path. `1.1.17` moves the bound into
+`index.js` itself. This is why the previous `overrides` pin of
+`brace-expansion: ^1.1.16` (commit `91145ff`) never actually fixed anything.
+
+### `brace-expansion@5` is not a drop-in for older majors
+
+Worth recording because it looks like an easy fix and isn't. 1.x and 2.x set
+`module.exports = expand`, so CommonJS callers do:
 
 ```js
 var expand = require('brace-expansion');
 expand('a{b,c}d');
 ```
 
-5.0.8 is `"type": "module"` with a CommonJS interop build whose export is
-a namespace object, not a callable:
+`5.0.8` is `"type": "module"` with a CommonJS interop build whose export is a
+namespace object, not a callable:
 
 ```console
 $ node -e "console.log(Object.keys(require('brace-expansion')))"
@@ -54,96 +88,97 @@ $ node -e "require('brace-expansion')('a{b,c}d')"
 TypeError: require(...) is not a function
 ```
 
-So an override forcing `brace-expansion@^5.0.8` into `minimatch@3` or
-`minimatch@9` produces a `TypeError` at first use rather than a fix.
-`minimatch@10` is the first release built against the 5.x API, and it
-declares `brace-expansion: ^5.0.5` — which `5.0.8` satisfies.
-
-That splits the tree cleanly into "fixable by moving to `minimatch@10`"
-and "blocked on an upstream release".
+So an `overrides` entry forcing `brace-expansion@^5.0.8` into `minimatch@3`
+or `minimatch@9` installs cleanly, **clears the audit**, and then throws the
+first time anything globs. `minimatch@10` is the first release built against
+the 5.x API (it declares `brace-expansion: ^5.0.5`). Do not reach for that
+override — it is not needed, and it breaks the toolchain.
 
 ## Decision
 
-Apply every fix that is available and safe; document the rest.
+Take the patched versions of everything, and treat what `npm audit` still
+reports as a reporting artifact rather than a risk to mitigate.
 
-### Fixed
+### Changes
 
 1. **`js-yaml@5.2.1` → `5.2.2`.** `markdownlint-cli@0.49.1` declares
    `~5.2.1`, so the patched version was already in range and only the
    lockfile pinned it back. Removes GHSA-pm4m-ph32-ghv5 entirely.
 
-2. **`brace-expansion@5.0.7` → `5.0.8`** for every `minimatch@10`
-   consumer (`eslint`, `@eslint/config-array`, `eslint-plugin-import-x`,
-   `eslint-plugin-sonarjs`, `markdownlint-cli`). Also in range, also
-   only pinned by the lockfile.
+2. **`brace-expansion` updated to the patched release on every line present**
+   — `1.1.16 → 1.1.17`, `2.1.2 → 2.1.3`, `5.0.7 → 5.0.8`. All were already
+   in range for their consumers; only the lockfile pinned them back.
 
-3. **`npm-run-all@4.1.5` → `npm-run-all2@^8.0.4`.** `npm-run-all` has
-   been unmaintained since 2018 and pulls `minimatch@3`.
-   `npm-run-all2` is the maintained fork; it uses `picomatch` and has no
-   `minimatch` in its tree at all. It ships an `npm-run-all` binary
-   alongside `npm-run-all2`, so the `test:all`, `check`, and `check:all`
-   scripts are unchanged and both `--parallel` and `-s` behave as before.
+3. **`npm-run-all@4.1.5` → `npm-run-all2@^8.0.4`.** `npm-run-all` has been
+   unmaintained since 2018. `npm-run-all2` is the maintained fork; it uses
+   `picomatch` and drops 81 packages net from the dev tree, including the
+   abandoned `es-abstract`/`string.prototype.*` polyfill cluster. The
+   `test:all`, `check`, and `check:all` scripts now call `run-p`/`run-s`
+   (both shipped by the fork) instead of `npm-run-all`, so the script text
+   matches the installed package name.
 
-   Version `^8.0.4` rather than the current `^9`: `npm-run-all2@9`
-   narrows its engines to `^22.22.2 || ^24.15.0 || >=26.0.0`, which would
-   reject Node 22.0–22.22.1 even though this project's `engines` field
-   allows `>=22.0.0`. `8.0.4` declares `^20.5.0 || >=22.0.0`.
+   Version `^8.0.4` rather than the current `^9`: `npm-run-all2@9` narrows
+   its engines to `^22.22.2 || ^24.15.0 || >=26.0.0`, which would reject Node
+   22.0–22.22.1 even though this project's `engines` allows `>=22.0.0`.
+   `8.0.4` declares `^20.5.0 || >=22.0.0`.
 
-4. **Dropped the `overrides` block.** It pinned
-   `minimatch@3 > brace-expansion: ^1.1.16`, which was the fix for the
-   _earlier_ `brace-expansion` ReDoS advisory. Under GHSA-mh99-v99m-4gvg
-   every 1.x release is in range, so the pin no longer fixes anything and
-   only froze a transitive dependency for no benefit.
-
-5. **`security:check` now runs `npm audit --omit=dev --audit-level=high`.**
-   It previously audited dev dependencies too, so `npm run check:all`
-   always failed on advisories the project has deliberately decided not to
-   gate on. The script now matches the CI gate it is meant to mirror.
-   `npm run security:audit` still reports everything.
-
-Result: 27 advisories → 25, and one of the two root advisories is gone.
+4. **Dropped the `overrides` block.** It pinned `brace-expansion: ^1.1.16`
+   under `minimatch@3` as a fix for the _earlier_ `brace-expansion` ReDoS
+   advisory. As described above, `1.1.16` is not actually patched for
+   CommonJS consumers, so the pin fixed nothing; removing it lets the tree
+   float to `1.1.17`, which is patched.
 
 ### Accepted
 
-The remaining 25 entries are all GHSA-mh99-v99m-4gvg reached through
-three chains, none of which this repository can resolve:
+Every `brace-expansion` in the tree is now a patched release (`1.1.17`,
+`2.1.3`, `5.0.8`) and every `js-yaml` is outside the vulnerable range. The
+code is fully remediated.
 
-| Chain                                                                                                           | Vulnerable version       | Blocked on                                             |
-| --------------------------------------------------------------------------------------------------------------- | ------------------------ | ------------------------------------------------------ |
-| `jest@29` → `@jest/reporters`/`test-exclude@6` → `glob@7` → `minimatch@3`                                       | `brace-expansion@1.1.17` | `glob@7` and `test-exclude@6` moving to `minimatch@10` |
-| `standard-version@9` → `dotgitignore@2` → `minimatch@3`                                                         | `brace-expansion@1.1.17` | `dotgitignore` (unmaintained since 2019)               |
-| `license-checker-rseidelsohn@4` → `read-installed-packages` → `read-package-json@6` → `glob@10` → `minimatch@9` | `brace-expansion@2.1.3`  | `glob@10` moving to `minimatch@10`                     |
+`npm audit` nonetheless still reports 25 entries, all of them
+GHSA-mh99-v99m-4gvg reached through `minimatch@3`/`minimatch@9`:
 
-Upgrades that look like they should help, but do not:
+| Chain                                                                               | Installed version        | Status                    |
+| ----------------------------------------------------------------------------------- | ------------------------ | ------------------------- |
+| `jest@29` → `@jest/reporters`/`test-exclude@6` → `glob@7` → `minimatch@3`           | `brace-expansion@1.1.17` | Patched; flagged by range |
+| `standard-version@9` → `dotgitignore@2` → `minimatch@3`                             | `brace-expansion@1.1.17` | Patched; flagged by range |
+| `license-checker-rseidelsohn@4` → `read-package-json@6` → `glob@10` → `minimatch@9` | `brace-expansion@2.1.3`  | Patched; flagged by range |
 
-- **`jest@30`** moves `@jest/reporters` from `glob@7` to `glob@10`, which
-  is still `minimatch@9` → `brace-expansion@2.x`. `test-exclude@6` stays
-  on `glob@7` regardless. Measured effect: 25 → 24 advisories, in
-  exchange for a major test-framework migration.
-- **`commit-and-tag-version@13`** (the maintained `standard-version`
-  fork) still depends on `dotgitignore@2`.
-- **`license-checker-rseidelsohn@5.0.1`** does drop the `glob@10` chain,
-  but declares `engines: { node: ">=24", npm: ">=11" }`. CI runs the Node
-  version in `.nvmrc` (22), so adopting it means bumping `.nvmrc` and the
-  project's `engines` field to Node 24 — a larger decision than an audit
-  cleanup, and one that belongs in its own change.
+These are **false positives**. Correcting the advisory range is the only
+thing standing between this repository and a clean `npm audit` — there is no
+upstream release to wait for and no residual denial-of-service exposure.
+Google's OSV-Scanner, which CI also runs, passes on this tree.
 
-The accepted risk is a denial-of-service in a brace-expansion parser
-reached only by lint/test/release tooling, running on inputs this
-repository controls (its own glob patterns and file paths). There is no
-untrusted input path and no production exposure.
+Consequently, do **not** pursue any of the following in the name of this
+advisory:
+
+- **`jest@30`.** Measured: it moves `@jest/reporters` to `glob@10` and takes
+  the audit from 25 to 24 entries. A major test-framework migration for one
+  line of report noise.
+- **`commit-and-tag-version@13`** (the maintained `standard-version` fork).
+  Still depends on `dotgitignore@2`, so it changes nothing here.
+- **`license-checker-rseidelsohn@5.0.1`.** Drops the `glob@10` chain, but
+  declares `engines: { node: ">=24", npm: ">=11" }`. CI runs the Node version
+  in `.nvmrc` (22), so it would require moving the project to Node 24. That
+  may be worth doing on its own merits; it is not an audit fix.
 
 ## Consequences
 
-- The `npm audit` tracking issue stays open. That is working as intended:
-  the weekly job auto-closes it once `npm audit` is clean, so it will
-  close itself when `glob` and `test-exclude` ship `minimatch@10`
-  releases. Future triage should check this ADR before re-deriving the
-  analysis.
-- `npm run check:all` passes again.
-- Anyone tempted to add `overrides` for `brace-expansion` should read the
-  CommonJS-interop note above first — the override installs cleanly, clears
-  the audit, and then throws on first use.
-- Revisit when: `glob@7`/`glob@10` or `test-exclude@6` release with
-  `minimatch@10`; or the project moves to Node 24, at which point
-  `license-checker-rseidelsohn@5` becomes available.
+- **`npm run check:all` currently fails at its `security:check` step**, and
+  `security:check` is deliberately left as `npm audit --audit-level=high`.
+  Narrowing it to `--omit=dev` would hide a whole class of real dev-toolchain
+  advisories permanently in order to paper over a temporary false positive.
+  It will pass again on its own once the advisory range is corrected.
+- **The `npm audit` tracking issue stays open**, which is the designed
+  behaviour — the weekly job auto-closes it once `npm audit` is clean. Here
+  that will happen when the advisory range is narrowed, not when a dependency
+  ships.
+- **Follow-up**: report the over-broad range on GHSA-mh99-v99m-4gvg to
+  GitHub's advisory database so the backported `1.1.17`/`2.1.3`/`3.0.5`
+  releases are excluded. This is the only open action.
+- Anyone tempted to add an `overrides` entry for `brace-expansion` should
+  read the interop note above first — it installs cleanly, clears the audit,
+  and throws on first use.
+- When re-deriving any of this, note that `.npmrc` sets `prefer-offline=true`
+  and `cache-min=3600`. `npm view <pkg> versions` will happily serve a stale
+  version list and omit a release published in the last hour; that is exactly
+  how the backports were missed on the first pass. Use `--prefer-online`.
