@@ -63,9 +63,41 @@ jobs:
         env:
           ACTIONLINT_VERSION: 1.7.7
         run: |
-          curl -sSL "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz" \
-            | tar -xz -C /usr/local/bin actionlint
-          actionlint --version
+          set -euo pipefail
+
+          # On CI always fetch the pinned build so the gate is reproducible.
+          # Off CI, reuse whatever is already installed: this step must never
+          # overwrite a developer's own binary, which is what hardcoding
+          # linux_amd64 into /usr/local/bin used to do when the workflow was
+          # reproduced locally on macOS.
+          if [ -z "${GITHUB_ACTIONS:-}" ] && command -v actionlint >/dev/null 2>&1; then
+            echo "Not on CI; reusing installed $(actionlint --version | head -1)"
+            exit 0
+          fi
+
+          case "$(uname -s)" in
+            Linux) os=linux ;;
+            Darwin) os=darwin ;;
+            *) echo "unsupported OS: $(uname -s)" >&2; exit 1 ;;
+          esac
+          case "$(uname -m)" in
+            x86_64 | amd64) arch=amd64 ;;
+            arm64 | aarch64) arch=arm64 ;;
+            *) echo "unsupported architecture: $(uname -m)" >&2; exit 1 ;;
+          esac
+
+          bindir="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/ci-tools"
+          mkdir -p "$bindir"
+          # -f so an HTTP error fails here instead of piping an error page to tar.
+          curl -sSfL "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_${os}_${arch}.tar.gz" \
+            | tar -xz -C "$bindir" actionlint
+          "$bindir/actionlint" --version
+
+          if [ -n "${GITHUB_PATH:-}" ]; then
+            echo "$bindir" >> "$GITHUB_PATH"
+          else
+            echo "Installed to $bindir; add it to PATH to run actionlint."
+          fi
 
       - name: Run actionlint
         run: actionlint -color
