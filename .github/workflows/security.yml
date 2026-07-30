@@ -200,10 +200,50 @@ jobs:
           fetch-depth: 0
 
       - name: Install gitleaks
+        env:
+          GITLEAKS_VERSION: 8.21.2
         run: |
-          curl -sSL https://github.com/gitleaks/gitleaks/releases/download/v8.21.2/gitleaks_8.21.2_linux_x64.tar.gz \
-            | tar -xz -C /usr/local/bin gitleaks
-          gitleaks version
+          set -euo pipefail
+
+          # On CI always fetch the pinned build so the scan is reproducible.
+          # Off CI, reuse whatever is already installed: this step must never
+          # overwrite a developer's own binary, which is what hardcoding
+          # linux_x64 into /usr/local/bin used to do when the workflow was
+          # reproduced locally on macOS.
+          # Probe by running it, not with `command -v`: that only checks for an
+          # executable bit, so a binary for the wrong architecture — the exact
+          # mess this step used to create — would be "reused" and then fail in
+          # the next step. Failing the probe falls through to the download and
+          # self-heals.
+          if [ -z "${GITHUB_ACTIONS:-}" ] && installed=$(gitleaks version 2>/dev/null); then
+            echo "Not on CI; reusing installed gitleaks ${installed} (CI pins ${GITLEAKS_VERSION})"
+            exit 0
+          fi
+
+          case "$(uname -s)" in
+            Linux) os=linux ;;
+            Darwin) os=darwin ;;
+            *) echo "unsupported OS: $(uname -s)" >&2; exit 1 ;;
+          esac
+          # gitleaks spells x86_64 as "x64" in its release asset names.
+          case "$(uname -m)" in
+            x86_64 | amd64) arch=x64 ;;
+            arm64 | aarch64) arch=arm64 ;;
+            *) echo "unsupported architecture: $(uname -m)" >&2; exit 1 ;;
+          esac
+
+          bindir="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/ci-tools"
+          mkdir -p "$bindir"
+          # -f so an HTTP error fails here instead of piping an error page to tar.
+          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_${os}_${arch}.tar.gz" \
+            | tar -xz -C "$bindir" gitleaks
+          "$bindir/gitleaks" version
+
+          if [ -n "${GITHUB_PATH:-}" ]; then
+            echo "$bindir" >> "$GITHUB_PATH"
+          else
+            echo "Installed to $bindir; add it to PATH to run gitleaks."
+          fi
 
       - name: Run gitleaks
         run: gitleaks detect --no-banner --redact --verbose

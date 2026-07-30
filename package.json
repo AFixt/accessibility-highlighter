@@ -16,7 +16,7 @@
     "lint:check": "eslint src/ tests/ scripts/ *.js --max-warnings 0",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "lint:md": "markdownlint '**/*.md' --ignore node_modules --ignore coverage --ignore reports --ignore scratchpads --ignore docs/templates --ignore errors.md --ignore element-highlighting-guide.md --ignore CHANGELOG.md --ignore CLAUDE.md",
+    "lint:md": "markdownlint '**/*.md' --ignore-path .gitignore --ignore node_modules --ignore coverage --ignore reports --ignore scratchpads --ignore docs/templates --ignore CHANGELOG.md",
     "lint:cpd": "jscpd . --config .jscpd.json",
     "lint:cpd:ci": "jscpd . --config .jscpd.json --threshold 5",
     "security:audit": "npm audit",

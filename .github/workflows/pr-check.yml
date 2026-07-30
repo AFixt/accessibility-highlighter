@@ -63,9 +63,49 @@ jobs:
         env:
           ACTIONLINT_VERSION: 1.7.7
         run: |
-          curl -sSL "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz" \
-            | tar -xz -C /usr/local/bin actionlint
-          actionlint --version
+          set -euo pipefail
+
+          # On CI always fetch the pinned build so the gate is reproducible.
+          # Off CI, reuse whatever is already installed: this step must never
+          # overwrite a developer's own binary, which is what hardcoding
+          # linux_amd64 into /usr/local/bin used to do when the workflow was
+          # reproduced locally on macOS.
+          # Probe by running it, not with `command -v`: that only checks for an
+          # executable bit, so a binary for the wrong architecture — the exact
+          # mess this step used to create — would be "reused" and then fail in
+          # the next step. Failing the probe falls through to the download and
+          # self-heals.
+          # No pipe in the condition: under `pipefail` a SIGPIPE from the tool
+          # writing into a closed `head` would make a working binary look
+          # broken. `--version` prints three lines; keep only the first.
+          if [ -z "${GITHUB_ACTIONS:-}" ] && installed=$(actionlint --version 2>/dev/null); then
+            echo "Not on CI; reusing installed actionlint ${installed%%$'\n'*} (CI pins ${ACTIONLINT_VERSION})"
+            exit 0
+          fi
+
+          case "$(uname -s)" in
+            Linux) os=linux ;;
+            Darwin) os=darwin ;;
+            *) echo "unsupported OS: $(uname -s)" >&2; exit 1 ;;
+          esac
+          case "$(uname -m)" in
+            x86_64 | amd64) arch=amd64 ;;
+            arm64 | aarch64) arch=arm64 ;;
+            *) echo "unsupported architecture: $(uname -m)" >&2; exit 1 ;;
+          esac
+
+          bindir="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/ci-tools"
+          mkdir -p "$bindir"
+          # -f so an HTTP error fails here instead of piping an error page to tar.
+          curl -sSfL "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_${os}_${arch}.tar.gz" \
+            | tar -xz -C "$bindir" actionlint
+          "$bindir/actionlint" --version
+
+          if [ -n "${GITHUB_PATH:-}" ]; then
+            echo "$bindir" >> "$GITHUB_PATH"
+          else
+            echo "Installed to $bindir; add it to PATH to run actionlint."
+          fi
 
       - name: Run actionlint
         run: actionlint -color
