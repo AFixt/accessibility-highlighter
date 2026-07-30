@@ -10,6 +10,18 @@
 CLAUDE.md
 .claude
 
+# Artifacts written into the repo root by CI steps (ci.yml, security.yml).
+# Ignored so a local reproduction of those steps can't be committed by accident.
+audit.json
+audit.txt
+audit-body.md
+npm-audit-results.json
+licenses.json
+
+# Playwright output
+/playwright-report
+/test-results
+
 # Local-only working notes
 errors.md
 element-highlighting-guide.md

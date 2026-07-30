@@ -10,7 +10,7 @@
     "test:coverage": "jest --coverage --maxWorkers=50%",
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
-    "test:all": "npm-run-all --parallel lint:check test test:e2e",
+    "test:all": "run-p lint:check test test:e2e",
     "lint": "eslint src/ tests/ scripts/ *.js",
     "lint:fix": "eslint src/ tests/ scripts/ *.js --fix",
     "lint:check": "eslint src/ tests/ scripts/ *.js --max-warnings 0",
@@ -27,8 +27,8 @@
     "license:check": "license-checker-rseidelsohn --production --onlyAllow 'MIT;ISC;Apache-2.0;BSD-2-Clause;BSD-3-Clause;0BSD;CC0-1.0;Unlicense;Python-2.0;WTFPL;BlueOak-1.0.0' --excludePrivatePackages --summary",
     "license:report": "license-checker-rseidelsohn --production --csv --out reports/licenses.csv",
     "links": "command -v lychee >/dev/null 2>&1 && lychee --no-progress '**/*.md' || echo 'lychee not installed; skipping link check (see scripts/bootstrap.sh)'",
-    "check": "npm-run-all --parallel lint:check format:check lint:md version:check",
-    "check:all": "npm-run-all -s check test build size license:check links security:check",
+    "check": "run-p lint:check format:check lint:md version:check",
+    "check:all": "run-s check test build size license:check links security:check",
     "prebuild": "npm run clean",
     "build": "mkdir -p dist && cp -r src/* manifest.json dist/",
     "build:all": "node scripts/build.js all",
@@ -82,15 +82,10 @@
     "license-checker-rseidelsohn": "^4.4.2",
     "lint-staged": "^17.0.4",
     "markdownlint-cli": "^0.49.1",
-    "npm-run-all": "^4.1.5",
+    "npm-run-all2": "^8.0.4",
     "prettier": "^3.5.1",
     "size-limit": "^12.1.0",
     "standard-version": "^9.5.0"
-  },
-  "overrides": {
-    "minimatch@3": {
-      "brace-expansion": "^1.1.16"
-    }
   },
   "engines": {
     "node": ">=22.0.0"
