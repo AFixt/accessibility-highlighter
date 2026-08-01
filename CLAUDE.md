@@ -11,6 +11,7 @@ The Accessibility Highlighter is a Chrome extension that identifies accessibilit
 This project follows Git Flow branching strategy. All development work must adhere to the following:
 
 ### Branch Structure
+
 - **main**: Production-ready code only. Never commit directly to main.
 - **develop**: Integration branch for features. All feature branches merge here first.
 - **feature/**: Create feature branches from develop (e.g., feature/add-keyboard-nav)
@@ -18,6 +19,7 @@ This project follows Git Flow branching strategy. All development work must adhe
 - **hotfix/**: Emergency fixes from main that bypass develop
 
 ### Workflow Rules
+
 1. Always create feature branches from develop: `git checkout -b feature/feature-name develop`
 2. Merge feature branches back to develop via pull request
 3. Create release branches from develop when ready for production
@@ -25,10 +27,23 @@ This project follows Git Flow branching strategy. All development work must adhe
 5. Create hotfix branches from main for critical production issues
 6. Merge hotfix branches to both main and develop
 
+### Releases
+
+This project promotes `develop` to `main` directly via pull request; the `release/` branch step above is not used in practice — every tag from v1.0.3 onward sits on a `Merge pull request ... from AFixt/develop` commit.
+
+1. Bump on develop with standard-version (`npm run release:patch` / `:minor` / `:major`). It updates package.json, package-lock.json, manifest.json and CHANGELOG.md, and commits as `chore(release): vX.Y.Z`.
+2. Open a `develop` → `main` pull request titled `Release vX.Y.Z`; merge once checks pass.
+3. Tag the merge commit on main and push the tag:
+   `git tag -a vX.Y.Z -m "Release vX.Y.Z" && git push origin vX.Y.Z`.
+   Pushing a `v*` tag triggers `.github/workflows/release.yml`, which builds the per-browser packages and creates the GitHub release from the matching CHANGELOG section.
+4. **Merge `main` back into `develop` and push.** This is the "and develop" half of workflow rule 4, and it is easy to lose because the release-branch step is skipped. Tags are created on main, so without it no tag is reachable from develop: `git describe` on develop goes stale and standard-version diffs against a long-superseded tag, producing a changelog that re-lists already-shipped work. (This was skipped from v1.0.2 until v1.0.6.) Expect an empty content diff — if real content appears, something reached main that develop never saw.
+
 ### Commit Messages
+
 - Use conventional commit format when applicable
 - Include ticket/issue numbers if available
 - Keep messages clear and descriptive
+- Subjects must be entirely lower-case (commitlint `subject-case`), so write `fix(docs): repoint the github links`, not `fix(docs): repoint the GitHub links`
 
 ## Project Todo List
 
