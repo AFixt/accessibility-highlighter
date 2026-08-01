@@ -11,9 +11,9 @@
     { "type": "ci", "section": "CI", "hidden": true },
     { "type": "chore", "hidden": true }
   ],
-  "commitUrlFormat": "https://github.com/AFixt/a11y-highlighter/commit/{{hash}}",
-  "compareUrlFormat": "https://github.com/AFixt/a11y-highlighter/compare/{{previousTag}}...{{currentTag}}",
-  "issueUrlFormat": "https://github.com/AFixt/a11y-highlighter/issues/{{id}}",
+  "commitUrlFormat": "https://github.com/AFixt/accessibility-highlighter/commit/{{hash}}",
+  "compareUrlFormat": "https://github.com/AFixt/accessibility-highlighter/compare/{{previousTag}}...{{currentTag}}",
+  "issueUrlFormat": "https://github.com/AFixt/accessibility-highlighter/issues/{{id}}",
   "userUrlFormat": "https://github.com/{{user}}",
   "releaseCommitMessageFormat": "chore(release): {{currentTag}}",
   "scripts": {
