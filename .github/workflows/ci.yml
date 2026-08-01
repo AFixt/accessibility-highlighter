@@ -34,6 +34,13 @@ jobs:
       - name: Check Prettier formatting
         run: npm run format:check
 
+      # manifest.json carries the version Chrome and the Web Store read, and it
+      # silently drifted three releases behind package.json. Builds now stamp it
+      # from package.json regardless, so this guards the committed file rather
+      # than the artifact.
+      - name: Check manifest version matches package.json
+        run: npm run version:check
+
       - name: Lint Markdown
         run: npm run lint:md
 
