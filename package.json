@@ -26,7 +26,7 @@
     "size": "size-limit",
     "license:check": "license-checker-rseidelsohn --production --onlyAllow 'MIT;ISC;Apache-2.0;BSD-2-Clause;BSD-3-Clause;0BSD;CC0-1.0;Unlicense;Python-2.0;WTFPL;BlueOak-1.0.0' --excludePrivatePackages --summary",
     "license:report": "license-checker-rseidelsohn --production --csv --out reports/licenses.csv",
-    "links": "command -v lychee >/dev/null 2>&1 && lychee --no-progress '**/*.md' || echo 'lychee not installed; skipping link check (see scripts/bootstrap.sh)'",
+    "links": "scripts/check-links.sh",
     "check": "run-p lint:check format:check lint:md version:check",
     "check:all": "run-s check test build size license:check links security:check",
     "prebuild": "npm run clean",
@@ -52,10 +52,10 @@
     "chrome-extension"
   ],
   "author": "AFixt <talktous@afixt.com>",
-  "homepage": "https://github.com/AFixt/a11y-highlighter",
+  "homepage": "https://github.com/AFixt/accessibility-highlighter",
   "repository": {
     "type": "git",
-    "url": "https://github.com/AFixt/a11y-highlighter"
+    "url": "https://github.com/AFixt/accessibility-highlighter"
   },
   "license": "MIT",
   "devDependencies": {

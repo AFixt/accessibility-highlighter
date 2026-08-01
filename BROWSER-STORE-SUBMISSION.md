@@ -240,7 +240,7 @@ See `chrome-webstore-justifications.md` for detailed justifications:
 
 - **Chrome**: <https://developer.chrome.com/docs/webstore/>
 - **Firefox**: <https://extensionworkshop.com/documentation/publish/>
-- **Edge**: <https://docs.microsoft.com/microsoft-edge/extensions-chromium/publish/>
+- **Edge**: <https://learn.microsoft.com/en-us/microsoft-edge/extensions/publish/publish-extension>
 
 ## Troubleshooting
 

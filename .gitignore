@@ -22,6 +22,9 @@ licenses.json
 /playwright-report
 /test-results
 
+# lychee's on-disk request cache (npm run links)
+.lycheecache
+
 # Local-only working notes
 errors.md
 element-highlighting-guide.md
