@@ -22,6 +22,13 @@ cache_exclude_status = ["429", "500..=599"]
 # "the link is broken", and shouldn't fail the build.
 accept = ["100..=103", "200..=299", "429"]
 
+# partner.microsoft.com chains to "Microsoft TLS ECC Root G2", which the GitHub
+# runner's CA bundle doesn't carry, so it fails TLS verification there and
+# nowhere else — curl and a local run both reach it (301 to the sign-in page).
+# A trust-store difference is not link rot, and it isn't worth weakening
+# verification for every host with --insecure.
+exclude = ["^https://partner\\.microsoft\\.com/"]
+
 max_retries = 2
 retry_wait_time = 2
 timeout = 20
