@@ -27,7 +27,14 @@ accept = ["100..=103", "200..=299", "429"]
 # nowhere else — curl and a local run both reach it (301 to the sign-in page).
 # A trust-store difference is not link rot, and it isn't worth weakening
 # verification for every host with --insecure.
-exclude = ["^https://partner\\.microsoft\\.com/"]
+exclude = [
+  "^https://partner\\.microsoft\\.com/",
+  # Each CHANGELOG entry opens with a compare link against the tag being
+  # released, and that tag does not exist until the release commit is merged
+  # and tagged — so the link is a guaranteed 404 on the release PR itself and
+  # resolves the moment the tag lands.
+  "^https://github\\.com/AFixt/accessibility-highlighter/compare/",
+]
 
 max_retries = 2
 retry_wait_time = 2
