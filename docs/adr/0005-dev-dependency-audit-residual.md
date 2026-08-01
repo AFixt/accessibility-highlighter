@@ -1,6 +1,7 @@
 # ADR 0005: The residual `brace-expansion` audit findings are false positives
 
-- **Status**: Accepted
+- **Status**: Accepted; the residual findings cleared on 2026-07-31 (see
+  [Resolution](#resolution))
 - **Date**: 2026-07-29
 - **Deciders**: @karlgroves
 
@@ -40,11 +41,15 @@ all maintained lines:
 | Version  | Published  |
 | -------- | ---------- |
 | `5.0.8`  | 2026-07-23 |
-| `3.0.5`  | 2026-07-28 |
+| `3.0.3`  | 2026-07-27 |
 | `2.1.3`  | 2026-07-28 |
 | `1.1.17` | 2026-07-29 |
 
-`1.1.17`, `2.1.3`, and `3.0.5` **are patched**, but the advisory range still
+(The 3.x row read `3.0.5` / 2026-07-28 when this ADR was first written. `3.0.3`
+is the first patched 3.x, which is what the corrected advisory range uses. No
+3.x is in this tree either way.)
+
+`1.1.17`, `2.1.3`, and `3.0.3` **are patched**, but the advisory range still
 covers them, so `npm audit` keeps reporting them. Verified behaviourally
 using the proof-of-concept from the advisory that ships inside the package
 (`ADVISORY-CVE-2026-14257.md`), under a constrained 512 MB heap:
@@ -163,18 +168,19 @@ advisory:
 
 ## Consequences
 
-- **`npm run check:all` currently fails at its `security:check` step**, and
-  `security:check` is deliberately left as `npm audit --audit-level=high`.
-  Narrowing it to `--omit=dev` would hide a whole class of real dev-toolchain
-  advisories permanently in order to paper over a temporary false positive.
-  It will pass again on its own once the advisory range is corrected.
-- **The `npm audit` tracking issue stays open**, which is the designed
-  behaviour — the weekly job auto-closes it once `npm audit` is clean. Here
-  that will happen when the advisory range is narrowed, not when a dependency
-  ships.
-- **Follow-up**: report the over-broad range on GHSA-mh99-v99m-4gvg to
-  GitHub's advisory database so the backported `1.1.17`/`2.1.3`/`3.0.5`
-  releases are excluded. This is the only open action.
+- **`npm run check:all` failed at its `security:check` step** for as long as
+  the range was wrong, and `security:check` is deliberately left as
+  `npm audit --audit-level=high`. Narrowing it to `--omit=dev` would hide a
+  whole class of real dev-toolchain advisories permanently in order to paper
+  over a temporary false positive. It passed again on its own once the
+  advisory range was corrected — see [Resolution](#resolution).
+- **The `npm audit` tracking issue stayed open** meanwhile, which is the
+  designed behaviour — the weekly job auto-closes it once `npm audit` is
+  clean. Here that happened when the advisory range was narrowed, not when a
+  dependency shipped.
+- **Follow-up** (issue #84, now closed): report the over-broad range on
+  GHSA-mh99-v99m-4gvg to GitHub's advisory database so the backported
+  `1.1.17`/`2.1.3`/`3.0.3` releases are excluded.
 - Anyone tempted to add an `overrides` entry for `brace-expansion` should
   read the interop note above first — it installs cleanly, clears the audit,
   and throws on first use.
@@ -182,3 +188,44 @@ advisory:
   and `cache-min=3600`. `npm view <pkg> versions` will happily serve a stale
   version list and omit a release published in the last hour; that is exactly
   how the backports were missed on the first pass. Use `--prefer-online`.
+
+## Resolution
+
+GitHub corrected GHSA-mh99-v99m-4gvg on **2026-07-31**. The flat `<= 5.0.7`
+range is gone, replaced by one range per release line:
+
+| Affected range      | First patched |
+| ------------------- | ------------- |
+| `< 1.1.17`          | `1.1.17`      |
+| `>= 2.0.0, < 2.1.3` | `2.1.3`       |
+| `>= 3.0.0, < 3.0.3` | `3.0.3`       |
+| `>= 4.0.0, < 5.0.8` | `5.0.8`       |
+
+The 4.x line still has no patched release of its own, so it is folded into the
+5.x range — `4.0.1` remains affected, as predicted.
+
+Nothing in this repository had to change. The tree already carried
+`brace-expansion@1.1.17`, `@2.1.3`, and `@5.0.8`, every one of which sits
+outside the corrected ranges:
+
+```console
+$ npm audit --audit-level=high
+found 0 vulnerabilities
+```
+
+`npm run check:all` no longer fails at `security:check`, and needed no change
+to get there — which is what leaving that script un-narrowed bought.
+
+This project filed no correction request in the end. The over-broad range drew
+a queue of reports from the wider ecosystem within a day of publication
+([github/advisory-database#8877][pr8877] and others), and the fix landed before
+ours would have. The analysis above still stands on its own; the only thing it
+turned out not to need was the follow-up action.
+
+[pr8877]: https://github.com/github/advisory-database/pull/8877
+
+For future reports from this job, the durable lessons are unchanged: check for
+backports with `--prefer-online` before believing a range, and verify
+behaviourally rather than trusting either the range or the version number
+(`1.1.16` remains the cautionary case — patched-looking, unpatched on the
+CommonJS path).
