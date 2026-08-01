@@ -4,7 +4,7 @@ The Accessibility Highlighter is a Chrome extension that helps identify accessib
 
 ## Method 1: Install from Zip File (Recommended for Most Users)
 
-1. Download the latest release zip file (`a11y-highlighter.zip`) from the [releases page](https://github.com/AFixt/a11y-highlighter/releases)
+1. Download the latest release zip file (`a11y-highlighter.zip`) from the [releases page](https://github.com/AFixt/accessibility-highlighter/releases)
 2. Extract the zip file to a folder on your computer
 3. Open Chrome and navigate to `chrome://extensions/`
 4. Enable "Developer mode" by toggling the switch in the top-right corner
@@ -19,8 +19,8 @@ If you want to install directly from the source code:
 1. Clone the repository:
 
    ```sh
-   git clone https://github.com/AFixt/a11y-highlighter.git
-   cd a11y-highlighter
+   git clone https://github.com/AFixt/accessibility-highlighter.git
+   cd accessibility-highlighter
    ```
 
 2. Install dependencies:
@@ -68,4 +68,4 @@ To update the extension when a new version is released:
 
 ## Support
 
-If you encounter any issues or have questions, please [file an issue](https://github.com/AFixt/a11y-highlighter/issues) on the GitHub repository.
+If you encounter any issues or have questions, please [file an issue](https://github.com/AFixt/accessibility-highlighter/issues) on the GitHub repository.

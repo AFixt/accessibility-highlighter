@@ -52,10 +52,10 @@
     "chrome-extension"
   ],
   "author": "AFixt <talktous@afixt.com>",
-  "homepage": "https://github.com/AFixt/a11y-highlighter",
+  "homepage": "https://github.com/AFixt/accessibility-highlighter",
   "repository": {
     "type": "git",
-    "url": "https://github.com/AFixt/a11y-highlighter"
+    "url": "https://github.com/AFixt/accessibility-highlighter"
   },
   "license": "MIT",
   "devDependencies": {
