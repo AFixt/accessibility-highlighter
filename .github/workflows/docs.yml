@@ -21,17 +21,12 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      # Excludes, retries and accepted status codes come from lychee.toml, which
+      # `npm run links` uses too, so local and CI runs check the same things.
       - name: Run lychee
         uses: lycheeverse/lychee-action@v2
         with:
-          args: >-
-            --no-progress
-            --exclude-path node_modules
-            --exclude-path coverage
-            --exclude-path reports
-            --exclude-path dist
-            --exclude-path scratchpads
-            './**/*.md'
+          args: --config lychee.toml './**/*.md'
           fail: false
 
       - name: Create issue on broken links (scheduled runs only)

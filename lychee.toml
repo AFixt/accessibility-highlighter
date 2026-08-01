@@ -1,0 +1,27 @@
+# lychee configuration — shared by `npm run links` (scripts/check-links.sh) and
+# the Docs workflow (.github/workflows/docs.yml), so both check the same things
+# the same way.
+
+# Recommended for non-interactive shells; harmless locally.
+no_progress = true
+
+# Vendored and generated trees. The npm script feeds lychee an explicit list of
+# git-tracked files, so these matter mainly for the workflow's glob input.
+exclude_path = ["node_modules", "coverage", "reports", "dist", "scratchpads"]
+
+# Cache results in .lycheecache (gitignored) so repeated `check:all` runs don't
+# re-hit every external host.
+cache = true
+max_cache_age = "1d"
+
+# Don't cache rate limits or server-side errors — those are transient and
+# shouldn't stick around to fail (or mask) the next run.
+cache_exclude_status = ["429", "500..=599"]
+
+# Defaults plus 429: a rate-limited response means "we couldn't tell", not
+# "the link is broken", and shouldn't fail the build.
+accept = ["100..=103", "200..=299", "429"]
+
+max_retries = 2
+retry_wait_time = 2
+timeout = 20
