@@ -5,8 +5,6 @@ on:
     branches: [main, develop]
   pull_request:
     branches: [main, develop]
-  schedule:
-    - cron: '0 6 * * 1' # Monday 06:00 UTC
   workflow_dispatch:
 
 permissions:
@@ -71,13 +69,13 @@ jobs:
           retention-days: 30
 
   # Dev-dependency advisories are deliberately non-gating, which means nothing
-  # about them reaches a human on a normal PR. This weekly job is the mechanism
-  # that surfaces them: it opens (or refreshes) a single tracking issue so the
-  # backlog stays visible, and closes it once the tree is clean.
+  # about them reaches a human on a normal PR. This manually-triggered job is
+  # the mechanism that surfaces them: it opens (or refreshes) a single tracking
+  # issue so the backlog stays visible, and closes it once the tree is clean.
   audit-report:
     name: Report audit findings
     runs-on: ubuntu-latest
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch'
     permissions:
       contents: read
       issues: write
@@ -112,7 +110,7 @@ jobs:
               lines.push(\`| \${name} | \${v.severity} | \${fix} |\`);
             }
             const body = [
-              \`Weekly \\\`npm audit\\\` found **\${total}** advisories \` +
+              \`\\\`npm audit\\\` found **\${total}** advisories \` +
                 \`(\${m.critical} critical, \${m.high} high, \${m.moderate} moderate, \${m.low} low).\`,
               '',
               'This extension ships **zero production dependencies**, so these are',
@@ -265,11 +263,11 @@ jobs:
             .
         continue-on-error: true
 
-  # OWASP Dependency Check (comprehensive - weekly only)
+  # OWASP Dependency Check (comprehensive - manual runs only)
   owasp-dependency-check:
     name: OWASP Dependency Check
     runs-on: ubuntu-latest
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v6
 
@@ -329,7 +327,7 @@ jobs:
   license-check:
     name: License Compliance
     runs-on: ubuntu-latest
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v6
 
