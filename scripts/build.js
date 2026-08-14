@@ -7,7 +7,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
+const { spawnSync } = require('child_process');
 
 const ROOT_DIR = path.resolve(__dirname, '..');
 const EXTENSION_DIR = path.join(ROOT_DIR, 'src');
@@ -83,7 +83,8 @@ function createZip(sourceDir, outputPath) {
   }
 
   // Create zip (exclude .DS_Store files)
-  execSync(`cd "${sourceDir}" && zip -r "${outputPath}" . -x "*.DS_Store"`, {
+  spawnSync('zip', ['-r', outputPath, '.', '-x', '*.DS_Store'], {
+    cwd: sourceDir,
     stdio: 'inherit'
   });
 }
