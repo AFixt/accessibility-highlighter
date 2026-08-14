@@ -5,8 +5,6 @@ on:
     branches: [main, develop]
   pull_request:
     branches: [main, develop]
-  schedule:
-    - cron: '0 6 * * 1' # Monday 06:00 UTC
   workflow_dispatch:
 
 permissions:
@@ -22,10 +20,10 @@ jobs:
     name: NPM Audit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version-file: .nvmrc
           cache: 'npm'
@@ -63,7 +61,7 @@ jobs:
         run: npm audit --json > npm-audit-results.json || true
 
       - name: Upload audit results
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         if: always()
         with:
           name: npm-audit-results
@@ -71,21 +69,21 @@ jobs:
           retention-days: 30
 
   # Dev-dependency advisories are deliberately non-gating, which means nothing
-  # about them reaches a human on a normal PR. This weekly job is the mechanism
-  # that surfaces them: it opens (or refreshes) a single tracking issue so the
-  # backlog stays visible, and closes it once the tree is clean.
+  # about them reaches a human on a normal PR. This manually-triggered job is
+  # the mechanism that surfaces them: it opens (or refreshes) a single tracking
+  # issue so the backlog stays visible, and closes it once the tree is clean.
   audit-report:
     name: Report audit findings
     runs-on: ubuntu-latest
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch'
     permissions:
       contents: read
       issues: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version-file: .nvmrc
           cache: 'npm'
@@ -112,7 +110,7 @@ jobs:
               lines.push(\`| \${name} | \${v.severity} | \${fix} |\`);
             }
             const body = [
-              \`Weekly \\\`npm audit\\\` found **\${total}** advisories \` +
+              \`\\\`npm audit\\\` found **\${total}** advisories \` +
                 \`(\${m.critical} critical, \${m.high} high, \${m.moderate} moderate, \${m.low} low).\`,
               '',
               'This extension ships **zero production dependencies**, so these are',
@@ -134,7 +132,7 @@ jobs:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
       - name: Open or update tracking issue
-        uses: actions/github-script@v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         # Pass the count through the environment rather than interpolating
         # ${{ }} into the script body: expression interpolation is substituted
         # as raw text before the script is parsed, so it is the standard
@@ -195,7 +193,7 @@ jobs:
     name: Gitleaks (secrets)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           fetch-depth: 0
 
@@ -254,10 +252,10 @@ jobs:
     name: OSV-Scanner
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
       - name: Run OSV-Scanner
-        uses: google/osv-scanner-action/osv-scanner-action@v2.1.0
+        uses: google/osv-scanner-action/osv-scanner-action@b00f71e051ddddc6e46a193c31c8c0bf283bf9e6 # v2.1.0
         with:
           scan-args: |-
             --lockfile=package-lock.json
@@ -265,16 +263,19 @@ jobs:
             .
         continue-on-error: true
 
-  # OWASP Dependency Check (comprehensive - weekly only)
+  # OWASP Dependency Check (comprehensive - manual runs only)
   owasp-dependency-check:
     name: OWASP Dependency Check
     runs-on: ubuntu-latest
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    # CLAUDE.md requires OWASP Dependency-Check to run on pull_request: a
+    # dependency vulnerability enters the tree via a PR, so that is where it
+    # must be caught. Manual dispatch stays available for ad-hoc runs.
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version-file: .nvmrc
           cache: 'npm'
@@ -282,45 +283,47 @@ jobs:
       - name: Install dependencies
         run: npm ci --ignore-scripts
 
+      # Pinned to a maintained `main` commit, NOT the 1.1.0 tag. 1.1.0
+      # (2021-04-28) declares only project/path/format/others — it has no
+      # `args` and no `out` — so against that tag every flag below was
+      # silently discarded: the scan ran with no --enableExperimental and,
+      # more importantly, no failure gate at all. Its image is the floating
+      # `owasp/dependency-check-action:latest` either way, so the SHA pins the
+      # wrapper, not the scanner.
       - name: OWASP Dependency Check
-        uses: dependency-check/Dependency-Check_Action@main
+        uses: dependency-check/Dependency-Check_Action@1e54355a8b4c8abaa8cc7d0b70aa655a3bb15a6c # main @ 2025-12-10
         with:
           project: ${{ github.repository }}
           path: '.'
+          out: 'reports'
           # `--format` takes a single value, not a comma-separated list, and
           # the action offers no way to repeat it — 'HTML,JSON,SARIF' was
           # rejected outright. 'ALL' is the supported way to get more than one,
           # and it still writes dependency-check-report.sarif, which is the
           # path the SARIF upload step below reads.
           format: 'ALL'
-          # Only --enableExperimental is needed. The two flags that used to be
-          # here were both wrong:
+          # --nodeAuditAnalyzer and --nodePackageSkipDevDependencies false were
+          # both removed earlier and must not come back: the first does not
+          # exist (the Node Audit Analyzer is on unless --disableNodeAudit) and
+          # the second is a bare switch that *skips* dev dependencies — which
+          # would make this job scan nothing, since the extension ships zero
+          # production dependencies.
           #
-          #   --nodeAuditAnalyzer                  does not exist; it aborted
-          #                                        the whole scan. The Node
-          #                                        Audit Analyzer is on by
-          #                                        default (--disableNodeAudit
-          #                                        turns it off).
-          #   --nodePackageSkipDevDependencies     is a bare switch, so the
-          #     false                              trailing "false" was a stray
-          #                                        argument — and the switch
-          #                                        *skips* dev dependencies,
-          #                                        the opposite of the intent.
-          #
-          # Skipping dev dependencies would make this job scan nothing at all:
-          # the extension ships zero production dependencies.
+          # --failOnCVSS 7 is the gate. Without it the scanner exits 0 whatever
+          # it finds and this job is a report generator, not a check.
           args: >
             --enableExperimental
+            --failOnCVSS 7
 
       - name: Upload OWASP results
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: owasp-dependency-check-report
           path: reports/
           retention-days: 90
 
       - name: Upload SARIF to GitHub Security
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@5595ccaf912efad79be6eef63a5619ff05969be3 # v4
         with:
           sarif_file: reports/dependency-check-report.sarif
         if: always()
@@ -329,12 +332,14 @@ jobs:
   license-check:
     name: License Compliance
     runs-on: ubuntu-latest
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    # Content/compliance checks run on pull_request per CLAUDE.md; a
+    # non-allowlisted licence arrives with the PR that adds the dependency.
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version-file: .nvmrc
           cache: 'npm'
@@ -356,7 +361,7 @@ jobs:
           license-checker --failOn 'GPL;AGPL;UNKNOWN' || echo "Review licenses above"
 
       - name: Upload license report
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: license-report
           path: licenses.json

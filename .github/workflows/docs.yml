@@ -6,46 +6,31 @@ on:
     paths:
       - '**/*.md'
       - .github/workflows/docs.yml
-  schedule:
-    - cron: '0 7 * * 1' # Monday 07:00 UTC — catches external link rot
   workflow_dispatch:
 
 permissions:
   contents: read
-  issues: write
 
 jobs:
   link-check:
     name: Lychee link check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
       # Excludes, retries and accepted status codes come from lychee.toml, which
       # `npm run links` uses too, so local and CI runs check the same things.
       - name: Run lychee
         id: lychee
-        uses: lycheeverse/lychee-action@v2
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2
         with:
           args: --config lychee.toml './**/*.md'
           fail: false
 
-      - name: Create issue on broken links (scheduled runs only)
-        if: github.event_name == 'schedule' && steps.lychee.outputs.exit_code != '0'
-        uses: peter-evans/create-issue-from-file@v5
-        with:
-          title: 'Link checker: broken links detected'
-          content-filepath: ./lychee/out.md
-          labels: |
-            documentation
-            broken-links
-
-      # lychee runs with `fail: false` so the issue-filing step above still gets
-      # a chance to run; this step is what turns broken links into a red build.
-      # Scheduled runs are exempt: external link rot there is reported as an
-      # issue, not as a failure nobody is watching for.
+      # lychee runs with `fail: false` so the exit code can be inspected here;
+      # this step is what turns broken links into a red build.
       - name: Fail on broken links
-        if: github.event_name != 'schedule' && steps.lychee.outputs.exit_code != '0'
+        if: steps.lychee.outputs.exit_code != '0'
         run: |
           echo "::error::lychee found broken links — see the job summary for details."
           exit 1
