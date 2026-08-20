@@ -366,3 +366,29 @@ jobs:
           name: license-report
           path: licenses.json
           retention-days: 90
+
+  # Reports action pins whose tag has moved since they were pinned.
+  #
+  # Pinning to a SHA closed a supply-chain hole and opened a maintenance job in
+  # exchange: a pinned SHA is immune to a hijacked tag and equally immune to the
+  # fixes that tag would have carried. Dependabot used to own refreshing them and
+  # is banned under the no-scheduled-Actions policy, so this is the mechanism.
+  #
+  # workflow_dispatch only, deliberately. It reports on the state of the world
+  # rather than on a change, so gating a PR with it would fail builds that
+  # introduced nothing — the drift arrives when upstream moves a tag. Run it when
+  # someone is ready to read release notes and act.
+  #
+  # Plain node, no npm ci and no NPM_TOKEN: the script uses only node builtins.
+  action-pins:
+    name: Action Pin Freshness
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Check action pin freshness
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/check-action-pins.js
