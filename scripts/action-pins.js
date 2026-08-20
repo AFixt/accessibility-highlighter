@@ -199,6 +199,31 @@ function classifyPin(pin, resolvedSha) {
 }
 
 /**
+ * Did the run resolve nothing at all?
+ *
+ * Every unresolved tag is reported as unknown, and unknown is not a failure —
+ * one dead tag among many should not fail the job. But if *nothing* resolved,
+ * the run has checked nothing, and reporting "0 stale" would be an all-clear
+ * the check never earned. That is an expired or missing token, a rate limit,
+ * or no network, and it is worth failing over.
+ *
+ * Only pins with both a SHA and a tag are checkable, so a repository with no
+ * checkable pins is not an outage — there was nothing to resolve.
+ *
+ * @param {ActionPin[]} pins Every parsed reference.
+ * @param {Map<string, string | undefined>} resolved Tag lookups, keyed `slug@tag`.
+ * @returns {boolean} True when there was something to check and none of it resolved.
+ */
+function checkedNothing(pins, resolved) {
+  const checkable = pins.filter(pin => pin.sha && pin.tag);
+  if (checkable.length === 0) {
+    return false;
+  }
+
+  return checkable.every(pin => !resolved.get(`${repoSlug(pin)}@${pin.tag}`));
+}
+
+/**
  * `owner/repo` — the key a tag is resolved against.
  *
  * @param {ActionPin} pin The parsed reference.
@@ -208,4 +233,4 @@ function repoSlug(pin) {
   return `${pin.owner}/${pin.repo}`;
 }
 
-module.exports = { parseActionPins, classifyPin, repoSlug };
+module.exports = { parseActionPins, classifyPin, checkedNothing, repoSlug };

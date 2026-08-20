@@ -16,18 +16,28 @@
  * reported as unknown and do not fail the run: "we could not check" and
  * "this is out of date" warrant different responses.
  *
+ * Also exit code 1 when *nothing* resolved. One dead tag among many is not an
+ * outage, but zero successful lookups means the run checked nothing, and
+ * reporting "0 stale" from that is an all-clear it never earned.
+ *
  * Env vars:
- *   GITHUB_TOKEN — raises the API rate limit from 60/hr to 5000/hr. Optional
- *                  locally; supplied automatically in Actions.
+ *   GITHUB_TOKEN   — raises the API rate limit from 60/hr to 5000/hr. Optional
+ *                    locally; supplied automatically in Actions.
+ *   GITHUB_API_URL — API base, defaulting to https://api.github.com. Actions
+ *                    sets it on every run; it differs on GitHub Enterprise
+ *                    Server.
  */
 const fs = require('node:fs/promises');
 const { join } = require('node:path');
 
-const { classifyPin, parseActionPins, repoSlug } = require('./action-pins');
+const { checkedNothing, classifyPin, parseActionPins, repoSlug } = require('./action-pins');
 
 const DEFAULT_WORKFLOW_DIR = join(__dirname, '../.github/workflows');
 
-const API = 'https://api.github.com';
+// Actions sets GITHUB_API_URL on every run, and it is not api.github.com on
+// GitHub Enterprise Server. Honouring it is more correct than hardcoding, and
+// it gives the tests somewhere unreachable to point at.
+const API = (process.env.GITHUB_API_URL || 'https://api.github.com').replace(/\/+$/, '');
 
 /**
  * Request headers for the GitHub REST API.
@@ -44,42 +54,50 @@ function headers() {
 }
 
 /**
+ * GET a URL and parse it as JSON, or undefined if anything goes wrong.
+ *
+ * Network and DNS failures make fetch *throw* rather than return a bad
+ * response. Left uncaught, one unreachable host would reject the Promise.all
+ * over every lookup and unwind the whole run with a stack trace — skipping the
+ * checkedNothing guard whose message names "no network" as a case it handles.
+ * Collapsing both failure shapes to undefined makes that true, and keeps one
+ * transient blip among fifty lookups from taking down the report.
+ *
+ * @param {string} url The API URL to fetch.
+ * @returns {Promise<object | undefined>} The parsed body, if the call succeeded.
+ */
+async function getJson(url) {
+  try {
+    const res = await fetch(url, { headers: headers() });
+    return res.ok ? await res.json() : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
  * Resolve `owner/repo` + tag to the commit SHA it points at today.
  *
  * Annotated tags resolve to a tag object rather than a commit, so those need
  * a second hop to get the commit a workflow would actually check out. Returns
- * undefined for anything unresolvable; the caller reports that as unknown
- * rather than treating it as drift.
+ * undefined for anything unresolvable — including an unreachable API — and the
+ * caller reports that as unknown rather than treating it as drift.
  *
  * @param {string} slug `owner/repo`.
  * @param {string} tag The tag name from the pin's trailing comment.
  * @returns {Promise<string | undefined>} The commit SHA, if resolvable.
  */
 async function resolveTag(slug, tag) {
-  const res = await fetch(`${API}/repos/${slug}/git/ref/tags/${encodeURIComponent(tag)}`, {
-    headers: headers()
-  });
-  if (!res.ok) {
-    return undefined;
-  }
-
-  const ref = await res.json();
-  if (!ref.object?.sha) {
+  const ref = await getJson(`${API}/repos/${slug}/git/ref/tags/${encodeURIComponent(tag)}`);
+  if (!ref?.object?.sha) {
     return undefined;
   }
   if (ref.object.type !== 'tag') {
     return ref.object.sha;
   }
 
-  const deref = await fetch(`${API}/repos/${slug}/git/tags/${ref.object.sha}`, {
-    headers: headers()
-  });
-  if (!deref.ok) {
-    return undefined;
-  }
-
-  const annotated = await deref.json();
-  return annotated.object?.sha;
+  const annotated = await getJson(`${API}/repos/${slug}/git/tags/${ref.object.sha}`);
+  return annotated?.object?.sha;
 }
 
 /*
@@ -178,6 +196,16 @@ async function main() {
     for (const line of unknown) {
       console.log(`  ${line}`);
     }
+  }
+
+  if (checkedNothing(pins, resolved)) {
+    console.error(
+      '\nNot one tag resolved, so nothing here was actually checked. That is an\n' +
+        'expired or missing GITHUB_TOKEN, an API rate limit, or no network — not a\n' +
+        'clean bill of health. Failing rather than reporting an all-clear.'
+    );
+    process.exitCode = 1;
+    return;
   }
 
   if (stale.length > 0) {
