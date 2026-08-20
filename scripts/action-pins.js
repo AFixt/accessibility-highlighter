@@ -1,7 +1,7 @@
 /**
  * Parses and classifies the pinned GitHub Actions references in
  * .github/workflows. Pure logic only — no I/O — so it is unit-testable
- * (tests/unit/action-pins.test.js). The CLI wrapper that resolves tags against
+ * (tests/action-pins.test.js). The CLI wrapper that resolves tags against
  * the GitHub API is scripts/check-action-pins.js.
  *
  * Why this exists: every action reference here is pinned to a commit SHA so a
@@ -23,7 +23,7 @@
  *
  * Ported from lexic-a11y's scripts/action-pins.mjs (itself from a11y-mcp's
  * mcp-server/scripts/actionPins.ts). Rewritten as CommonJS to match this
- * repository's scripts/ idiom — see scripts/check-sarif.js. The parsing and
+ * repository's scripts/ idiom — see scripts/manifest-version.js. The parsing and
  * classification logic is unchanged, so a fix in any of the three ports
  * applies to the others.
  */
