@@ -3,7 +3,11 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'
+      # Semver tags only. The floating major pointer (v1) sits on the same commit
+      # as the release tag, and a bare 'v*' would fire this workflow for it too —
+      # where "Validate version format" rejects anything that is not vX.Y.Z, so
+      # every pointer move would leave a failed run behind.
+      - 'v[0-9]*.[0-9]*.[0-9]*'
   workflow_dispatch:
     inputs:
       version:
