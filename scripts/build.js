@@ -7,7 +7,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
+const { spawnSync } = require('child_process');
 
 const ROOT_DIR = path.resolve(__dirname, '..');
 const EXTENSION_DIR = path.join(ROOT_DIR, 'src');
@@ -82,10 +82,21 @@ function createZip(sourceDir, outputPath) {
     fs.unlinkSync(outputPath);
   }
 
-  // Create zip (exclude .DS_Store files)
-  execSync(`cd "${sourceDir}" && zip -r "${outputPath}" . -x "*.DS_Store"`, {
+  // Create zip (exclude .DS_Store files).
+  // spawnSync with an argument array runs zip directly (no shell), so
+  // sourceDir/outputPath cannot inject shell commands. Unlike execSync,
+  // spawnSync does not throw on failure — check the result so a missing or
+  // failing zip aborts the build instead of silently producing no archive.
+  const result = spawnSync('zip', ['-r', outputPath, '.', '-x', '*.DS_Store'], {
+    cwd: sourceDir,
     stdio: 'inherit'
   });
+  if (result.error) {
+    throw result.error;
+  }
+  if (result.status !== 0) {
+    throw new Error(`zip exited with status ${result.status} while creating ${outputPath}`);
+  }
 }
 
 /**
