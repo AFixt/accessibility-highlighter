@@ -58,6 +58,9 @@
     "url": "https://github.com/AFixt/accessibility-highlighter"
   },
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "devDependencies": {
     "@commitlint/cli": "^20.4.1",
     "@commitlint/config-conventional": "^20.4.1",
