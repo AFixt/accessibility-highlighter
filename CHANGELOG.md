@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file. See [standa
 - **ci:** pin action refs in disabled workflow files too ([e6b9864](https://github.com/AFixt/accessibility-highlighter/commit/e6b986412105b93e6863d5a0474b3531e1c75ff0)), closes [AFixt/batch-scanner#44](https://github.com/AFixt/accessibility-highlighter/issues/44)
 - **ci:** pin workflow actions to commit SHAs ([6fc86c5](https://github.com/AFixt/accessibility-highlighter/commit/6fc86c58519cdb7a875c387d6eec750639d5bd47)), closes [AFixt/batch-scanner#44](https://github.com/AFixt/accessibility-highlighter/issues/44)
 - **ci:** remove all scheduled (cron) triggers from workflows ([b5645f1](https://github.com/AFixt/accessibility-highlighter/commit/b5645f1a6bf4909f397e7d78193b396c88059d97)), closes [#92](https://github.com/AFixt/accessibility-highlighter/issues/92)
+- **ci:** trigger the release workflow on semver tags only ([afcb408](https://github.com/AFixt/accessibility-highlighter/commit/afcb408e938b4eeb18c0f4e3d4ddc7c5e3254211))
 
 ### Documentation
 
