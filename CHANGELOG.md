@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.0.7](https://github.com/AFixt/accessibility-highlighter/compare/v1.0.6...v1.0.7) (2026-08-20)
+
+### Bug Fixes
+
+- **ci:** make the owasp job real — off the 1.1.0 tag, gated, and on prs ([e60f0b4](https://github.com/AFixt/accessibility-highlighter/commit/e60f0b4bbf60c77c61dfaa175587d595873f1fdc))
+- **ci:** pin action refs in disabled workflow files too ([e6b9864](https://github.com/AFixt/accessibility-highlighter/commit/e6b986412105b93e6863d5a0474b3531e1c75ff0)), closes [AFixt/batch-scanner#44](https://github.com/AFixt/accessibility-highlighter/issues/44)
+- **ci:** pin workflow actions to commit SHAs ([6fc86c5](https://github.com/AFixt/accessibility-highlighter/commit/6fc86c58519cdb7a875c387d6eec750639d5bd47)), closes [AFixt/batch-scanner#44](https://github.com/AFixt/accessibility-highlighter/issues/44)
+- **ci:** remove all scheduled (cron) triggers from workflows ([b5645f1](https://github.com/AFixt/accessibility-highlighter/commit/b5645f1a6bf4909f397e7d78193b396c88059d97)), closes [#92](https://github.com/AFixt/accessibility-highlighter/issues/92)
+
+### Documentation
+
+- **ci:** correct the Dependabot alerts claim in the CI policy ([1f18dd3](https://github.com/AFixt/accessibility-highlighter/commit/1f18dd332795df533a804daffdd57a4149126b9d))
+- **claude:** document the release flow and the main back-merge ([923b283](https://github.com/AFixt/accessibility-highlighter/commit/923b28300022010acb41f997711f01783bb10f20))
+
 ### [1.0.6](https://github.com/AFixt/accessibility-highlighter/compare/v1.0.5...v1.0.6) (2026-08-01)
 
 ### Bug Fixes
