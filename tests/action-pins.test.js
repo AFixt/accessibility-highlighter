@@ -21,11 +21,20 @@ const OTHER_SHA = '249970729cb0ef3589644e2896645e5dc5ba9c38';
 /**
  * Parse a single workflow line, for the many cases that need only one.
  *
+ * Throws rather than returning undefined so a parsing regression fails with
+ * the line that stopped parsing, instead of "Cannot read properties of
+ * undefined" from whichever property the caller reached for next. Cases that
+ * expect nothing to parse call parseActionPins directly.
+ *
  * @param {string} line One line of a workflow file.
- * @returns {object | undefined} The single pin parsed from it, if any.
+ * @returns {object} The single pin parsed from it.
  */
 function parseOne(line) {
-  return parseActionPins(line, 'ci.yml')[0];
+  const [pin] = parseActionPins(line, 'ci.yml');
+  if (!pin) {
+    throw new Error(`expected one pin from: ${line.trim()}`);
+  }
+  return pin;
 }
 
 describe('parseActionPins', () => {
@@ -112,6 +121,13 @@ describe('parseActionPins', () => {
       ['a reference with no @ref', '      - uses: actions/checkout'],
       ['a reference with a trailing @', '      - uses: actions/checkout@'],
       ['an empty uses:', '      - uses:'],
+      // Non-empty until the comment is stripped, so it reaches the second of
+      // the two empty-value checks. That check turns out to be redundant —
+      // deleting it changes nothing, because an empty value has no "@" and is
+      // rejected downstream anyway — so this pins the observable behavior, not
+      // that particular branch. Executing it is what takes the file to 100%,
+      // which is worth knowing when reading that number.
+      ['a uses: whose value is only a comment', '      - uses: # v6'],
       ['an unrelated key', '      - name: actions/checkout@v4']
     ])('skips %s', (_label, line) => {
       expect(parseActionPins(line, 'ci.yml')).toEqual([]);
@@ -195,6 +211,28 @@ describe('classifyPin', () => {
       expect(status.kind).toBe('unknown');
       expect(status.reason).toContain('v6');
     });
+  });
+});
+
+describe('the check as a whole', () => {
+  it('reports a moved tag as stale against the SHA it moved to, and leaves its neighbour current', () => {
+    // The pieces are exercised separately above; this composes them the way
+    // check-action-pins.js does, so the `slug@tag` lookup key that joins
+    // parsing to classification is covered by something.
+    const workflow = [
+      `      - uses: actions/checkout@${SHA} # v6`,
+      `      - uses: actions/setup-node@${OTHER_SHA} # v6`
+    ].join('\n');
+    const resolved = new Map([
+      ['actions/checkout@v6', OTHER_SHA], // upstream moved v6 off the pinned SHA
+      ['actions/setup-node@v6', OTHER_SHA] // still where it was pinned
+    ]);
+
+    const statuses = parseActionPins(workflow, 'ci.yml').map(pin =>
+      classifyPin(pin, resolved.get(`${repoSlug(pin)}@${pin.tag}`))
+    );
+
+    expect(statuses).toEqual([{ kind: 'stale', expected: OTHER_SHA }, { kind: 'current' }]);
   });
 });
 
