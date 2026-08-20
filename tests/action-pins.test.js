@@ -13,7 +13,12 @@
  * "could not be checked" — a distinction classifyPin exists to make.
  */
 
-const { parseActionPins, classifyPin, repoSlug } = require('../scripts/action-pins');
+const {
+  parseActionPins,
+  classifyPin,
+  checkedNothing,
+  repoSlug
+} = require('../scripts/action-pins');
 
 const SHA = 'd23441a48e516b6c34aea4fa41551a30e30af803';
 const OTHER_SHA = '249970729cb0ef3589644e2896645e5dc5ba9c38';
@@ -211,6 +216,54 @@ describe('classifyPin', () => {
       expect(status.kind).toBe('unknown');
       expect(status.reason).toContain('v6');
     });
+  });
+});
+
+describe('checkedNothing', () => {
+  const checkable = [
+    { file: 'ci.yml', line: 1, owner: 'actions', repo: 'checkout', ref: SHA, sha: SHA, tag: 'v6' },
+    { file: 'ci.yml', line: 2, owner: 'actions', repo: 'setup-node', ref: SHA, sha: SHA, tag: 'v6' }
+  ];
+
+  it('is true when not one checkable pin resolved — a token, rate-limit or network failure', () => {
+    expect(checkedNothing(checkable, new Map())).toBe(true);
+  });
+
+  it('is false as soon as one resolves, so a single dead tag is not an outage', () => {
+    expect(checkedNothing(checkable, new Map([['actions/checkout@v6', SHA]]))).toBe(false);
+  });
+
+  it('is false when every pin resolved', () => {
+    const resolved = new Map([
+      ['actions/checkout@v6', SHA],
+      ['actions/setup-node@v6', SHA]
+    ]);
+
+    expect(checkedNothing(checkable, resolved)).toBe(false);
+  });
+
+  it('is false when nothing was checkable in the first place', () => {
+    // Nothing to resolve is not the same as failing to resolve: a repository
+    // with no SHA-pinned references has not suffered an outage.
+    const unpinned = [{ file: 'a.yml', line: 1, owner: 'some', repo: 'action', ref: 'main' }];
+
+    expect(checkedNothing(unpinned, new Map())).toBe(false);
+  });
+
+  it('ignores unpinned references when deciding, rather than counting them as failures', () => {
+    // A pin with no tag comment is unresolvable by construction. If it counted
+    // toward "checkable", one such reference alongside a healthy resolved pin
+    // could never reach the all-resolved state.
+    const mixed = [
+      ...checkable,
+      { file: 'a.yml', line: 3, owner: 'o', repo: 'r', ref: SHA, sha: SHA }
+    ];
+    const resolved = new Map([
+      ['actions/checkout@v6', SHA],
+      ['actions/setup-node@v6', SHA]
+    ]);
+
+    expect(checkedNothing(mixed, resolved)).toBe(false);
   });
 });
 

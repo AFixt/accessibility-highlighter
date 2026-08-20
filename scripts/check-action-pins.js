@@ -16,6 +16,10 @@
  * reported as unknown and do not fail the run: "we could not check" and
  * "this is out of date" warrant different responses.
  *
+ * Also exit code 1 when *nothing* resolved. One dead tag among many is not an
+ * outage, but zero successful lookups means the run checked nothing, and
+ * reporting "0 stale" from that is an all-clear it never earned.
+ *
  * Env vars:
  *   GITHUB_TOKEN — raises the API rate limit from 60/hr to 5000/hr. Optional
  *                  locally; supplied automatically in Actions.
@@ -23,7 +27,7 @@
 const fs = require('node:fs/promises');
 const { join } = require('node:path');
 
-const { classifyPin, parseActionPins, repoSlug } = require('./action-pins');
+const { checkedNothing, classifyPin, parseActionPins, repoSlug } = require('./action-pins');
 
 const DEFAULT_WORKFLOW_DIR = join(__dirname, '../.github/workflows');
 
@@ -178,6 +182,16 @@ async function main() {
     for (const line of unknown) {
       console.log(`  ${line}`);
     }
+  }
+
+  if (checkedNothing(pins, resolved)) {
+    console.error(
+      '\nNot one tag resolved, so nothing here was actually checked. That is an\n' +
+        'expired or missing GITHUB_TOKEN, an API rate limit, or no network — not a\n' +
+        'clean bill of health. Failing rather than reporting an all-clear.'
+    );
+    process.exitCode = 1;
+    return;
   }
 
   if (stale.length > 0) {
