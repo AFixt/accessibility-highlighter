@@ -84,12 +84,10 @@ async function resolveTag(slug, tag) {
 
 /*
  * The fs calls below take a directory supplied on the command line, which is
- * the entire job of a CLI that reads a workflows directory — the same reason
- * scripts/check-sarif.js disables this rule. The value comes from the workflow
- * step that invokes this script, not from anything the analysed code can
- * influence, and the script only ever reads.
+ * the entire job of a CLI that reads a workflows directory. The value comes
+ * from the workflow step that invokes this script, not from anything the
+ * analysed code can influence, and the script only ever reads.
  */
-/* eslint-disable security/detect-non-literal-fs-filename */
 
 /**
  * Parse every workflow file in a directory into action pins.
@@ -101,14 +99,12 @@ async function collectPins(dir) {
   const entries = await fs.readdir(dir);
   const pins = [];
 
-  for (const name of entries.filter((n) => n.endsWith('.yml') || n.endsWith('.yaml')).sort()) {
+  for (const name of entries.filter(n => n.endsWith('.yml') || n.endsWith('.yaml')).sort()) {
     pins.push(...parseActionPins(await fs.readFile(join(dir, name), 'utf8'), name));
   }
 
   return pins;
 }
-
-/* eslint-enable security/detect-non-literal-fs-filename */
 
 /**
  * Classify every pin, printing one line each, and bucket the ones that need
@@ -152,7 +148,8 @@ async function main() {
 
   if (pins.length === 0) {
     console.error(`No action references found in ${dir}`);
-    process.exit(1);
+    process.exitCode = 1;
+    return;
   }
 
   // One lookup per distinct repo+tag: the references collapse to a handful,
@@ -193,11 +190,13 @@ async function main() {
         'Read the upstream release notes first — that is the review step a pinned\n' +
         'SHA buys you, and the reason this repository pins rather than floating.'
     );
-    process.exit(1);
+    process.exitCode = 1;
   }
 }
 
-main().catch((err) => {
+// Failures set process.exitCode rather than calling process.exit(), so the
+// script still exits non-zero for CI without truncating pending stdout.
+main().catch(err => {
   console.error(err);
-  process.exit(1);
+  process.exitCode = 1;
 });
