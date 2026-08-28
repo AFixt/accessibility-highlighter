@@ -131,7 +131,7 @@ pull request blocks the defect at the point of introduction.
 - `workflow_dispatch` is allowed. A manual, on-demand run is not a scheduled run.
 - Event-driven triggers (`push`, `pull_request`, `release`, `repository_dispatch`,
   `workflow_call`) are allowed and preferred.
-- Genuinely periodic *product* work — batch jobs, data pipelines, report
+- Genuinely periodic _product_ work — batch jobs, data pipelines, report
   generation — does not belong in GitHub Actions at all. Run it on real
   infrastructure with its own scheduler, alerting, and retries.
 
