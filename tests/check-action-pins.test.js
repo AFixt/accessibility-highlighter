@@ -74,9 +74,21 @@ beforeAll(async () => {
     requestCount += 1;
     receivedHeaders.push(req.headers);
 
-    if (redirectTo) {
-      res.writeHead(301, { Location: redirectTo + req.url });
+    // Redirect once, not in a loop. Pointing this at its own origin without
+    // the marker would bounce until MAX_REDIRECTS ran out, which passes for
+    // the wrong reason and buries what the test is actually asserting.
+    if (redirectTo && !req.url.includes('hopped=1')) {
+      const sep = req.url.includes('?') ? '&' : '?';
+      res.writeHead(301, { Location: `${redirectTo}${req.url}${sep}hopped=1` });
       res.end();
+      return;
+    }
+
+    // The landing side of a same-origin hop resolves, so that case exercises a
+    // real redirect-then-succeed rather than redirect-then-rate-limit.
+    if (redirectTo) {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ object: { sha: SHA, type: 'commit' } }));
       return;
     }
 
@@ -249,12 +261,13 @@ describe('check-action-pins CLI', () => {
     ]);
 
     redirectTo = apiUrl; // same origin, so the token should survive the hop
-    await check(dir, apiUrl, 'SECRET-TOKEN-VALUE');
+    const { status } = await check(dir, apiUrl, 'SECRET-TOKEN-VALUE');
 
-    expect(receivedHeaders.length).toBeGreaterThan(1); // original + the hop
+    expect(receivedHeaders).toHaveLength(2); // the original and one hop, no loop
     for (const sent of receivedHeaders) {
       expect(sent.authorization).toBe('Bearer SECRET-TOKEN-VALUE');
     }
+    expect(status).toBe(0); // and the hop actually resolved the pin
   });
 
   it('fails when the directory holds no action references at all', async () => {
