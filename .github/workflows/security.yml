@@ -243,9 +243,12 @@ jobs:
             echo "Installed to $bindir; add it to PATH to run gitleaks."
           fi
 
+      # Gates. A secret reaches the history through a pull request, so this is
+      # the moment it is cheap to stop; after the merge it is a rotation, not a
+      # fix. Was continue-on-error until #112, which meant a PR committing a
+      # secret got a green "Gitleaks (secrets)" tick.
       - name: Run gitleaks
         run: gitleaks detect --no-banner --redact --verbose
-        continue-on-error: true
 
   # OSV-Scanner — Google vulnerability scanner (every push/PR)
   osv-scanner:
@@ -254,6 +257,13 @@ jobs:
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
+      # Gates. This is the only check in the pipeline that sees a *dev*
+      # dependency advisory: both npm audit gates run --omit=dev, and the
+      # all-dependency audits are report-only. With nothing watching between
+      # pushes (no Dependabot, no scheduled jobs), a non-gating OSV meant a
+      # vulnerable dev dependency had no way at all to fail a build. Two High
+      # browserslist advisories sat here green through #108 for exactly that
+      # reason. Was continue-on-error until #112.
       - name: Run OSV-Scanner
         uses: google/osv-scanner-action/osv-scanner-action@b00f71e051ddddc6e46a193c31c8c0bf283bf9e6 # v2.1.0
         with:
@@ -261,7 +271,6 @@ jobs:
             --lockfile=package-lock.json
             --recursive
             .
-        continue-on-error: true
 
   # OWASP Dependency Check (comprehensive - manual runs only)
   owasp-dependency-check:
@@ -347,18 +356,23 @@ jobs:
       - name: Install dependencies
         run: npm ci --ignore-scripts
 
-      - name: Install license-checker
-        run: npm install -g license-checker
-
-      - name: Check licenses
+      # Use the repo's own license-checker-rseidelsohn (a devDependency, so it
+      # is already installed) rather than globally installing the unmaintained
+      # `license-checker`. They are different tools and did not have to agree,
+      # which meant CI was gating on something the local `npm run license:check`
+      # never evaluated.
+      - name: Generate license report
         run: |
-          license-checker --json --out licenses.json
-          license-checker --summary
+          npx license-checker-rseidelsohn --json --out licenses.json
+          npx license-checker-rseidelsohn --summary
 
-      - name: Check for problematic licenses
-        run: |
-          # Fail if GPL, AGPL, or unknown licenses found (customize as needed)
-          license-checker --failOn 'GPL;AGPL;UNKNOWN' || echo "Review licenses above"
+      # Gates. An allowlist over the production tree, via the repo's own
+      # script. The previous denylist could not fail twice over: it ended in
+      # `|| echo "Review licenses above"` (#112), and --failOn matches exact
+      # licence names, so 'GPL' does not catch the LGPL-3.0-only already in the
+      # dev tree, nor anything nobody thought to list.
+      - name: Check production licences against the allowlist
+        run: npm run license:check
 
       - name: Upload license report
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
