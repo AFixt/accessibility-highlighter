@@ -47,14 +47,39 @@ let apiUrl;
 let requestCount;
 let receivedHeaders;
 
+// A second origin, for the redirect cases. Same host, different port — which
+// is a different origin, and the only thing that matters for whether the token
+// travels. It records what it was sent and answers as the API would.
+let elsewhere;
+let elsewhereUrl;
+let elsewhereHeaders;
+
+// When set, the main stub redirects to `redirectTo` instead of answering 403.
+let redirectTo;
+
 beforeAll(async () => {
   tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'a11y-action-pins-'));
+
+  elsewhere = http.createServer((req, res) => {
+    elsewhereHeaders.push(req.headers);
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ object: { sha: SHA, type: 'commit' } }));
+  });
+  await new Promise(resolve => elsewhere.listen(0, '127.0.0.1', resolve));
+  elsewhereUrl = `http://127.0.0.1:${elsewhere.address().port}`;
 
   // 403 is what a rate limit looks like, and resolveTag turns it into
   // undefined exactly as it would against the real API.
   server = http.createServer((req, res) => {
     requestCount += 1;
     receivedHeaders.push(req.headers);
+
+    if (redirectTo) {
+      res.writeHead(301, { Location: redirectTo + req.url });
+      res.end();
+      return;
+    }
+
     res.writeHead(403, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ message: 'API rate limit exceeded' }));
   });
@@ -65,12 +90,15 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await new Promise(resolve => server.close(resolve));
+  await new Promise(resolve => elsewhere.close(resolve));
   fs.rmSync(tmpDir, { recursive: true, force: true });
 });
 
 beforeEach(() => {
   requestCount = 0;
   receivedHeaders = [];
+  elsewhereHeaders = [];
+  redirectTo = undefined;
 });
 
 /**
@@ -93,12 +121,13 @@ function workflowsDir(name, lines) {
  *
  * @param {string} dir The workflows directory to check.
  * @param {string} [api] API base to use, defaulting to the stub server.
+ * @param {string} [token] GITHUB_TOKEN to run with, defaulting to none.
  * @returns {Promise<{status: number, output: string}>} Exit code and combined output.
  */
-async function check(dir, api = apiUrl) {
+async function check(dir, api = apiUrl, token = '') {
   const options = {
     encoding: 'utf8',
-    env: { ...process.env, GITHUB_API_URL: api, GITHUB_TOKEN: '' }
+    env: { ...process.env, GITHUB_API_URL: api, GITHUB_TOKEN: token }
   };
 
   try {
@@ -182,6 +211,50 @@ describe('check-action-pins CLI', () => {
 
     expect(receivedHeaders).toHaveLength(1);
     expect(receivedHeaders[0]['user-agent']).toBeTruthy();
+  });
+
+  it('does not hand the token to a redirect that leaves the origin', async () => {
+    // fetch strips Authorization across an origin boundary, per the WHATWG
+    // spec. Raw node:http has no such rule, so following a redirect would post
+    // GITHUB_TOKEN — a live repo-scoped credential under Actions — to whatever
+    // host the Location names. The node:https move (#111) reintroduced exactly
+    // that, and no scanner in the pipeline noticed.
+    const dir = workflowsDir('redirect-cross-origin', [
+      'jobs:',
+      '  a:',
+      '    steps:',
+      `      - uses: actions/checkout@${SHA} # v6`
+    ]);
+
+    redirectTo = elsewhereUrl;
+    await check(dir, apiUrl, 'SECRET-TOKEN-VALUE');
+
+    // it really did follow the redirect, so this is not passing by not-arriving
+    expect(elsewhereHeaders.length).toBeGreaterThan(0);
+    expect(receivedHeaders[0].authorization).toBe('Bearer SECRET-TOKEN-VALUE');
+    for (const sent of elsewhereHeaders) {
+      expect(sent.authorization).toBeUndefined();
+    }
+  });
+
+  it('still sends the token on a redirect that stays on the origin', async () => {
+    // The strip has to be narrow. Dropping auth on every redirect would break
+    // an authenticated lookup the moment the API answered one, and the failure
+    // would look like a rate limit rather than a bug.
+    const dir = workflowsDir('redirect-same-origin', [
+      'jobs:',
+      '  a:',
+      '    steps:',
+      `      - uses: actions/checkout@${SHA} # v6`
+    ]);
+
+    redirectTo = apiUrl; // same origin, so the token should survive the hop
+    await check(dir, apiUrl, 'SECRET-TOKEN-VALUE');
+
+    expect(receivedHeaders.length).toBeGreaterThan(1); // original + the hop
+    for (const sent of receivedHeaders) {
+      expect(sent.authorization).toBe('Bearer SECRET-TOKEN-VALUE');
+    }
   });
 
   it('fails when the directory holds no action references at all', async () => {

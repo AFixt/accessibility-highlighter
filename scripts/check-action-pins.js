@@ -40,8 +40,12 @@ const DEFAULT_WORKFLOW_DIR = join(__dirname, '../.github/workflows');
 // it gives the tests somewhere unreachable to point at.
 const API = (process.env.GITHUB_API_URL || 'https://api.github.com').replace(/\/+$/, '');
 
-// Redirect statuses the API actually uses: 301 for a renamed repository, 302
-// and 307 for the temporary variants.
+// Redirects worth following: 301 is what a renamed repository answers with,
+// 302/307/308 are the other variants that keep the method. Every one of these
+// is a GET here, so preserving the method is not a distinction that matters.
+// 303 is absent deliberately — the API does not use it, and an unhandled
+// status falls through to the non-2xx branch and is reported as unknown, which
+// is the safe direction to fail.
 const REDIRECT_STATUSES = new Set([301, 302, 307, 308]);
 
 // Enough hops for a rename chain, few enough to stop a redirect loop.
@@ -49,6 +53,11 @@ const MAX_REDIRECTS = 5;
 
 // A lookup that has neither answered nor failed by now is not going to.
 const REQUEST_TIMEOUT_MS = 15_000;
+
+// A git ref or tag object is a few hundred bytes. Anything wildly past that is
+// not the API answering us, and a body we stream into a string is a body we
+// should bound.
+const MAX_BODY_BYTES = 1_000_000;
 
 /**
  * Request headers for the GitHub REST API.
@@ -60,10 +69,17 @@ const REQUEST_TIMEOUT_MS = 15_000;
  * checked nothing forever. Covered by a test so the next client swap cannot
  * repeat it.
  *
+ * withoutAuth exists for the same reason. fetch strips Authorization when a
+ * redirect crosses origins, per the WHATWG spec; raw node:http has no such
+ * rule, so following one would hand GITHUB_TOKEN — a live repo-scoped
+ * credential under Actions — to whatever host the redirect names. Also covered
+ * by a test.
+ *
+ * @param {boolean} [withoutAuth] Omit Authorization even when a token is set.
  * @returns {Record<string, string>} Headers, with auth when available.
  */
-function headers() {
-  const token = process.env.GITHUB_TOKEN;
+function headers(withoutAuth = false) {
+  const token = withoutAuth ? undefined : process.env.GITHUB_TOKEN;
   return {
     Accept: 'application/vnd.github+json',
     'User-Agent': 'AFixt-accessibility-highlighter-action-pins',
@@ -97,9 +113,11 @@ function headers() {
  *
  * @param {string} url The API URL to fetch.
  * @param {number} [redirectsLeft] Remaining redirect hops to follow.
+ * @param {boolean} [withoutAuth] Send no Authorization — set once a redirect
+ *   has left the origin the token belongs to, and sticky from then on.
  * @returns {Promise<object | undefined>} The parsed body, if the call succeeded.
  */
-function getJson(url, redirectsLeft = MAX_REDIRECTS) {
+function getJson(url, redirectsLeft = MAX_REDIRECTS, withoutAuth = false) {
   return new Promise(resolve => {
     let settled = false;
     /**
@@ -128,7 +146,7 @@ function getJson(url, redirectsLeft = MAX_REDIRECTS) {
     // tests point at a plain-http stub and should never load TLS at all.
     const transport = target.protocol === 'http:' ? http : require('node:https');
 
-    const request = transport.get(target, { headers: headers() }, response => {
+    const request = transport.get(target, { headers: headers(withoutAuth) }, response => {
       const status = response.statusCode ?? 0;
       const location = response.headers.location;
 
@@ -137,7 +155,12 @@ function getJson(url, redirectsLeft = MAX_REDIRECTS) {
       // one and push the run closer to tripping checkedNothing.
       if (REDIRECT_STATUSES.has(status) && location && redirectsLeft > 0) {
         response.resume();
-        settle(getJson(new URL(location, target).toString(), redirectsLeft - 1));
+        const next = new URL(location, target);
+        // The token belongs to the origin we started on. Once a hop leaves it,
+        // never re-attach — a chain that wanders back to a matching origin is
+        // not proof the detour was trustworthy.
+        const dropAuth = withoutAuth || next.origin !== target.origin;
+        settle(getJson(next.toString(), redirectsLeft - 1, dropAuth));
         return;
       }
 
@@ -147,9 +170,16 @@ function getJson(url, redirectsLeft = MAX_REDIRECTS) {
         return;
       }
 
-      response.setEncoding('utf8');
       let body = '';
+      let bytes = 0;
+      response.setEncoding('utf8');
       response.on('data', chunk => {
+        bytes += Buffer.byteLength(chunk, 'utf8');
+        if (bytes > MAX_BODY_BYTES) {
+          response.destroy();
+          settle(undefined);
+          return;
+        }
         body += chunk;
       });
       response.on('error', () => settle(undefined));
