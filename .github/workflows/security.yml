@@ -243,9 +243,12 @@ jobs:
             echo "Installed to $bindir; add it to PATH to run gitleaks."
           fi
 
+      # Gates. A secret reaches the history through a pull request, so this is
+      # the moment it is cheap to stop; after the merge it is a rotation, not a
+      # fix. Was continue-on-error until #112, which meant a PR committing a
+      # secret got a green "Gitleaks (secrets)" tick.
       - name: Run gitleaks
         run: gitleaks detect --no-banner --redact --verbose
-        continue-on-error: true
 
   # OSV-Scanner — Google vulnerability scanner (every push/PR)
   osv-scanner:
@@ -254,6 +257,13 @@ jobs:
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
+      # Gates. This is the only check in the pipeline that sees a *dev*
+      # dependency advisory: both npm audit gates run --omit=dev, and the
+      # all-dependency audits are report-only. With nothing watching between
+      # pushes (no Dependabot, no scheduled jobs), a non-gating OSV meant a
+      # vulnerable dev dependency had no way at all to fail a build. Two High
+      # browserslist advisories sat here green through #108 for exactly that
+      # reason. Was continue-on-error until #112.
       - name: Run OSV-Scanner
         uses: google/osv-scanner-action/osv-scanner-action@b00f71e051ddddc6e46a193c31c8c0bf283bf9e6 # v2.1.0
         with:
@@ -261,7 +271,6 @@ jobs:
             --lockfile=package-lock.json
             --recursive
             .
-        continue-on-error: true
 
   # OWASP Dependency Check (comprehensive - manual runs only)
   owasp-dependency-check:
@@ -347,18 +356,49 @@ jobs:
       - name: Install dependencies
         run: npm ci --ignore-scripts
 
-      - name: Install license-checker
-        run: npm install -g license-checker
-
-      - name: Check licenses
+      # Use the repo's own license-checker-rseidelsohn (a devDependency, so it
+      # is already installed) rather than globally installing the unmaintained
+      # `license-checker`. They are different tools and did not have to agree,
+      # which meant CI was gating on something the local `npm run license:check`
+      # never evaluated.
+      - name: Generate license report
         run: |
-          license-checker --json --out licenses.json
-          license-checker --summary
+          npx license-checker-rseidelsohn --json --out licenses.json
+          npx license-checker-rseidelsohn --summary
 
-      - name: Check for problematic licenses
+      # Two gates, because the two trees warrant different strictness.
+      #
+      # Production is an allowlist — anything that could ship has to be on a
+      # short known-good list. Note what it covers today: `dependencies` is {}
+      # and the build is a `cp` of src/, so this currently gates on the repo's
+      # own package and nothing else. It is here for the moment a runtime
+      # dependency appears, not because it is doing work now. On its own it
+      # would be a check that cannot fail, which is the whole complaint in
+      # #112 — hence the second gate below.
+      - name: Check production licences against the allowlist
+        run: npm run license:check
+
+      # The dev tree is ~830 packages, so a denylist of the categories that
+      # would actually be a problem, rather than an allowlist nobody keeps
+      # current. This is the gate that covers real third-party code today.
+      #
+      # Every identifier is spelled out because --failOn matches whole licence
+      # names, not substrings: 'GPL' does not match 'GPL-3.0-only'. A shortened
+      # 'AGPL;GPL;UNKNOWN' list looks right, passes a careless test, and in fact
+      # catches nothing but packages with no licence field at all.
+      #
+      # Measured against a fixture whose root package declares a licence (a root
+      # without one reads as UNKNOWN and fails everything, which is what made
+      # the short list look like it worked):
+      #
+      #   MIT 0 | LGPL-3.0-only 0 | GPL-3.0-only 1 | AGPL-3.0-only 1 | none 1
+      #
+      # LGPL passing is deliberate. The one LGPL package is eslint-plugin-sonarjs,
+      # a linter never linked into anything shipped.
+      - name: Check the full tree for copyleft and unlicensed packages
         run: |
-          # Fail if GPL, AGPL, or unknown licenses found (customize as needed)
-          license-checker --failOn 'GPL;AGPL;UNKNOWN' || echo "Review licenses above"
+          npx license-checker-rseidelsohn --failOn \
+            'AGPL-1.0;AGPL-1.0-only;AGPL-1.0-or-later;AGPL-3.0;AGPL-3.0-only;AGPL-3.0-or-later;GPL-1.0;GPL-1.0-only;GPL-1.0-or-later;GPL-2.0;GPL-2.0-only;GPL-2.0-or-later;GPL-3.0;GPL-3.0-only;GPL-3.0-or-later;UNKNOWN'
 
       - name: Upload license report
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
