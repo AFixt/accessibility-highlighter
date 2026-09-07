@@ -12,15 +12,20 @@
  * server answering 403 reproduces a rate limit, which is the likeliest way
  * this check goes blind in practice.
  *
- * The one case that completes an HTTP request needs a raised timeout. The CLI
- * finishes its work in well under a second and then sits at 0% CPU for
- * anywhere from 3 to 15 seconds before the process exits — reproducible here
- * down to a one-line script that does nothing but fetch, so it is not
- * something this repository's code is doing, and not something a stub that
- * closes its connections avoids. It costs the real workflow_dispatch run about
- * 25 seconds of idle runner time too. Worth its own investigation; the timeout
- * keeps this suite deterministic until then rather than leaving it to race
- * Jest's 5s default.
+ * These used to carry 30s timeouts because the CLI sat at 0% CPU for 3-15s
+ * (sometimes far longer) before exiting. The cause was never fetch as such: it
+ * is Node's TLS stack, which costs seconds to initialise on some machines, and
+ * which fetch pulls in lazily on first use. The CLI now loads node:https only
+ * when the URL is actually https, so a run against this plain-http stub never
+ * touches TLS at all and finishes in a few hundred milliseconds (#111).
+ *
+ * So they run on Jest's default 5s now, deliberately. Eagerly requiring
+ * node:https again — or going back to fetch — would blow that budget and fail
+ * here, which is the point: the cap is the regression guard.
+ *
+ * Note this only ever helped the tests. A real workflow_dispatch run must
+ * reach https://api.github.com and still pays whatever the host charges for
+ * TLS init.
  */
 
 const { execFile } = require('child_process');
@@ -40,6 +45,7 @@ let tmpDir;
 let server;
 let apiUrl;
 let requestCount;
+let receivedHeaders;
 
 beforeAll(async () => {
   tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'a11y-action-pins-'));
@@ -48,6 +54,7 @@ beforeAll(async () => {
   // undefined exactly as it would against the real API.
   server = http.createServer((req, res) => {
     requestCount += 1;
+    receivedHeaders.push(req.headers);
     res.writeHead(403, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ message: 'API rate limit exceeded' }));
   });
@@ -63,6 +70,7 @@ afterAll(async () => {
 
 beforeEach(() => {
   requestCount = 0;
+  receivedHeaders = [];
 });
 
 /**
@@ -115,13 +123,13 @@ describe('check-action-pins CLI', () => {
     expect(requestCount).toBeGreaterThan(0); // it really did try
     expect(output).toContain('nothing here was actually checked');
     expect(status).toBe(1);
-  }, 30000);
+  });
 
   it('treats an unusable API as a failed lookup rather than crashing', async () => {
-    // fetch throws on this rather than returning a bad response, which is the
-    // shape a DNS or network failure takes. Uncaught it would reject the
-    // Promise.all over every lookup and unwind past the guard with a stack
-    // trace; getJson's catch is what routes it back to "nothing resolved".
+    // This fails on the socket rather than answering, which is the shape a DNS
+    // or network failure takes. Unhandled it would reject the Promise.all over
+    // every lookup and unwind past the guard with a stack trace; the request's
+    // 'error' handler in getJson is what routes it back to "nothing resolved".
     const dir = workflowsDir('unusable-api', [
       'jobs:',
       '  a:',
@@ -134,7 +142,7 @@ describe('check-action-pins CLI', () => {
     expect(output).toContain('nothing here was actually checked');
     expect(output).not.toContain('TypeError');
     expect(status).toBe(1);
-  }, 30000);
+  });
 
   it('does not treat "nothing was checkable" as an outage', async () => {
     // Floating refs carry no SHA, so there was never anything to resolve.
@@ -151,6 +159,29 @@ describe('check-action-pins CLI', () => {
     expect(requestCount).toBe(0); // nothing was checkable, so nothing was looked up
     expect(output).not.toContain('nothing here was actually checked');
     expect(status).toBe(0);
+  });
+
+  it('sends a User-Agent, which the GitHub API requires', async () => {
+    // Without one the API answers 403 "Request forbidden by administrative
+    // rules" and every lookup fails. The run still exits 1 through
+    // checkedNothing, so the breakage is quiet in the worst way: it reports
+    // "could not be checked" against every pin forever, while a stub that
+    // answers regardless of headers keeps the whole suite green.
+    //
+    // Caught exactly that way. fetch supplied the header on our behalf; the
+    // node:https move dropped it and took real resolution from 49/51 to 0/51
+    // with no test noticing.
+    const dir = workflowsDir('user-agent', [
+      'jobs:',
+      '  a:',
+      '    steps:',
+      `      - uses: actions/checkout@${SHA} # v6`
+    ]);
+
+    await check(dir);
+
+    expect(receivedHeaders).toHaveLength(1);
+    expect(receivedHeaders[0]['user-agent']).toBeTruthy();
   });
 
   it('fails when the directory holds no action references at all', async () => {

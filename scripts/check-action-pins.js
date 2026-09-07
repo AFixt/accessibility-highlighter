@@ -28,6 +28,7 @@
  *                    Server.
  */
 const fs = require('node:fs/promises');
+const http = require('node:http');
 const { join } = require('node:path');
 
 const { checkedNothing, classifyPin, parseActionPins, repoSlug } = require('./action-pins');
@@ -39,8 +40,25 @@ const DEFAULT_WORKFLOW_DIR = join(__dirname, '../.github/workflows');
 // it gives the tests somewhere unreachable to point at.
 const API = (process.env.GITHUB_API_URL || 'https://api.github.com').replace(/\/+$/, '');
 
+// Redirect statuses the API actually uses: 301 for a renamed repository, 302
+// and 307 for the temporary variants.
+const REDIRECT_STATUSES = new Set([301, 302, 307, 308]);
+
+// Enough hops for a rename chain, few enough to stop a redirect loop.
+const MAX_REDIRECTS = 5;
+
+// A lookup that has neither answered nor failed by now is not going to.
+const REQUEST_TIMEOUT_MS = 15_000;
+
 /**
  * Request headers for the GitHub REST API.
+ *
+ * User-Agent is mandatory: the API answers a request without one with 403 and
+ * "Request forbidden by administrative rules". fetch used to supply one on our
+ * behalf, so dropping it in the node:https move (#111) silently turned every
+ * lookup into a failed one — the run still exited 1 via checkedNothing, but it
+ * checked nothing forever. Covered by a test so the next client swap cannot
+ * repeat it.
  *
  * @returns {Record<string, string>} Headers, with auth when available.
  */
@@ -48,6 +66,7 @@ function headers() {
   const token = process.env.GITHUB_TOKEN;
   return {
     Accept: 'application/vnd.github+json',
+    'User-Agent': 'AFixt-accessibility-highlighter-action-pins',
     'X-GitHub-Api-Version': '2022-11-28',
     ...(token ? { Authorization: `Bearer ${token}` } : {})
   };
@@ -56,23 +75,103 @@ function headers() {
 /**
  * GET a URL and parse it as JSON, or undefined if anything goes wrong.
  *
- * Network and DNS failures make fetch *throw* rather than return a bad
- * response. Left uncaught, one unreachable host would reject the Promise.all
- * over every lookup and unwind the whole run with a stack trace — skipping the
- * checkedNothing guard whose message names "no network" as a case it handles.
- * Collapsing both failure shapes to undefined makes that true, and keeps one
- * transient blip among fifty lookups from taking down the report.
+ * Deliberately node:http rather than fetch (#111). Loading Node's TLS stack
+ * costs seconds on some machines — `require('node:https')` alone, with no
+ * request made, measured a median of 24s on the host that prompted this — and
+ * fetch pulls TLS in lazily on first use. Going through node:http, and
+ * requiring node:https only when the URL is actually https, keeps a run against
+ * a plain-http target off TLS entirely. That is what the tests point at, and it
+ * takes the suite from ~70s with intermittent 30s timeouts to under 5s.
+ *
+ * It does not speed up a real run: that reaches https://api.github.com, loads
+ * TLS, and pays whatever the host charges. The underlying problem is the
+ * machine, not this script.
+ *
+ * Every failure shape collapses to undefined: a non-2xx response, a socket
+ * error, a stalled connection, and a body that will not parse. Left uncaught,
+ * one unreachable host would reject the Promise.all over every lookup and
+ * unwind the whole run with a stack trace — skipping the checkedNothing guard
+ * whose message names "no network" as a case it handles. Collapsing them makes
+ * that true, and keeps one transient blip among fifty lookups from taking down
+ * the report.
  *
  * @param {string} url The API URL to fetch.
+ * @param {number} [redirectsLeft] Remaining redirect hops to follow.
  * @returns {Promise<object | undefined>} The parsed body, if the call succeeded.
  */
-async function getJson(url) {
-  try {
-    const res = await fetch(url, { headers: headers() });
-    return res.ok ? await res.json() : undefined;
-  } catch {
-    return undefined;
-  }
+function getJson(url, redirectsLeft = MAX_REDIRECTS) {
+  return new Promise(resolve => {
+    let settled = false;
+    /**
+     * Resolve once, whichever failure path gets here first.
+     *
+     * @param {object | undefined | Promise<object | undefined>} value The result.
+     * @returns {void}
+     */
+    const settle = value => {
+      if (!settled) {
+        settled = true;
+        resolve(value);
+      }
+    };
+
+    let target;
+    try {
+      target = new URL(url);
+    } catch {
+      settle(undefined);
+      return;
+    }
+
+    // require('node:https') pulls in the TLS stack, which costs seconds on
+    // some machines (#111). Only pay it when the URL actually needs it — the
+    // tests point at a plain-http stub and should never load TLS at all.
+    const transport = target.protocol === 'http:' ? http : require('node:https');
+
+    const request = transport.get(target, { headers: headers() }, response => {
+      const status = response.statusCode ?? 0;
+      const location = response.headers.location;
+
+      // fetch follows redirects by default, and the API answers a renamed repo
+      // with a 301. Not following would turn a resolvable pin into an unknown
+      // one and push the run closer to tripping checkedNothing.
+      if (REDIRECT_STATUSES.has(status) && location && redirectsLeft > 0) {
+        response.resume();
+        settle(getJson(new URL(location, target).toString(), redirectsLeft - 1));
+        return;
+      }
+
+      if (status < 200 || status >= 300) {
+        response.resume();
+        settle(undefined);
+        return;
+      }
+
+      response.setEncoding('utf8');
+      let body = '';
+      response.on('data', chunk => {
+        body += chunk;
+      });
+      response.on('error', () => settle(undefined));
+      response.on('end', () => {
+        try {
+          settle(JSON.parse(body));
+        } catch {
+          settle(undefined);
+        }
+      });
+    });
+
+    request.on('error', () => settle(undefined));
+
+    // fetch has no default timeout either, so a host that accepts the
+    // connection and then says nothing would stall the whole run. Cheap to
+    // close here now that the request is ours.
+    request.setTimeout(REQUEST_TIMEOUT_MS, () => {
+      request.destroy();
+      settle(undefined);
+    });
+  });
 }
 
 /**
