@@ -1,1 +1,13 @@
+# Secret gate FIRST: it is the cheapest check (~0.2s, diff-scoped) and the
+# only irreversible one — a pushed credential must be rotated regardless.
+# Running it before the test suite means you learn in a second, not a minute,
+# and it cannot be skipped by an earlier `exit` in this hook.
+# Guarded because .husky/pre-push is tracked: without ~/.fleet-security
+# the missing file returns 127, and `|| exit 1` would block every push.
+# The gate itself already soft-skips when gitleaks is absent.
+FLEET_SECRET_GATE="$HOME/.fleet-security/bin/pre-push-secrets"
+if [ -x "$FLEET_SECRET_GATE" ]; then
+  "$FLEET_SECRET_GATE" || exit 1
+fi
+
 npm run check
