@@ -5,9 +5,12 @@
  * Dependabot used to own refreshing these pins; scheduled automation
  * (Dependabot included) is banned repo-wide (#45), so this check is the
  * mechanism instead. Run it via the `Action Pin Freshness` workflow_dispatch
- * job in security.yml, or locally:
+ * job in security.yml, or locally — there is no npm script wrapping it, and
+ * the one this comment used to name has never existed:
  *
- *   npm run security:action-pins
+ *   GITHUB_TOKEN=$(gh auth token) node scripts/check-action-pins.js
+ *
+ * Unauthenticated works too, at 60 requests/hour against ~20 distinct lookups.
  *
  * Exit code 1 when any pin is stale — the tag has moved since it was pinned,
  * which usually means upstream shipped a fix this repository is frozen
