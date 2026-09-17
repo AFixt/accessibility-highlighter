@@ -1,181 +1,215 @@
 /**
- * Test suite for the Accessibility Highlighter extension
+ * @fileoverview End-to-end tests for the accessibility scan (#137)
  *
- * This test suite contains automated tests for the extension functionality
- * using real fixtures of passing and failing code.
+ * This file used to describe itself as testing "the extension functionality
+ * using real fixtures" while binding to mocks that tests/setup-jest.js defined
+ * for the extension's own functions. `runAccessibilityChecks` was a jest.fn()
+ * that matched one magic phrase in document.body.innerHTML and pushed six
+ * hardcoded log entries; every assertion here checked that those literals had
+ * been pushed. All fifteen cases would have passed with src/ deleted.
+ *
+ * The hardcoded entries also used `{Level, Message, Element}`, the shape #132
+ * established matches no reader in the codebase. So the one suite calling
+ * itself integration agreed with the writer and with nothing else, which is
+ * how generateCSVReport came to throw on every real scan without a test
+ * noticing.
+ *
+ * It now requires the content script and runs the real scan. Two things have
+ * to be arranged for that to work, and both are properties of jsdom rather
+ * than of the code under test:
+ *
+ *   - Every element reports a zero-sized box, and overlay() skips those by
+ *     design, so nothing would ever be recorded. Element.prototype gets a
+ *     non-zero rect for the duration of this suite.
+ *   - runAccessibilityChecks throttles repeat calls, so each scan resets it.
+ *
+ * Mutation-checked: breaking a detector in elementChecks.js turns exactly the
+ * case for that detector red.
  */
 
-// The global mocks are already set up in setup-jest.js
+process.env.NODE_ENV = 'test';
 
-// Use the global mock functions provided by setup-jest.js
-const __contentScriptFunctions = {
-  runAccessibilityChecks: global.runAccessibilityChecks,
-  removeAccessibilityOverlays: global.removeAccessibilityOverlays,
-  toggleAccessibilityHighlight: global.toggleAccessibilityHighlight,
-  overlay: global.overlay
-};
+Object.defineProperty(window, 'scrollX', { value: 0, writable: true });
+Object.defineProperty(window, 'scrollY', { value: 0, writable: true });
 
-const __backgroundScriptFunctions = {
-  getCurrentTab: global.getCurrentTab
-};
+require('../src/contentScript.js');
 
-// Test utilities
-function setupDom(type) {
-  // Set HTML content based on the test type
-  if (type === 'failing') {
-    document.body.innerHTML =
-      '<div>Test fixture with errors</div><img src="test.jpg"><input type="text"><table><tr><td>Cell</td></tr></table><iframe src="test.html"></iframe>';
-  } else {
-    document.body.innerHTML =
-      '<div>Test fixture without errors</div><img src="test.jpg" alt="Test image"><label for="test">Label</label><input type="text" id="test"><table><tr><th>Header</th></tr></table><iframe src="test.html" title="Test frame"></iframe>';
-  }
+const realGetBoundingClientRect = Element.prototype.getBoundingClientRect;
 
-  // Reset logs array for each test
-  global.logs = [];
+/**
+ * A page with no accessibility problems, used as the control. It carries a
+ * landmark deliberately: without one the scan reports "No landmark elements
+ * found", and a control fixture that trips a check is not a control.
+ */
+const CLEAN_PAGE =
+  '<main>' +
+  '<h1>Quarterly report</h1>' +
+  '<img src="chart.png" alt="Revenue rose in the third quarter">' +
+  '<label for="name">Name</label><input id="name" type="text">' +
+  '<table><tr><th>Region</th></tr><tr><td>North</td></tr></table>' +
+  '<iframe src="embed.html" title="Revenue breakdown"></iframe>' +
+  '<a href="/about">About the team</a>' +
+  '</main>';
 
-  // Just reset the mock function instead of trying to remove elements
-  global.removeAccessibilityOverlays.mockClear();
+beforeAll(() => {
+  Element.prototype.getBoundingClientRect = function () {
+    return { top: 0, left: 0, width: 100, height: 50, right: 100, bottom: 50 };
+  };
+});
+
+afterAll(() => {
+  Element.prototype.getBoundingClientRect = realGetBoundingClientRect;
+});
+
+beforeEach(() => {
+  document.body.innerHTML = '';
+  global.LOGS.length = 0;
+});
+
+/**
+ * Run the real scan over a fixture and return the messages it recorded.
+ *
+ * @param {string} html Markup to place in the body.
+ * @returns {string[]} One message per issue found.
+ */
+function scan(html) {
+  document.body.innerHTML = html;
+  global.LOGS.length = 0;
+  global.resetThrottle();
+  global.runAccessibilityChecks();
+  return global.LOGS.map(log => log.message);
 }
 
-describe('Accessibility Highlighter', () => {
-  beforeEach(() => {
-    // Clear all mocks
-    jest.clearAllMocks();
+/**
+ * Wrap a fragment in a landmark so the scan's landmark check stays quiet and
+ * each case is left asserting only the thing it is about.
+ *
+ * @param {string} fragment Markup to wrap.
+ * @returns {string} The wrapped markup.
+ */
+function inLandmark(fragment) {
+  return `<main>${fragment}</main>`;
+}
 
-    // Mock console methods
-    global.console.log = jest.fn();
-    global.console.table = jest.fn();
+describe('a page with no problems', () => {
+  it('records nothing at all', () => {
+    expect(scan(CLEAN_PAGE)).toEqual([]);
   });
 
-  describe('Content Script Functions', () => {
-    test('should add overlays to elements with accessibility issues', () => {
-      setupDom('failing');
+  it('adds no overlay elements to the document', () => {
+    scan(CLEAN_PAGE);
 
-      // Manually trigger console.table to be called before test
-      console.table(global.logs);
+    expect(document.querySelectorAll('.overlay')).toHaveLength(0);
+  });
+});
 
-      // Run the checks
-      __contentScriptFunctions.runAccessibilityChecks();
+describe('what the scan detects', () => {
+  // One fixture per detector, each the smallest markup that trips it. The
+  // messages are compared against A11Y_CONFIG rather than typed out, so a
+  // reworded message updates both sides at once and cannot drift.
+  const cases = [
+    ['an image with no alt attribute', '<img src="t.jpg">', 'MISSING_ALT'],
+    ['alt text that describes nothing', '<img src="t.jpg" alt="image">', 'UNINFORMATIVE_ALT'],
+    ['a form field with no label', '<input type="text">', 'FORM_FIELD_NO_LABEL'],
+    ['a table with no header cells', '<table><tr><td>Cell</td></tr></table>', 'TABLE_NO_HEADERS'],
+    [
+      'a table nested inside a cell',
+      '<table><tr><td><table><tr><th>H</th></tr></table></td></tr></table>',
+      'NESTED_TABLE'
+    ],
+    [
+      'a table whose summary describes layout',
+      '<table summary="Layout"><tr><th>H</th></tr></table>',
+      'UNINFORMATIVE_SUMMARY'
+    ],
+    ['an iframe with no title', '<iframe src="t.html"></iframe>', 'IFRAME_NO_TITLE'],
+    ['link text that says nothing', '<a href="/x">click here</a>', 'GENERIC_LINK_TEXT']
+  ];
 
-      // Check that logs contain entries
-      expect(global.logs.length).toBeGreaterThan(0);
-    });
+  it.each(cases)('flags %s', (_label, fragment, messageKey) => {
+    const expected = global.A11Y_CONFIG.MESSAGES[messageKey];
 
-    test('should not add overlays to accessible elements', () => {
-      // Make sure we're starting with an empty logs array
-      global.logs = [];
-
-      // Setup passing HTML
-      setupDom('passing');
-
-      // Run the checks
-      __contentScriptFunctions.runAccessibilityChecks();
-
-      // Verify no logs were added
-      expect(global.logs.length).toBe(0);
-    });
-
-    test('should remove all overlays when called', () => {
-      setupDom('failing');
-
-      // First add the overlays
-      __contentScriptFunctions.runAccessibilityChecks();
-      expect(global.logs.length).toBeGreaterThan(0);
-
-      // Remove overlays and verify function was called
-      __contentScriptFunctions.removeAccessibilityOverlays();
-      expect(global.removeAccessibilityOverlays).toHaveBeenCalled();
-    });
-
-    test('should toggle accessibility highlighting based on isEnabled parameter', () => {
-      setupDom('failing');
-
-      // Toggle on and verify runAccessibilityChecks is called
-      __contentScriptFunctions.toggleAccessibilityHighlight(true);
-      expect(global.runAccessibilityChecks).toHaveBeenCalled();
-
-      jest.clearAllMocks();
-
-      // Toggle off and verify removeAccessibilityOverlays is called
-      __contentScriptFunctions.toggleAccessibilityHighlight(false);
-      expect(global.removeAccessibilityOverlays).toHaveBeenCalled();
-    });
+    expect(expected).toBeDefined(); // the key really exists, so a typo fails loudly
+    expect(scan(inLandmark(fragment))).toContain(expected);
   });
 
-  describe('Background Script Functions', () => {
-    test('should get the active tab properly', async () => {
-      // Expected tab from mock
-      const _expectedTab = { id: 123 };
+  it('flags a non-actionable element in the tab order, naming the value', () => {
+    // NON_ACTIONABLE_TABINDEX is a prefix — the code appends the tabindex it
+    // found — so this cannot go in the table above, which compares exactly.
+    const messages = scan(inLandmark('<div tabindex="0">x</div>'));
 
-      const _tab = await __backgroundScriptFunctions.getCurrentTab();
-      expect(_tab).toEqual(_expectedTab);
-      // We don't need to check if it was called with specific parameters since we're using mocks
-    });
+    expect(global.A11Y_CONFIG.MESSAGES.NON_ACTIONABLE_TABINDEX).toBe(
+      'Non-actionable element with tabindex='
+    );
+    expect(messages).toContain('Non-actionable element with tabindex=0');
   });
 
-  describe('Specific Accessibility Checks', () => {
-    beforeEach(() => {
-      setupDom('failing');
-      __contentScriptFunctions.runAccessibilityChecks();
-    });
+  it('flags a page with no landmarks', () => {
+    expect(scan('<div><p>Content with no landmark around it</p></div>')).toContain(
+      global.A11Y_CONFIG.MESSAGES.NO_LANDMARKS
+    );
+  });
+});
 
-    test('should detect images without alt attributes', () => {
-      expect(
-        global.logs.some(log => log.Message.includes('img does not have an alt attribute'))
-      ).toBe(true);
-    });
+describe('what the scan leaves alone', () => {
+  it('does not flag an element removed from the tab order', () => {
+    // tabindex="-1" is the supported way to make something focusable only in
+    // script. Flagging it would punish correct code.
+    const messages = scan(inLandmark('<div tabindex="-1">x</div>'));
 
-    test('should detect form fields without labels', () => {
-      expect(
-        global.logs.some(log => log.Message.includes('Form field without a corresponding label'))
-      ).toBe(true);
-    });
+    expect(messages).toEqual([]);
+  });
 
-    test('should detect tables without th elements', () => {
-      expect(global.logs.some(log => log.Message.includes('table without any th elements'))).toBe(
-        true
-      );
-    });
+  it('does not flag a labelled input or a described image', () => {
+    const messages = scan(
+      inLandmark(
+        '<label for="e">Email</label><input id="e" type="text">' +
+          '<img src="c.png" alt="A line chart showing steady growth">'
+      )
+    );
 
-    test('should detect nested tables', () => {
-      expect(global.logs.some(log => log.Message.includes('Nested table elements'))).toBe(true);
-    });
+    expect(messages).toEqual([]);
+  });
+});
 
-    test('should detect iframe without title', () => {
-      expect(
-        global.logs.some(log => log.Message.includes('iframe element without a title attribute'))
-      ).toBe(true);
-    });
+describe('overlays', () => {
+  it('puts an overlay in the document for each issue found', () => {
+    const messages = scan(inLandmark('<img src="t.jpg"><iframe src="t.html"></iframe>'));
 
-    test('should detect uninformative alt text', () => {
-      expect(
-        global.logs.some(log => log.Message.includes('Uninformative alt attribute value found'))
-      ).toBe(true);
-    });
+    expect(messages.length).toBeGreaterThan(0);
+    expect(document.querySelectorAll('.overlay').length).toBe(messages.length);
+  });
 
-    test('should detect generic link text', () => {
-      expect(
-        global.logs.some(log =>
-          log.Message.includes('Link element with matching text content found')
-        )
-      ).toBe(true);
-    });
+  it('removes them again', () => {
+    scan(inLandmark('<img src="t.jpg"><iframe src="t.html"></iframe>'));
+    expect(document.querySelectorAll('.overlay').length).toBeGreaterThan(0);
 
-    test('should detect tables with uninformative summary attributes', () => {
-      expect(
-        global.logs.some(log => log.Message.includes('Table with uninformative summary attribute'))
-      ).toBe(true);
-    });
+    global.removeAccessibilityOverlays();
 
-    test('should detect non-actionable elements with positive tabindex', () => {
-      expect(
-        global.logs.some(log => log.Message.includes('Non-actionable element with tabindex=0'))
-      ).toBe(true);
-    });
+    // Asserted on the document, not on a spy. "the function was called" was
+    // what the old suite checked, and it cannot tell whether anything happened.
+    expect(document.querySelectorAll('.overlay')).toHaveLength(0);
+  });
+});
 
-    test('should not flag elements with negative tabindex', () => {
-      // This negative test checks that our tabindex check is improved
-      expect(global.logs.every(log => !log.Message.includes('tabindex=-1'))).toBe(true);
-    });
+describe('toggleAccessibilityHighlight', () => {
+  it('scans when switched on', () => {
+    document.body.innerHTML = inLandmark('<img src="t.jpg">');
+    global.LOGS.length = 0;
+    global.resetThrottle();
+
+    global.toggleAccessibilityHighlight(true);
+
+    expect(global.LOGS.length).toBeGreaterThan(0);
+    expect(document.querySelectorAll('.overlay').length).toBeGreaterThan(0);
+  });
+
+  it('clears the overlays when switched off', () => {
+    scan(inLandmark('<img src="t.jpg">'));
+    expect(document.querySelectorAll('.overlay').length).toBeGreaterThan(0);
+
+    global.toggleAccessibilityHighlight(false);
+
+    expect(document.querySelectorAll('.overlay')).toHaveLength(0);
   });
 });

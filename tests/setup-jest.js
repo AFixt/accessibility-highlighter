@@ -71,75 +71,17 @@ global.getComputedStyle = jest.fn().mockImplementation(() => ({
 }));
 
 // Define stubs for contentScript.js functions
-global.logs = [];
-
-global.overlay = jest.fn().mockImplementation(function (overlayClass, level, msg) {
-  global.logs.push({
-    Level: level,
-    Message: msg,
-    Element: this ? this.outerHTML || 'mock-element' : 'mock-element'
-  });
-});
-
-global.removeAccessibilityOverlays = jest.fn();
-
-global.runAccessibilityChecks = jest.fn().mockImplementation(() => {
-  // Simulate finding issues when checking failing HTML
-  if (document.body.innerHTML.includes('Test fixture with errors')) {
-    global.logs.push({
-      Level: 'error',
-      Message: 'img does not have an alt attribute',
-      Element: '<img src="test.jpg">'
-    });
-    global.logs.push({
-      Level: 'error',
-      Message: 'Form field without a corresponding label',
-      Element: '<input type="text">'
-    });
-    global.logs.push({
-      Level: 'error',
-      Message: 'table without any th elements',
-      Element: '<table><tr><td>Cell</td></tr></table>'
-    });
-    global.logs.push({
-      Level: 'error',
-      Message: 'Nested table elements',
-      Element: '<td><table></table></td>'
-    });
-    global.logs.push({
-      Level: 'error',
-      Message: 'iframe element without a title attribute',
-      Element: '<iframe src="test.html"></iframe>'
-    });
-    global.logs.push({
-      Level: 'error',
-      Message: 'Uninformative alt attribute value found',
-      Element: '<img src="image.jpg" alt="image">'
-    });
-    global.logs.push({
-      Level: 'error',
-      Message: 'Link element with matching text content found',
-      Element: '<a href="#">click here</a>'
-    });
-    global.logs.push({
-      Level: 'error',
-      Message: 'Table with uninformative summary attribute',
-      Element: '<table summary="layout table for navigation">'
-    });
-    global.logs.push({
-      Level: 'warning',
-      Message: 'Non-actionable element with tabindex=0',
-      Element: '<div tabindex="0">I can receive focus but do nothing</div>'
-    });
-  }
-});
-
-global.toggleAccessibilityHighlight = jest.fn().mockImplementation(isEnabled => {
-  if (isEnabled) {
-    global.runAccessibilityChecks();
-  } else {
-    global.removeAccessibilityOverlays();
-  }
-});
-
-global.getCurrentTab = jest.fn().mockResolvedValue({ id: 123 });
+// Deliberately NOT mocked here either: the extension's own functions
+// (overlay, runAccessibilityChecks, removeAccessibilityOverlays,
+// toggleAccessibilityHighlight, getCurrentTab) and a `logs` array standing in
+// for LOGS. They were defined here as jest.fn()s, and runAccessibilityChecks
+// matched one magic phrase in document.body.innerHTML and pushed six hardcoded
+// entries (#137).
+//
+// tests/highlighter.test.js was built entirely on them and would have passed
+// with src/ deleted. The hardcoded entries also used the {Level, Message,
+// Element} shape that matches no reader (#132), which is how the one suite
+// calling itself integration managed to agree with the writer and nothing else.
+//
+// src/contentScript.js and src/background.js publish the real functions on
+// `global` under NODE_ENV=test. Require the module and use those.

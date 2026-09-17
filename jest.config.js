@@ -33,8 +33,14 @@ module.exports = {
     // The floor for any source file added from here on.
     global: { statements: 20, branches: 27, functions: 15, lines: 20 },
     './src/background.js': { statements: 31, branches: 22, functions: 7, lines: 31 },
-    './src/contentScript.js': { statements: 25, branches: 17, functions: 25, lines: 25 },
-    './src/elementChecks.js': { statements: 63, branches: 68, functions: 73, lines: 63 },
+    './src/contentScript.js': { statements: 46, branches: 38, functions: 50, lines: 47 },
+    './src/elementChecks.js': { statements: 71, branches: 72, functions: 84, lines: 71 },
+    // The jump in these numbers is #137: tests/highlighter.test.js stopped
+    // asserting against mocks of the extension's own functions and started
+    // running the real scan, which reaches a great deal of code nothing had
+    // executed before. contentScript.js went 25 -> 46, elementChecks.js
+    // 63 -> 71, uiPanels.js 6 -> 16.
+    //
     // Both of these carried `functions: 0` when the ratchet was first set —
     // a floor that could never fail, on the two largest coverage gaps in the
     // project (#128). tests/report-generators.test.js took reportGenerators.js
@@ -42,8 +48,8 @@ module.exports = {
     // carried it to 70%, which is what makes a real floor possible here. uiPanels.js came off zero incidentally, because the report
     // generators call its categorizeIssue and analyzeLogs; 1% is a weak floor
     // but it is a floor, and it is honest about the level.
-    './src/reportGenerators.js': { statements: 47, branches: 66, functions: 70, lines: 47 },
-    './src/uiPanels.js': { statements: 6, branches: 32, functions: 1, lines: 6 }
+    './src/reportGenerators.js': { statements: 48, branches: 71, functions: 70, lines: 48 },
+    './src/uiPanels.js': { statements: 16, branches: 45, functions: 11, lines: 16 }
   },
   collectCoverageFrom: [
     'src/**/*.js',
