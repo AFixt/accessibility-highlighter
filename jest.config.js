@@ -35,10 +35,15 @@ module.exports = {
     './src/background.js': { statements: 31, branches: 22, functions: 7, lines: 31 },
     './src/contentScript.js': { statements: 23, branches: 14, functions: 25, lines: 23 },
     './src/elementChecks.js': { statements: 63, branches: 68, functions: 73, lines: 63 },
-    // These two are barely tested. The floors stop the little there is from
-    // going away; they are not an endorsement of the level.
-    './src/reportGenerators.js': { statements: 4, branches: 8, functions: 0, lines: 5 },
-    './src/uiPanels.js': { statements: 3, branches: 4, functions: 0, lines: 3 }
+    // Both of these carried `functions: 0` when the ratchet was first set —
+    // a floor that could never fail, on the two largest coverage gaps in the
+    // project (#128). tests/report-generators.test.js took reportGenerators.js
+    // from 0% to 65% of functions, which is what makes a real floor possible
+    // here. uiPanels.js came off zero incidentally, because the report
+    // generators call its categorizeIssue and analyzeLogs; 1% is a weak floor
+    // but it is a floor, and it is honest about the level.
+    './src/reportGenerators.js': { statements: 45, branches: 60, functions: 65, lines: 46 },
+    './src/uiPanels.js': { statements: 6, branches: 32, functions: 1, lines: 6 }
   },
   collectCoverageFrom: [
     'src/**/*.js',
