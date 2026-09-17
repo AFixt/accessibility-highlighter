@@ -320,7 +320,11 @@ describe('Accessibility Highlighter Unit Tests', () => {
         }
         const tagName = element.tagName.toLowerCase();
         const hasTextContent = element.textContent && element.textContent.trim().length > 0;
-        return textElements.includes(tagName) && hasTextContent;
+        // Boolean(), because `'' && x` evaluates to '' rather than false and
+        // the assertions below use toBe(false). This passed only while
+        // setup-jest.js stubbed querySelectorAll and the empty <p> never
+        // reached it (#133).
+        return textElements.includes(tagName) && Boolean(hasTextContent);
       }
 
       // Create test elements using innerHTML
