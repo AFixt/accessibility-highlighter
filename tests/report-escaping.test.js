@@ -4,7 +4,9 @@
  * generateHTMLReport embeds text taken from the page being scanned — its
  * title, its URL, and the outerHTML of each failing element. The extension
  * runs on <all_urls>, so every one of those is attacker-controlled, and the
- * report is a document the user opens. Seven interpolation sites went in raw.
+ * report is a document the user opens. Seven interpolation sites went in raw;
+ * the fix escapes those and two more that were safe only by construction, so
+ * the rule is uniform rather than a judgement call at each site.
  *
  * Separate from tests/report-generators.test.js on purpose: that suite covers
  * what the generators produce, this one covers what they must not produce, and
@@ -134,6 +136,22 @@ describe('generateHTMLReport escaping', () => {
 
     expect(html).not.toContain('onmouseover="alert(1)');
     expect(html).toContain('&quot;');
+  });
+
+  it('escapes the category names in the summary table', () => {
+    // categorizeIssue returns one of four fixed strings, so this is not
+    // reachable today — but generateHTMLReport takes the summary as a
+    // parameter and does not validate it, and the rule the fix establishes is
+    // that every non-numeric interpolation is escaped, with no per-site
+    // judgement calls. That rule is only worth having if it is complete.
+    global.LOGS = [];
+    const summary = summaryFixture();
+    summary.categories = { [`${PAYLOAD}x`]: 1 };
+
+    const html = global.generateHTMLReport(summary);
+
+    expect(html).not.toContain(PAYLOAD);
+    expect(html).toContain('&lt;script&gt;');
   });
 
   it('still produces a usable document for ordinary input', () => {

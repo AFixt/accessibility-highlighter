@@ -324,6 +324,18 @@ function generateCSVReport() {
 
 /**
  * Generates an HTML report of accessibility issues.
+ *
+ * Every interpolated value that is not a number goes through escapeHtml, with
+ * no exceptions for ones that look safe. The bug this replaced (#131) happened
+ * because the file escaped some sites and not others, which left no rule a
+ * reader could apply — `document.title` was escaped in createExportPanel and
+ * raw here. A blanket rule is checkable; a judgement call at each site is not.
+ *
+ * So the category name and the element's tagName are escaped too, even though
+ * categorizeIssue returns one of four fixed strings and the HTML parser cannot
+ * produce a tagName containing a quote or an angle bracket. They cost nothing
+ * and they keep the rule uniform.
+ *
  * @param {object} summary - Summary statistics
  * @returns {string} HTML report content
  */
@@ -391,7 +403,7 @@ function generateHTMLReport(summary) {
                   .sort(([, a], [, b]) => b - a)
                   .map(
                     ([cat, count]) =>
-                      `<tr><td>${cat.charAt(0).toUpperCase() + cat.slice(1)}</td><td>${count}</td></tr>`
+                      `<tr><td>${escapeHtml(cat.charAt(0).toUpperCase() + cat.slice(1))}</td><td>${count}</td></tr>`
                   )
                   .join('')}
             </tbody>
@@ -418,7 +430,7 @@ function generateHTMLReport(summary) {
                   log.element
                     ? `
                 <div class="element">
-                    <strong>Element:</strong> &lt;${log.element.tagName.toLowerCase()}&gt;<br>
+                    <strong>Element:</strong> &lt;${escapeHtml(log.element.tagName.toLowerCase())}&gt;<br>
                     <strong>XPath:</strong> ${escapeHtml(getElementXPath(log.element))}<br>
                     <strong>HTML:</strong> ${escapeHtml(log.element.outerHTML.substring(0, 200))}${log.element.outerHTML.length > 200 ? '...' : ''}
                 </div>
