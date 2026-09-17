@@ -53,8 +53,7 @@ function copyExtensionFiles(targetDir) {
     'elementChecks.js',
     'uiPanels.js',
     'reportGenerators.js',
-    'icons',
-    'modules'
+    'icons'
   ];
 
   items.forEach(item => {

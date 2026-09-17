@@ -1,6 +1,7 @@
 # ADR 0002: Tooling stack — Phase 2 (issue #56)
 
-- **Status**: Accepted
+- **Status**: Accepted; the `src/modules/` disposition is superseded by
+  [ADR 0006](./0006-remove-src-modules.md)
 - **Date**: 2026-05-11
 - **Deciders**: @karlgroves
 

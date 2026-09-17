@@ -1,6 +1,8 @@
 # ADR 0004: Split contentScript.js into multiple Manifest V3 content scripts
 
-- **Status**: Accepted
+- **Status**: Accepted; the decision to keep `src/modules/` for the test loader
+  is superseded by [ADR 0006](./0006-remove-src-modules.md). The content-script
+  split itself stands.
 - **Date**: 2026-05-11
 - **Deciders**: @karlgroves
 
