@@ -33,7 +33,7 @@ module.exports = {
     // The floor for any source file added from here on.
     global: { statements: 20, branches: 27, functions: 15, lines: 20 },
     './src/background.js': { statements: 31, branches: 22, functions: 7, lines: 31 },
-    './src/contentScript.js': { statements: 23, branches: 14, functions: 25, lines: 23 },
+    './src/contentScript.js': { statements: 25, branches: 17, functions: 25, lines: 25 },
     './src/elementChecks.js': { statements: 63, branches: 68, functions: 73, lines: 63 },
     // Both of these carried `functions: 0` when the ratchet was first set —
     // a floor that could never fail, on the two largest coverage gaps in the

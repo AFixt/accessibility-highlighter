@@ -79,7 +79,7 @@ ratchet, not a target:
 | ------------------------- | ---------- |
 | `src/elementChecks.js`    | 63%        |
 | `src/background.js`       | 31%        |
-| `src/contentScript.js`    | 23%        |
+| `src/contentScript.js`    | 25%        |
 | `src/reportGenerators.js` | 47%        |
 | `src/uiPanels.js`         | 6%         |
 | any new source file       | 20%        |
