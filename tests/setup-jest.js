@@ -40,54 +40,25 @@ global.chrome = {
   }
 };
 
-// Mock document methods and properties
-Object.defineProperty(global.document, 'querySelectorAll', {
-  value: jest.fn().mockImplementation(selector => {
-    if (selector.includes('img:not([alt])')) {
-      // Mock image elements without alt
-      return [
-        {
-          tagName: 'IMG',
-          getAttribute: jest.fn().mockReturnValue(null),
-          parentNode: {
-            appendChild: jest.fn()
-          },
-          outerHTML: '<img src="test.jpg">',
-          getBoundingClientRect: () => ({ top: 0, left: 0, width: 100, height: 100 })
-        }
-      ];
-    }
-    if (selector.includes('a11y-error') || selector.includes('a11y-warning')) {
-      // Mock overlay elements - return array-like object with length property
-      const mockElements = [];
-      mockElements.forEach = jest.fn(callback => {
-        const _mockElement = { parentNode: { removeChild: jest.fn() } };
-        callback(_mockElement);
-      });
-      return mockElements;
-    }
-    // Default empty array for other selectors
-    return {
-      forEach: jest.fn(),
-      length: 0
-    };
-  }),
-  configurable: true
-});
-
-// Mock document.createElement
-document.createElement = jest.fn().mockImplementation(() => {
-  return {
-    style: {},
-    classList: {
-      add: jest.fn()
-    },
-    setAttribute: jest.fn(),
-    parentNode: {
-      appendChild: jest.fn()
-    }
-  };
-});
+// Deliberately NOT mocked here: document.createElement and
+// document.querySelectorAll. Both used to be replaced globally, for every
+// suite, and both did more harm than good (#133).
+//
+// createElement returned a plain object rather than a Node, so anything that
+// built an element and inserted it hit "parameter 1 is not of type 'Node'" and
+// landed in its own catch block — which is why overlay(), downloadFile() and
+// most of uiPanels.js could not be exercised at all. It also broke escapeHtml,
+// whose old implementation round-tripped through a div and therefore returned
+// undefined in every test.
+//
+// querySelectorAll returned canned arrays keyed off the selector string, which
+// made assertions that query the document unfalsifiable. Two were found and
+// both passed with the code under test deliberately broken.
+//
+// jsdom's own implementations are the default now. A suite that genuinely
+// needs canned scan results should build the DOM it wants with
+// `document.body.innerHTML = ...` and let jsdom answer, or stub within that
+// suite so the opt-out is visible where it applies.
 
 // Mock console methods
 global.console.log = jest.fn();
