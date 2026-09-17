@@ -16,30 +16,6 @@
     "src/uiPanels.js",
     "src/reportGenerators.js",
 
-    // A parallel, CommonJS module layer that no entry point reaches yet:
-    // manifest.json does not list it, and none of the content scripts require
-    // it. Only its own tests import it. It is a half-finished extraction from
-    // the monolithic contentScript.js rather than dead code, so it is declared
-    // as a surface rather than deleted — but it is genuinely unwired, and
-    // whether to finish the migration or drop it is a decision for its own
-    // issue, not for the commit that added Knip.
-    //
-    // Listed file by file, deliberately, rather than as `src/modules/**/*.js`.
-    // A glob would exempt the directory in perpetuity: every file added to it
-    // later would be born unreachable and Knip would never say so, which is
-    // the blind spot this tool exists to close. Measured — with the glob, a
-    // throwaway orphan dropped in here reported clean and exited 0. The
-    // exemption covers the three files that exist today and nothing else, so
-    // a fourth has to be justified by whoever adds it.
-    //
-    // The trade-off that remains: an entry file's own exports are not reported,
-    // so the 24 unused exports across these three stay invisible. That is the
-    // same decision as declaring them a surface, and it goes away when the
-    // migration question is settled.
-    "src/modules/config.js",
-    "src/modules/overlayManager.js",
-    "src/modules/state.js",
-
     // CLI scripts, run by npm scripts and by the workflows. Knip's plugins
     // catch the ones named in package.json; the pin checker is invoked as
     // `node scripts/check-action-pins.js` from security.yml, which they cannot
