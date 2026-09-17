@@ -32,9 +32,24 @@ module.exports = {
   coverageThreshold: {
     // The floor for any source file added from here on.
     global: { statements: 20, branches: 27, functions: 15, lines: 20 },
-    './src/background.js': { statements: 31, branches: 22, functions: 7, lines: 31 },
-    './src/contentScript.js': { statements: 46, branches: 38, functions: 50, lines: 47 },
-    './src/elementChecks.js': { statements: 71, branches: 72, functions: 84, lines: 71 },
+    './src/background.js': { statements: 95, branches: 96, functions: 92, lines: 95 },
+    './src/contentScript.js': { statements: 46, branches: 38, functions: 50, lines: 46 },
+    './src/elementChecks.js': { statements: 71, branches: 71, functions: 84, lines: 71 },
+    // A floor must sit under the WORST run, not the best. contentScript.js
+    // measures anywhere from 46.92% to 48.89% of statements and 38.3% to
+    // 40.29% of branches depending on the order Jest happens to run the
+    // suites in, because several of them require it and leave different
+    // globals behind. elementChecks.js branches swings across 72 the same way.
+    // Both were pinned at a figure inside that band and failed intermittently;
+    // they are now at the observed minimum. The non-determinism itself is
+    // #142 — a gate that fails at random teaches people to re-run until it
+    // passes, which costs more than the two points it was guarding. Raise
+    // these back once that is fixed.
+    //
+    // background.js went 31 -> 95 in #141: the service worker's toggle, its
+    // six error branches and its three listeners had no tests, and the
+    // listeners are only reachable by capturing what addListener was handed.
+    //
     // uiPanels.js jumped again in #139, 16 -> 87, when the panels themselves
     // got tests: the filter, summary and configuration panels and the progress
     // indicator were the largest untested surface left, and they only became
