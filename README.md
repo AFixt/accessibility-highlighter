@@ -81,7 +81,7 @@ ratchet, not a target:
 | `src/background.js`       | 31%        |
 | `src/contentScript.js`    | 46%        |
 | `src/reportGenerators.js` | 48%        |
-| `src/uiPanels.js`         | 16%        |
+| `src/uiPanels.js`         | 87%        |
 | any new source file       | 20%        |
 
 Every file is listed individually on purpose: Jest measures `global` only over
