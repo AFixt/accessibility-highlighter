@@ -43,15 +43,40 @@
  * @typedef {(
  *   | {kind: 'current'}
  *   | {kind: 'stale', expected: string}
+ *   | {kind: 'unresolved', reason: string}
  *   | {kind: 'unknown', reason: string}
  * )} PinStatus
  * current: pinned SHA matches what the tag resolves to today.
  * stale: the tag has moved since this was pinned.
- * unknown: nothing to compare against — no SHA, no tag comment, or the tag
- * could not be resolved.
+ * unresolved: a comparison was owed — the pin carries both a SHA and a tag —
+ * and the lookup failed, so it did not happen.
+ * unknown: nothing to compare against — no SHA, no tag comment, or a
+ * deliberate branch pin.
+ *
+ * unresolved and unknown used to be one bucket, and that folded "we could not
+ * check" into "there was nothing to check" (#109). Only the second is an
+ * all-clear; the first is a check that was owed and never performed, and it
+ * has to be able to fail the run on its own.
  */
 
 const SHA_PATTERN = /^[0-9a-f]{40}$/;
+
+// What a version tag looks like: v6, v4.4.0, 1.2.3. Anything else in the
+// trailing comment is a branch or a note, not a tag to resolve.
+//
+// This repository has one such reference — Dependency-Check_Action pinned to a
+// `main` commit, deliberately, because its only tag predates the `args` and
+// `out` inputs the step depends on. The comment records `main @ 2025-12-10`,
+// and `main` is a branch: it never resolves as a tag, and never will. Before
+// #109 split unresolved out of unknown that cost nothing, because both were
+// the same non-failing bucket. It does not any more, so the distinction has to
+// be drawn before the lookup rather than after it — otherwise the one pin this
+// repository can never check fails the check forever.
+//
+// Deliberately loose. The question is "is this the shape of a thing that could
+// resolve as a tag", not "is this valid semver": an action tagged `v2.1.0-rc1`
+// is still worth resolving, and one tagged `main` is still not.
+const VERSION_TAG_PATTERN = /^v?\d/;
 
 /**
  * Split a `uses:` line into its reference and any trailing `# tag` comment.
@@ -168,9 +193,11 @@ function parseActionPins(text, file) {
  * Compare one pin against the SHA its tag resolves to upstream.
  *
  * `resolvedSha` is undefined when the tag could not be resolved — a deleted
- * tag, a branch name in the comment, or a rate-limited API call. That is
- * reported as unknown rather than stale, because "we could not check" and
- * "this is out of date" warrant different responses.
+ * tag, a repository gone private or renamed, or a rate-limited API call. That
+ * is unresolved rather than stale, because "we could not check" and "this is
+ * out of date" warrant different responses — but it is not unknown either. A
+ * pin carrying both a SHA and a tag was owed a comparison, and a comparison
+ * that did not happen must not be reported as one that passed.
  *
  * @param {ActionPin} pin The parsed reference.
  * @param {string | undefined} resolvedSha What the tag points at today.
@@ -191,8 +218,15 @@ function classifyPin(pin, resolvedSha) {
     };
   }
 
+  if (!VERSION_TAG_PATTERN.test(pin.tag)) {
+    return {
+      kind: 'unknown',
+      reason: `"${pin.tag}" is a branch or note, not a version tag — nothing to resolve against`
+    };
+  }
+
   if (!resolvedSha) {
-    return { kind: 'unknown', reason: `tag "${pin.tag}" could not be resolved upstream` };
+    return { kind: 'unresolved', reason: `tag "${pin.tag}" could not be resolved upstream` };
   }
 
   return resolvedSha === pin.sha ? { kind: 'current' } : { kind: 'stale', expected: resolvedSha };
@@ -201,11 +235,12 @@ function classifyPin(pin, resolvedSha) {
 /**
  * Did the run resolve nothing at all?
  *
- * Every unresolved tag is reported as unknown, and unknown is not a failure —
- * one dead tag among many should not fail the job. But if *nothing* resolved,
- * the run has checked nothing, and reporting "0 stale" would be an all-clear
- * the check never earned. That is an expired or missing token, a rate limit,
- * or no network, and it is worth failing over.
+ * Since #109 an unresolved pin fails the run on its own, so this no longer
+ * decides the exit code — summarize() does. It survives because the total
+ * failure and the single dead tag want different words: nothing resolving is
+ * an expired token, a rate limit or no network, and saying so beats printing
+ * the same "could not be resolved" line against every pin and leaving the
+ * reader to infer the outage.
  *
  * Only pins with both a SHA and a tag are checkable, so a repository with no
  * checkable pins is not an outage — there was nothing to resolve.
@@ -215,12 +250,28 @@ function classifyPin(pin, resolvedSha) {
  * @returns {boolean} True when there was something to check and none of it resolved.
  */
 function checkedNothing(pins, resolved) {
-  const checkable = pins.filter(pin => pin.sha && pin.tag);
+  const checkable = pins.filter(isComparable);
   if (checkable.length === 0) {
     return false;
   }
 
   return checkable.every(pin => !resolved.get(`${repoSlug(pin)}@${pin.tag}`));
+}
+
+/**
+ * Is this pin owed a comparison?
+ *
+ * The one predicate behind three decisions that have to agree: which refs get
+ * looked up, which failures count as a check that did not happen, and whether
+ * a run with nothing resolved is an outage. They were computed separately
+ * before, which is how `pin.sha && pin.tag` came to include a branch pin that
+ * can never resolve.
+ *
+ * @param {ActionPin} pin The parsed reference.
+ * @returns {boolean} True when the pin claims a version tag its SHA can be checked against.
+ */
+function isComparable(pin) {
+  return Boolean(pin.sha && pin.tag && VERSION_TAG_PATTERN.test(pin.tag));
 }
 
 /**
@@ -233,4 +284,60 @@ function repoSlug(pin) {
   return `${pin.owner}/${pin.repo}`;
 }
 
-module.exports = { parseActionPins, classifyPin, checkedNothing, repoSlug };
+/**
+ * Kinds that mean a check was owed and came back bad, or came back not at all.
+ *
+ * `unresolved` is here because a lookup that failed is a comparison that did
+ * not happen, and an exit code that cannot tell an unperformed check from a
+ * passed one is reporting an all-clear it never earned (#109). The realistic
+ * shape is partial: a rate limit part-way through a run, or one action's
+ * repository going private, leaves most pins resolving and a few silently
+ * unchecked forever.
+ */
+const FAILING_KINDS = new Set(['stale', 'unresolved']);
+
+/**
+ * Kinds that are a legitimate pass — the comparison happened and matched, or
+ * there was never a comparison to make.
+ */
+const PASSING_KINDS = new Set(['current', 'unknown']);
+
+/**
+ * Count statuses by kind and decide whether the run should fail.
+ *
+ * Deliberately an allowlist: a kind in neither set throws rather than being
+ * waved through. A denylist ("fail on stale") is fail-open in exactly the
+ * shape of the bug this replaces — add a kind, forget the exit-code branch,
+ * and the run reports success over a state nobody classified. Prior art:
+ * AFixt/cookie-banner#116, whose first attempt used a denylist and had to be
+ * redone.
+ *
+ * @param {PinStatus[]} statuses One status per pin, in any order.
+ * @returns {{current: number, stale: number, unresolved: number, unknown: number, failed: boolean}} Counts per kind, and whether to exit non-zero.
+ * @throws {Error} When a status carries a kind this function does not know.
+ */
+function summarize(statuses) {
+  const counts = { current: 0, stale: 0, unresolved: 0, unknown: 0 };
+
+  for (const status of statuses) {
+    if (!FAILING_KINDS.has(status.kind) && !PASSING_KINDS.has(status.kind)) {
+      throw new Error(
+        `unrecognised pin status kind "${status.kind}" — add it to FAILING_KINDS or ` +
+          'PASSING_KINDS in scripts/action-pins.js rather than letting it pass unclassified'
+      );
+    }
+
+    counts[status.kind] += 1;
+  }
+
+  return { ...counts, failed: statuses.some(status => FAILING_KINDS.has(status.kind)) };
+}
+
+module.exports = {
+  parseActionPins,
+  classifyPin,
+  checkedNothing,
+  isComparable,
+  repoSlug,
+  summarize
+};

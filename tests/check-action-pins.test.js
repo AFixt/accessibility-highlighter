@@ -57,6 +57,11 @@ let elsewhereHeaders;
 // When set, the main stub redirects to `redirectTo` instead of answering 403.
 let redirectTo;
 
+// When set, the stub resolves every lookup *except* the ones whose URL
+// contains this string, which get the 403 instead. That is the partial failure
+// #109 is about — most pins check out, one silently stops being checked.
+let failLookupsMatching;
+
 beforeAll(async () => {
   tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'a11y-action-pins-'));
 
@@ -92,6 +97,18 @@ beforeAll(async () => {
       return;
     }
 
+    if (failLookupsMatching !== undefined) {
+      if (req.url.includes(failLookupsMatching)) {
+        res.writeHead(403, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ message: 'API rate limit exceeded' }));
+        return;
+      }
+
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ object: { sha: SHA, type: 'commit' } }));
+      return;
+    }
+
     res.writeHead(403, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ message: 'API rate limit exceeded' }));
   });
@@ -111,6 +128,7 @@ beforeEach(() => {
   receivedHeaders = [];
   elsewhereHeaders = [];
   redirectTo = undefined;
+  failLookupsMatching = undefined;
 });
 
 /**
@@ -268,6 +286,65 @@ describe('check-action-pins CLI', () => {
       expect(sent.authorization).toBe('Bearer SECRET-TOKEN-VALUE');
     }
     expect(status).toBe(0); // and the hop actually resolved the pin
+  });
+
+  it('fails when one pin among many could not be resolved', async () => {
+    // The gap #109 closed. checkedNothing used .every(), so a single successful
+    // lookup suppressed it: 28 resolve, 1 403s, that pin is bucketed as "could
+    // not be checked", stale.length is 0, and the run exits 0 over a comparison
+    // it never made. Mutation-checked — drop 'unresolved' from FAILING_KINDS in
+    // scripts/action-pins.js and this is the test that goes red.
+    //
+    // This is the realistic shape, not the total outage: a rate limit part-way
+    // through a run, or one action's repository going private or being renamed.
+    // Every other lookup keeps succeeding, so nothing looks wrong.
+    const dir = workflowsDir('partial-failure', [
+      'jobs:',
+      '  a:',
+      '    steps:',
+      `      - uses: actions/checkout@${SHA} # v6`,
+      `      - uses: actions/setup-node@${SHA} # v7`
+    ]);
+
+    failLookupsMatching = 'v7';
+    const { status, output } = await check(dir);
+
+    // it really is partial: the other pin resolved and was reported current
+    expect(output).toContain('1 current');
+    expect(output).toContain('1 could not be resolved');
+    expect(output).toContain('Owed a comparison that did not happen');
+    // and not the total-outage message, which is a different diagnosis
+    expect(output).not.toContain('nothing here was actually checked');
+    expect(status).toBe(1);
+  });
+
+  it('does not fail over a deliberate branch pin, which can never resolve', async () => {
+    // The other half of the split has to hold, or the fix just trades a
+    // fail-open for a fail-always. This is security.yml:303's exact shape —
+    // Dependency-Check_Action pinned to a `main` commit on purpose, with the
+    // branch and date in the comment. The first cut of #109 failed the run on
+    // it: `sha && tag` is true, `main` is not a tag, so the lookup 404s
+    // forever and the check would have been permanently red.
+    //
+    // Caught by running the script against this repository's own workflows
+    // rather than only against fixtures, which is why that is worth doing.
+    const dir = workflowsDir('resolved-plus-branch-pin', [
+      'jobs:',
+      '  a:',
+      '    steps:',
+      `      - uses: actions/checkout@${SHA} # v6`,
+      `      - uses: dependency-check/Dependency-Check_Action@${SHA} # main @ 2025-12-10`
+    ]);
+
+    failLookupsMatching = 'main';
+    const { status, output } = await check(dir);
+
+    expect(requestCount).toBe(1); // and it did not waste a request asking for a tag named main
+    expect(output).toContain('1 current');
+    expect(output).toContain('0 could not be resolved');
+    expect(output).toContain('1 nothing to compare');
+    expect(output).toContain('not a version tag');
+    expect(status).toBe(0);
   });
 
   it('fails when the directory holds no action references at all', async () => {
