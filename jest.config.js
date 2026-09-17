@@ -35,7 +35,12 @@ module.exports = {
     './src/background.js': { statements: 31, branches: 22, functions: 7, lines: 31 },
     './src/contentScript.js': { statements: 46, branches: 38, functions: 50, lines: 47 },
     './src/elementChecks.js': { statements: 71, branches: 72, functions: 84, lines: 71 },
-    // The jump in these numbers is #137: tests/highlighter.test.js stopped
+    // uiPanels.js jumped again in #139, 16 -> 87, when the panels themselves
+    // got tests: the filter, summary and configuration panels and the progress
+    // indicator were the largest untested surface left, and they only became
+    // testable once the createElement stub was gone.
+    //
+    // The jump before that is #137: tests/highlighter.test.js stopped
     // asserting against mocks of the extension's own functions and started
     // running the real scan, which reaches a great deal of code nothing had
     // executed before. contentScript.js went 25 -> 46, elementChecks.js
@@ -49,7 +54,7 @@ module.exports = {
     // generators call its categorizeIssue and analyzeLogs; 1% is a weak floor
     // but it is a floor, and it is honest about the level.
     './src/reportGenerators.js': { statements: 48, branches: 71, functions: 70, lines: 48 },
-    './src/uiPanels.js': { statements: 16, branches: 45, functions: 11, lines: 16 }
+    './src/uiPanels.js': { statements: 87, branches: 78, functions: 70, lines: 88 }
   },
   collectCoverageFrom: [
     'src/**/*.js',
