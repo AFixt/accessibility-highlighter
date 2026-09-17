@@ -27,3 +27,9 @@ licenses.json
 # Local-only working notes
 errors.md
 element-highlighting-guide.md
+
+# Ad-hoc editor backups. Git is the backup; 26 of these (12,949 lines) were
+# tracked until #127, invisible to Jest, ESLint, Knip and jscpd because each
+# correctly skips them, so nothing could ever report them.
+*.bak
+*.bak2
