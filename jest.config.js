@@ -11,6 +11,35 @@ module.exports = {
   collectCoverage: true,
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov'],
+  // A ratchet, not a target. Each number sits just under what that file
+  // actually covers today, so coverage cannot silently fall; raising them is
+  // how an improvement gets locked in. Coverage was collected and reported
+  // here for a long time without ever being enforced (#122), which made it
+  // the one quality signal in this repository that could rot unnoticed while
+  // lint, duplication, licences and action pins were all gated.
+  //
+  // Every source file is listed individually, and that is load-bearing rather
+  // than verbose. Jest removes a path with its own threshold from the pool
+  // that `global` is measured over, so naming only the well-covered files
+  // would leave `global` measuring the poorly-covered remainder — with just
+  // elementChecks.js broken out, global fell from 20.22% to 12.9% and the run
+  // failed. Measured, not assumed. With every file named, `global` applies to
+  // whatever is added next, which is the floor a new file has to clear.
+  //
+  // The spread is the reason a single global number would not do: 63% for
+  // elementChecks.js against 3% for uiPanels.js. One average lets the good
+  // file fall a long way before anything notices.
+  coverageThreshold: {
+    // The floor for any source file added from here on.
+    global: { statements: 20, branches: 27, functions: 15, lines: 20 },
+    './src/background.js': { statements: 31, branches: 22, functions: 7, lines: 31 },
+    './src/contentScript.js': { statements: 23, branches: 14, functions: 25, lines: 23 },
+    './src/elementChecks.js': { statements: 63, branches: 68, functions: 73, lines: 63 },
+    // These two are barely tested. The floors stop the little there is from
+    // going away; they are not an endorsement of the level.
+    './src/reportGenerators.js': { statements: 4, branches: 8, functions: 0, lines: 5 },
+    './src/uiPanels.js': { statements: 3, branches: 4, functions: 0, lines: 3 }
+  },
   collectCoverageFrom: [
     'src/**/*.js',
     '!src/contentScript-original.js',

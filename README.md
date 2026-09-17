@@ -69,6 +69,30 @@ be told what they are. If Knip flags something that is deliberate, add an
 `entry` glob or an `ignore` rule **with the reason**, rather than silencing the
 whole category.
 
+### Coverage thresholds
+
+`npm test` fails if coverage falls. `jest.config.js` carries a
+`coverageThreshold` set just under what each source file covers today — a
+ratchet, not a target:
+
+| File                      | statements |
+| ------------------------- | ---------- |
+| `src/elementChecks.js`    | 63%        |
+| `src/background.js`       | 31%        |
+| `src/contentScript.js`    | 23%        |
+| `src/reportGenerators.js` | 4%         |
+| `src/uiPanels.js`         | 3%         |
+| any new source file       | 20%        |
+
+Every file is listed individually on purpose: Jest measures `global` only over
+files that have no threshold of their own, so naming just the well-covered ones
+would leave `global` measuring the remainder. With all of them named, `global`
+becomes the floor a newly added file has to clear.
+
+If you improve coverage, **raise the number** — that is what locks the
+improvement in. If a change legitimately lowers it, say why in the PR rather
+than lowering the threshold quietly.
+
 ## How to Use
 
 Once installed, the extension adds a button to the browser toolbar. When clicked:
