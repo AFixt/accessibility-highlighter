@@ -33,18 +33,16 @@ module.exports = {
     // The floor for any source file added from here on.
     global: { statements: 20, branches: 27, functions: 15, lines: 20 },
     './src/background.js': { statements: 98, branches: 98, functions: 92, lines: 98 },
-    './src/contentScript.js': { statements: 46, branches: 38, functions: 50, lines: 46 },
-    './src/elementChecks.js': { statements: 71, branches: 71, functions: 84, lines: 71 },
-    // A floor must sit under the WORST run, not the best. contentScript.js
-    // measures anywhere from 46.92% to 48.89% of statements and 38.3% to
-    // 40.29% of branches depending on the order Jest happens to run the
-    // suites in, because several of them require it and leave different
-    // globals behind. elementChecks.js branches swings across 72 the same way.
-    // Both were pinned at a figure inside that band and failed intermittently;
-    // they are now at the observed minimum. The non-determinism itself is
-    // #142 — a gate that fails at random teaches people to re-run until it
-    // passes, which costs more than the two points it was guarding. Raise
-    // these back once that is fixed.
+    './src/contentScript.js': { statements: 47, branches: 40, functions: 50, lines: 48 },
+    './src/elementChecks.js': { statements: 71, branches: 72, functions: 84, lines: 71 },
+    // These two were lowered in #141 because the measurement under them was
+    // not reproducible, and restored here now that it is (#142). The cause was
+    // not test ordering, which was the original guess: processNextChunk yields
+    // mid-chunk when `performance.now() - chunkStartTime` exceeds CHUNK_DELAY,
+    // so whether that branch ran came down to how loaded the machine was.
+    // Five runs in twenty crossed it. The clock is controlled in the suites
+    // that scan, so nothing here depends on timing any more — 20 consecutive
+    // runs give an identical figure.
     //
     // background.js went 31 -> 95 in #141: the service worker's toggle, its
     // six error branches and its three listeners had no tests, and the

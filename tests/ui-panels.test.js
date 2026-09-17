@@ -33,6 +33,19 @@ Object.defineProperty(window, 'scrollY', { value: 0, writable: true });
 require('../src/contentScript.js');
 
 const realGetBoundingClientRect = Element.prototype.getBoundingClientRect;
+// The incremental scan yields mid-chunk when `performance.now() -
+// chunkStartTime` exceeds CHUNK_DELAY (16ms), deferring the rest to
+// requestAnimationFrame. runAccessibilityChecks defaults to incremental, so
+// every scan below races that wall clock: on a loaded machine a chunk can
+// exceed 16ms and the assertions then run against a half-finished scan (#142).
+//
+// Freezing performance.now makes the difference exactly 0 — both sides of that
+// comparison read it — so the timing branch can never fire. The chunk still
+// ends after CHUNK_SIZE (25) elements, so this only yields a fully synchronous
+// scan for fixtures smaller than that; every fixture here is a handful of
+// elements. The yield path itself is covered deliberately in
+// tests/incremental-scan.test.js rather than by chance here.
+const realPerformanceNow = performance.now;
 
 /**
  * Markup producing both errors and at least one warning. The tabindex="0" is
@@ -46,12 +59,14 @@ const PAGE_WITH_ISSUES =
   '<iframe src="t.html"></iframe><div tabindex="0">not actionable</div></main>';
 
 beforeAll(() => {
+  performance.now = () => 0;
   Element.prototype.getBoundingClientRect = function () {
     return { top: 0, left: 0, width: 100, height: 50, right: 100, bottom: 50 };
   };
 });
 
 afterAll(() => {
+  performance.now = realPerformanceNow;
   Element.prototype.getBoundingClientRect = realGetBoundingClientRect;
 });
 
