@@ -17,7 +17,9 @@ const {
   parseActionPins,
   classifyPin,
   checkedNothing,
-  repoSlug
+  isComparable,
+  repoSlug,
+  summarize
 } = require('../scripts/action-pins');
 
 const SHA = 'd23441a48e516b6c34aea4fa41551a30e30af803';
@@ -195,7 +197,7 @@ describe('classifyPin', () => {
     });
   });
 
-  describe('unknown rather than stale', () => {
+  describe('unknown — there was nothing to compare', () => {
     it('when the reference is not pinned to a SHA', () => {
       const status = classifyPin({ ...pinned, ref: 'v4', sha: undefined, tag: 'v4' }, SHA);
       expect(status.kind).toBe('unknown');
@@ -208,14 +210,121 @@ describe('classifyPin', () => {
       expect(status.reason).toContain('no "# <tag>" comment');
     });
 
-    it('when the tag could not be resolved upstream', () => {
-      // A deleted tag, a branch name in the comment, or a rate-limited call.
-      // Reporting these as stale would send someone chasing a bump that is not
-      // there, so "we could not check" stays its own answer.
-      const status = classifyPin({ ...pinned, tag: 'v6' }, undefined);
+    it('when the comment names a branch rather than a version tag', () => {
+      // security.yml pins Dependency-Check_Action to a `main` commit on
+      // purpose. `main` is a branch: it never resolves as a tag, so there is
+      // nothing to compare and never will be. That was harmless while every
+      // unresolvable pin shared the non-failing bucket; since #109 a failed
+      // lookup fails the run, so this has to be decided by shape rather than
+      // by asking the API and believing the answer.
+      const status = classifyPin({ ...pinned, tag: 'main' }, undefined);
+
       expect(status.kind).toBe('unknown');
-      expect(status.reason).toContain('v6');
+      expect(status.reason).toContain('main');
+      expect(status.reason).toContain('not a version tag');
     });
+  });
+
+  it('reports a tag that would not resolve as unresolved, not unknown or stale', () => {
+    // A deleted tag, a repository gone private, or a rate-limited call.
+    // Reporting it as stale would send someone chasing a bump that is not
+    // there; reporting it as unknown — which it was until #109 — files it
+    // alongside "there was nothing to check" and lets the run exit 0 over a
+    // comparison that was owed and never happened.
+    const status = classifyPin({ ...pinned, tag: 'v6' }, undefined);
+
+    expect(status.kind).toBe('unresolved');
+    expect(status.reason).toContain('v6');
+  });
+});
+
+describe('summarize', () => {
+  it('fails the run for one unresolved pin among many that resolved', () => {
+    // The case the old aggregate guard could not see: 28 resolve, 1 does not,
+    // 0 stale, exit 0. This is the whole point of #109, so it is asserted
+    // first and on its own.
+    const statuses = [
+      { kind: 'current' },
+      { kind: 'current' },
+      { kind: 'unresolved', reason: 'tag "v6" could not be resolved upstream' }
+    ];
+
+    expect(summarize(statuses)).toEqual({
+      current: 2,
+      stale: 0,
+      unresolved: 1,
+      unknown: 0,
+      failed: true
+    });
+  });
+
+  it('does not fail over pins that had nothing to compare', () => {
+    const statuses = [
+      { kind: 'current' },
+      { kind: 'unknown', reason: 'not pinned to a SHA (points at "main")' }
+    ];
+
+    expect(summarize(statuses)).toMatchObject({ current: 1, unknown: 1, failed: false });
+  });
+
+  it('fails when a pin is stale', () => {
+    expect(summarize([{ kind: 'stale', expected: OTHER_SHA }])).toMatchObject({
+      stale: 1,
+      failed: true
+    });
+  });
+
+  it('passes an all-current run', () => {
+    expect(summarize([{ kind: 'current' }, { kind: 'current' }])).toMatchObject({
+      current: 2,
+      failed: false
+    });
+  });
+
+  it('passes when there was nothing to summarize at all', () => {
+    expect(summarize([])).toEqual({
+      current: 0,
+      stale: 0,
+      unresolved: 0,
+      unknown: 0,
+      failed: false
+    });
+  });
+
+  it('throws on a kind it does not know rather than treating it as a pass', () => {
+    // The allowlist is the load-bearing part. A denylist ("fail on stale and
+    // unresolved") is fail-open in the same shape as the bug this replaces:
+    // add a kind, forget to classify it, and the run reports success over a
+    // state nobody decided about. Prior art: AFixt/cookie-banner#116, whose
+    // first attempt used a denylist and had to be redone.
+    expect(() => summarize([{ kind: 'probably-fine' }])).toThrow(/probably-fine/);
+  });
+});
+
+describe('isComparable', () => {
+  const pinned = {
+    file: 'ci.yml',
+    line: 1,
+    owner: 'actions',
+    repo: 'checkout',
+    ref: SHA,
+    sha: SHA
+  };
+
+  it('is true for a SHA pinned against a version tag', () => {
+    expect(isComparable({ ...pinned, tag: 'v6' })).toBe(true);
+    expect(isComparable({ ...pinned, tag: 'v4.4.0' })).toBe(true);
+    expect(isComparable({ ...pinned, tag: '1.2.3' })).toBe(true);
+  });
+
+  it('is false for a branch pin, which can never resolve as a tag', () => {
+    expect(isComparable({ ...pinned, tag: 'main' })).toBe(false);
+    expect(isComparable({ ...pinned, tag: 'master' })).toBe(false);
+  });
+
+  it('is false without a SHA or without a tag comment', () => {
+    expect(isComparable({ ...pinned, sha: undefined, ref: 'v4', tag: 'v4' })).toBe(false);
+    expect(isComparable(pinned)).toBe(false);
   });
 });
 

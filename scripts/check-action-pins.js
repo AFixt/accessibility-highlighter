@@ -11,14 +11,21 @@
  *
  * Exit code 1 when any pin is stale — the tag has moved since it was pinned,
  * which usually means upstream shipped a fix this repository is frozen
- * against. References that cannot be checked (no SHA, no tag comment, or a
- * branch pin like Dependency-Check_Action's deliberate `main` pin) are
- * reported as unknown and do not fail the run: "we could not check" and
- * "this is out of date" warrant different responses.
+ * against.
  *
- * Also exit code 1 when *nothing* resolved. One dead tag among many is not an
- * outage, but zero successful lookups means the run checked nothing, and
- * reporting "0 stale" from that is an all-clear it never earned.
+ * Exit code 1 too when a pin that was owed a comparison did not get one: it
+ * carries both a SHA and a `# tag`, and the tag would not resolve. One dead
+ * tag among many is not an outage, but it is still a check that did not
+ * happen, and "0 stale" over it is an all-clear the run never earned (#109).
+ * The realistic case is partial rather than total — a rate limit part-way
+ * through, or one action's repository going private — which is quieter and
+ * likelier than a dead token, and is precisely the supply-chain scenario the
+ * pinning exists for.
+ *
+ * References with nothing to compare (no SHA, no tag comment, or a branch pin
+ * like Dependency-Check_Action's deliberate `main` pin) are reported as
+ * unknown and do not fail the run. "There was nothing to check" and "we could
+ * not check" are different states and no longer share a bucket.
  *
  * Env vars:
  *   GITHUB_TOKEN   — raises the API rate limit from 60/hr to 5000/hr. Optional
@@ -31,7 +38,14 @@ const fs = require('node:fs/promises');
 const http = require('node:http');
 const { join } = require('node:path');
 
-const { checkedNothing, classifyPin, parseActionPins, repoSlug } = require('./action-pins');
+const {
+  checkedNothing,
+  classifyPin,
+  isComparable,
+  parseActionPins,
+  repoSlug,
+  summarize
+} = require('./action-pins');
 
 const DEFAULT_WORKFLOW_DIR = join(__dirname, '../.github/workflows');
 
@@ -258,34 +272,45 @@ async function collectPins(dir) {
  * attention. Split out of main() to keep that function within this
  * repository's complexity limits.
  *
+ * The statuses come back alongside the lines so main() can hand them to
+ * summarize() rather than re-deriving the verdict from bucket lengths. Bucket
+ * lengths are the thing that went wrong before: `unknown.length` counted two
+ * different states, so no arithmetic over it could tell them apart.
+ *
  * @param {import('./action-pins').ActionPin[]} pins Parsed references.
  * @param {Map<string, string | undefined>} resolved Tag lookups, keyed `slug@tag`.
- * @returns {{stale: string[], unknown: string[]}} Reportable lines per bucket.
+ * @returns {{stale: string[], unresolved: string[], unknown: string[], statuses: import('./action-pins').PinStatus[]}} Reportable lines per bucket, and every status.
  */
 function report(pins, resolved) {
   const stale = [];
+  const unresolved = [];
   const unknown = [];
+  const statuses = [];
 
   for (const pin of pins) {
     const status = classifyPin(pin, resolved.get(`${repoSlug(pin)}@${pin.tag}`));
     const where = `${pin.file}:${pin.line}`;
+    statuses.push(status);
 
     if (status.kind === 'current') {
       console.log(`  ok       ${where}  ${repoSlug(pin)}@${pin.tag}`);
     } else if (status.kind === 'stale') {
       stale.push(`${where}  ${repoSlug(pin)}  ${pin.tag}: ${pin.sha} -> ${status.expected}`);
       console.log(`  STALE    ${where}  ${repoSlug(pin)}@${pin.tag}`);
+    } else if (status.kind === 'unresolved') {
+      unresolved.push(`${where}  ${repoSlug(pin)}  ${status.reason}`);
+      console.log(`  FAILED   ${where}  ${repoSlug(pin)}  ${status.reason}`);
     } else {
       unknown.push(`${where}  ${repoSlug(pin)}  ${status.reason}`);
       console.log(`  unknown  ${where}  ${repoSlug(pin)}  ${status.reason}`);
     }
   }
 
-  return { stale, unknown };
+  return { stale, unresolved, unknown, statuses };
 }
 
 /**
- * Check every pin and report; exit 1 if any is stale.
+ * Check every pin and report; exit 1 if any is stale or went unchecked.
  *
  * @returns {Promise<void>} Resolves when the report is printed.
  */
@@ -300,12 +325,14 @@ async function main() {
   }
 
   // One lookup per distinct repo+tag: the references collapse to a handful,
-  // which matters against an unauthenticated 60/hr rate limit.
+  // which matters against an unauthenticated 60/hr rate limit. isComparable
+  // rather than `sha && tag` so a branch pin is not looked up at all — asking
+  // for a tag named `main` spends a request to learn what its shape already
+  // said, and now that a failed lookup fails the run, believing the answer
+  // would fail it forever.
   const wanted = new Map();
-  for (const pin of pins) {
-    if (pin.sha && pin.tag) {
-      wanted.set(`${repoSlug(pin)}@${pin.tag}`, { slug: repoSlug(pin), tag: pin.tag });
-    }
+  for (const pin of pins.filter(isComparable)) {
+    wanted.set(`${repoSlug(pin)}@${pin.tag}`, { slug: repoSlug(pin), tag: pin.tag });
   }
 
   const resolved = new Map();
@@ -313,28 +340,32 @@ async function main() {
     [...wanted].map(async ([key, { slug, tag }]) => resolved.set(key, await resolveTag(slug, tag)))
   );
 
-  const { stale, unknown } = report(pins, resolved);
+  const { stale, unresolved, unknown, statuses } = report(pins, resolved);
+  const counts = summarize(statuses);
 
   console.log(
-    `\n${pins.length} references checked: ${pins.length - stale.length - unknown.length} current, ` +
-      `${stale.length} stale, ${unknown.length} unknown.`
+    `\n${pins.length} references checked: ${counts.current} current, ${counts.stale} stale, ` +
+      `${counts.unresolved} could not be resolved, ${counts.unknown} nothing to compare.`
   );
 
   if (unknown.length > 0) {
-    console.log('\nCould not be checked:');
+    console.log('\nNothing to compare against — not a failure:');
     for (const line of unknown) {
       console.log(`  ${line}`);
     }
   }
 
-  if (checkedNothing(pins, resolved)) {
-    console.error(
-      '\nNot one tag resolved, so nothing here was actually checked. That is an\n' +
-        'expired or missing GITHUB_TOKEN, an API rate limit, or no network — not a\n' +
-        'clean bill of health. Failing rather than reporting an all-clear.'
+  if (unresolved.length > 0) {
+    console.log('\nOwed a comparison that did not happen:');
+    for (const line of unresolved) {
+      console.log(`  ${line}`);
+    }
+    console.log(
+      '\nEach of these is pinned to a SHA and names a tag, so it should have been\n' +
+        'checked and was not. A deleted or renamed tag, a repository gone private,\n' +
+        'or a rate limit part-way through the run. Until it resolves, that pin is\n' +
+        'not being watched at all.'
     );
-    process.exitCode = 1;
-    return;
   }
 
   if (stale.length > 0) {
@@ -347,6 +378,19 @@ async function main() {
         'Read the upstream release notes first — that is the review step a pinned\n' +
         'SHA buys you, and the reason this repository pins rather than floating.'
     );
+  }
+
+  // Said separately because the total failure has a different cause from one
+  // dead tag, and the exit code cannot say which it was.
+  if (checkedNothing(pins, resolved)) {
+    console.error(
+      '\nNot one tag resolved, so nothing here was actually checked. That is an\n' +
+        'expired or missing GITHUB_TOKEN, an API rate limit, or no network — not a\n' +
+        'clean bill of health. Failing rather than reporting an all-clear.'
+    );
+  }
+
+  if (counts.failed) {
     process.exitCode = 1;
   }
 }
