@@ -34,9 +34,16 @@ require('../src/contentScript.js');
 
 const realGetBoundingClientRect = Element.prototype.getBoundingClientRect;
 
-/** Markup producing one error (missing alt) and one warning-ish link issue. */
+/**
+ * Markup producing both errors and at least one warning. The tabindex="0" is
+ * there deliberately: it is the check that reports at warning level, and
+ * without it summary.warnings is 0 and any assertion about the warning count
+ * is satisfied whatever the panel renders. Found by mutation — forcing
+ * summary.warnings to 0 failed nothing until this fixture grew a warning.
+ */
 const PAGE_WITH_ISSUES =
-  '<main><img src="t.jpg"><a href="/x">click here</a><iframe src="t.html"></iframe></main>';
+  '<main><img src="t.jpg"><a href="/x">click here</a>' +
+  '<iframe src="t.html"></iframe><div tabindex="0">not actionable</div></main>';
 
 beforeAll(() => {
   Element.prototype.getBoundingClientRect = function () {
@@ -112,6 +119,11 @@ describe('the progress indicator', () => {
 
 describe('the summary panel', () => {
   it('reports the counts the scan actually produced', () => {
+    // Asserted against the labels the panel prints, not as a bare substring of
+    // its text. Found by mutation: forcing summary.total to 0 failed nothing,
+    // because `toContain('3')` matched a 3 from the category breakdown further
+    // down. A substring check over a whole panel will find the digit
+    // somewhere and pass for the wrong reason.
     const issues = scan();
     const summary = global.analyzeLogs();
 
@@ -119,8 +131,10 @@ describe('the summary panel', () => {
 
     const panel = document.querySelector('.a11y-summary-panel');
     expect(panel).not.toBeNull();
-    expect(panel.textContent).toContain(String(issues));
-    expect(panel.textContent).toContain(String(summary.errors));
+    expect(issues).toBeGreaterThan(0); // the fixture really did produce issues
+    expect(panel.textContent).toContain(`Total Issues: ${issues}`);
+    expect(panel.textContent).toContain(`Errors: ${summary.errors}`);
+    expect(panel.textContent).toContain(`Warnings: ${summary.warnings}`);
   });
 
   it('lists the categories the scan found', () => {
