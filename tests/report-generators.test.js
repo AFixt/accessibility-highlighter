@@ -215,12 +215,11 @@ describe('generateHTMLReport', () => {
     expect(html).toContain('</html>');
   });
 
-  // NOT tested here: whether the generated document escapes what it
-  // interpolates. It does not — document.title, window.location.href,
-  // log.message and log.element.outerHTML all go in raw, and the last of those
-  // is the scanned page's own markup. That is a live injection bug rather than
-  // a coverage gap, so it is filed separately rather than pinned by a test
-  // here; a test asserting the current behaviour would entrench it.
+  // Escaping is not tested here. It was raw when this suite was written — a
+  // live injection bug rather than a coverage gap (#131) — so it was filed
+  // and fixed separately rather than pinned by a test asserting the broken
+  // behaviour. tests/report-escaping.test.js now covers it; this suite stays
+  // about what the generators produce.
 });
 
 describe('downloadFile', () => {

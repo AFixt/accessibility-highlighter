@@ -38,11 +38,11 @@ module.exports = {
     // Both of these carried `functions: 0` when the ratchet was first set —
     // a floor that could never fail, on the two largest coverage gaps in the
     // project (#128). tests/report-generators.test.js took reportGenerators.js
-    // from 0% to 65% of functions, which is what makes a real floor possible
-    // here. uiPanels.js came off zero incidentally, because the report
+    // from 0% to 65% of functions, and tests/report-escaping.test.js (#131)
+    // carried it to 70%, which is what makes a real floor possible here. uiPanels.js came off zero incidentally, because the report
     // generators call its categorizeIssue and analyzeLogs; 1% is a weak floor
     // but it is a floor, and it is honest about the level.
-    './src/reportGenerators.js': { statements: 45, branches: 60, functions: 65, lines: 46 },
+    './src/reportGenerators.js': { statements: 47, branches: 66, functions: 70, lines: 47 },
     './src/uiPanels.js': { statements: 6, branches: 32, functions: 1, lines: 6 }
   },
   collectCoverageFrom: [
