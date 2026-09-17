@@ -80,14 +80,18 @@ ratchet, not a target:
 | `src/elementChecks.js`    | 63%        |
 | `src/background.js`       | 31%        |
 | `src/contentScript.js`    | 23%        |
-| `src/reportGenerators.js` | 4%         |
-| `src/uiPanels.js`         | 3%         |
+| `src/reportGenerators.js` | 47%        |
+| `src/uiPanels.js`         | 6%         |
 | any new source file       | 20%        |
 
 Every file is listed individually on purpose: Jest measures `global` only over
 files that have no threshold of their own, so naming just the well-covered ones
 would leave `global` measuring the remainder. With all of them named, `global`
 becomes the floor a newly added file has to clear.
+
+The table shows statements; `jest.config.js` also carries branch, function and
+line floors per file. Two of the function floors were `0` when the ratchet was
+first set, which could never fail — see #128 for how that was closed.
 
 If you improve coverage, **raise the number** — that is what locks the
 improvement in. If a change legitimately lowers it, say why in the PR rather
