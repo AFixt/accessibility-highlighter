@@ -44,6 +44,31 @@ npm run build
 npm run package
 ```
 
+### Quality checks
+
+```bash
+# Lint, formatting, markdown, manifest version, duplication — in parallel
+npm run check
+
+# The full pre-merge suite: the above, plus knip, tests, build, size budget,
+# licence check, link check and npm audit
+npm run check:all
+```
+
+[Knip](https://knip.dev) finds unused files, exports and dependencies — the
+things ESLint cannot see, because `no-unused-vars` only ever looks at one file
+at a time. It runs as part of `check:all` and must report nothing:
+
+```bash
+npm run knip
+```
+
+Its configuration lives in `knip.jsonc`, which is commented: the extension's
+entry points come from `manifest.json` rather than from imports, so Knip has to
+be told what they are. If Knip flags something that is deliberate, add an
+`entry` glob or an `ignore` rule **with the reason**, rather than silencing the
+whole category.
+
 ## How to Use
 
 Once installed, the extension adds a button to the browser toolbar. When clicked:
