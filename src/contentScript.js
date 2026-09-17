@@ -508,16 +508,27 @@ function overlay(overlayClass, level, msg) {
     // Append overlay to document body
     document.body.appendChild(overlayEl);
 
-    // Push the error to the LOGS array with sanitized element HTML
-    const sanitizedElementHTML =
-      elementInError.outerHTML
-        .slice(0, A11Y_CONFIG.PERFORMANCE.MAX_LOG_ELEMENT_LENGTH)
-        .replace(/[<>"'&]/g, '') + '...';
-
+    // Keys are lower-case and `element` is the node itself, because that is
+    // what every reader expects (#132). This used to push `{Level, Message,
+    // Element}` with Element as a truncated, tag-stripped string, while
+    // uiPanels.js and reportGenerators.js both read `log.level`,
+    // `log.message` and `log.element`, and call `.tagName`, `.outerHTML` and
+    // getElementXPath on the last one. Nothing matched: every field came back
+    // undefined on real data, and generateCSVReport threw outright on
+    // `log.message.replace(...)`.
+    //
+    // The old string also stripped <>"'& out of the markup, which made it
+    // unusable for the reports that wanted to show the element. That strip was
+    // a blunt stand-in for escaping at render time; the reports escape
+    // properly now (#131), so the node can be stored as-is.
+    //
+    // console.table(LOGS) below renders these keys as column headers, which is
+    // why they were capitalised. Lower-case headers are the cost of the fix,
+    // and the node column is more useful than a mangled string.
     LOGS.push({
-      Level: level,
-      Message: sanitizedMsg,
-      Element: sanitizedElementHTML
+      level,
+      message: sanitizedMsg,
+      element: elementInError
     });
   } catch (error) {
     console.error('Error creating overlay:', error);

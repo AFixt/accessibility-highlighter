@@ -112,34 +112,6 @@ describe('Accessibility Highlighter Unit Tests', () => {
       global.console.warn = jest.fn();
     });
 
-    test('overlay function should sanitize message content', () => {
-      // Create a test element using innerHTML to avoid jsdom issues
-      document.body.innerHTML = '<div id="test-element">Test</div>';
-      const _testElement = document.getElementById('test-element');
-
-      // Mock global logs array
-      global.logs = [];
-
-      // Create overlay function that matches the source code
-      function overlay(overlayClass, level, msg) {
-        const sanitizedMsg = String(msg).replace(/[<>]/g, '');
-        global.logs.push({
-          Level: level,
-          Message: sanitizedMsg,
-          Element: this.outerHTML ? this.outerHTML.slice(0, 100) : 'test-element'
-        });
-      }
-
-      // Test with malicious content
-      const maliciousMessage = '<script>alert("xss")</script>Test message';
-      overlay.call(_testElement, 'overlay', 'error', maliciousMessage);
-
-      // Check that script tags were removed
-      expect(global.logs[0].Message).toBe('scriptalert("xss")/scriptTest message');
-      expect(global.logs[0].Message).not.toContain('<script>');
-      expect(global.logs[0].Message).not.toContain('</script>');
-    });
-
     test('throttling should prevent rapid successive calls', () => {
       let callCount = 0;
       let lastRunTime = 0;
