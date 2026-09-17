@@ -120,6 +120,51 @@ describe('the entry overlay() writes', () => {
   });
 });
 
+describe('what overlay() refuses to record', () => {
+  // These are overlay()'s own guard clauses. They were unreachable from a test
+  // while setup-jest.js stubbed createElement (#133), because the function
+  // never got far enough to matter — the stub put every call in the catch.
+
+  it('ignores an element with no box, rather than overlaying nothing', () => {
+    document.body.innerHTML = '<div>x</div>';
+    const element = document.body.firstElementChild;
+    element.getBoundingClientRect = () => ({ top: 0, left: 0, width: 0, height: 0 });
+
+    global.overlay.call(element, 'a11y-error', 'error', 'Image missing alt text');
+
+    expect(global.LOGS).toHaveLength(0);
+  });
+
+  it('rejects a level that is neither error nor warning', () => {
+    document.body.innerHTML = '<div>x</div>';
+    const element = withSize(document.body.firstElementChild);
+
+    global.overlay.call(element, 'a11y-error', 'critical', 'Image missing alt text');
+
+    expect(global.LOGS).toHaveLength(0);
+  });
+
+  it('rejects an empty overlay class and an empty message', () => {
+    document.body.innerHTML = '<div>x</div>';
+    const element = withSize(document.body.firstElementChild);
+
+    global.overlay.call(element, '', 'error', 'Image missing alt text');
+    global.overlay.call(element, 'a11y-error', 'error', '');
+
+    expect(global.LOGS).toHaveLength(0);
+  });
+
+  it('records a warning as a warning', () => {
+    document.body.innerHTML = '<a href="#">click here</a>';
+    const element = withSize(document.body.firstElementChild);
+
+    global.overlay.call(element, 'a11y-warning', 'warning', 'Link text is not descriptive');
+
+    expect(global.LOGS[0].level).toBe('warning');
+    expect(global.analyzeLogs().warnings).toBe(1);
+  });
+});
+
 describe('the reports, over what the writer actually produced', () => {
   it('generateCSVReport does not throw, and carries the real values', () => {
     // The sharpest regression: log.message was undefined, so
