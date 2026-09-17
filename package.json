@@ -27,7 +27,7 @@
     "license:check": "license-checker-rseidelsohn --production --onlyAllow 'MIT;ISC;Apache-2.0;BSD-2-Clause;BSD-3-Clause;0BSD;CC0-1.0;Unlicense;Python-2.0;WTFPL;BlueOak-1.0.0' --excludePrivatePackages --summary",
     "license:report": "license-checker-rseidelsohn --production --csv --out reports/licenses.csv",
     "links": "scripts/check-links.sh",
-    "check": "run-p lint:check format:check lint:md version:check",
+    "check": "run-p lint:check format:check lint:md version:check lint:cpd:ci",
     "check:all": "run-s check test build size license:check links security:check",
     "prebuild": "npm run clean",
     "build": "mkdir -p dist && cp -r src/* manifest.json dist/",
