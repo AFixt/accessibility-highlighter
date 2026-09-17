@@ -259,12 +259,28 @@ describe('downloadFile', () => {
   });
 
   it('creates an object URL, clicks the link, and cleans up after itself', () => {
+    // Asserted through spies on the real appendChild/removeChild rather than
+    // by querying the document. setup-jest.js mocks document.querySelectorAll
+    // globally, so `expect(document.querySelectorAll('a[download]')).toHaveLength(0)`
+    // passes whether or not the anchor is removed — a non-discriminating
+    // assertion, which is the same class of problem as the coverage floor this
+    // PR exists to fix. Mutation-checked: deleting the removeChild call fails
+    // this test.
+    const appendSpy = jest.spyOn(document.body, 'appendChild');
+    const removeSpy = jest.spyOn(document.body, 'removeChild');
+
     global.downloadFile('a,b,c', 'report.csv', 'text/csv');
 
     expect(createObjectURL).toHaveBeenCalledTimes(1);
     expect(clicked).toBe(1);
-    // The anchor must not be left behind in the document.
-    expect(document.querySelectorAll('a[download]')).toHaveLength(0);
+
+    const appended = appendSpy.mock.calls[0][0];
+    expect(appended.download).toBe('report.csv');
+    expect(appended.href).toBe('blob:mock-url');
+    // The very same node must be taken back out; a leaked anchor accumulates
+    // one per export for the lifetime of the page.
+    expect(removeSpy).toHaveBeenCalledWith(appended);
+    expect(appended.parentNode).toBeNull();
   });
 
   it('throws a wrapped error when the blob cannot be created', () => {
