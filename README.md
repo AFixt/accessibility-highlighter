@@ -77,11 +77,11 @@ ratchet, not a target:
 
 | File                      | statements |
 | ------------------------- | ---------- |
-| `src/elementChecks.js`    | 63%        |
+| `src/elementChecks.js`    | 71%        |
 | `src/background.js`       | 31%        |
-| `src/contentScript.js`    | 25%        |
-| `src/reportGenerators.js` | 47%        |
-| `src/uiPanels.js`         | 6%         |
+| `src/contentScript.js`    | 46%        |
+| `src/reportGenerators.js` | 48%        |
+| `src/uiPanels.js`         | 16%        |
 | any new source file       | 20%        |
 
 Every file is listed individually on purpose: Jest measures `global` only over
