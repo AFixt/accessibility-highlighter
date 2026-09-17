@@ -260,6 +260,31 @@ describe('when things go wrong', () => {
     expect(chrome.tabs.sendMessage).not.toHaveBeenCalled();
   });
 
+  it('refuses to message a tab whose id is not a valid number', async () => {
+    // Found by mutation: replacing the `typeof activeTab.id !== 'number' ||
+    // activeTab.id < 0` guard with `false` failed nothing, because every other
+    // case here hands over a well-formed tab. chrome.tabs.query can return a
+    // tab whose id is absent or negative — chrome.tabs.TAB_ID_NONE is -1 for
+    // a devtools or app window — and sendMessage on that is an error.
+    chrome.tabs.query.mockResolvedValue([{ id: -1 }]);
+
+    await global.toggleAccessibilityState();
+    await flush();
+
+    expect(chrome.tabs.sendMessage).not.toHaveBeenCalled();
+    // The state change itself is real and must still be reflected.
+    expect(chrome.storage.local.set).toHaveBeenCalledWith({ isEnabled: true });
+  });
+
+  it('refuses to message a tab whose id is not a number at all', async () => {
+    chrome.tabs.query.mockResolvedValue([{ id: 'not-a-number' }]);
+
+    await global.toggleAccessibilityState();
+    await flush();
+
+    expect(chrome.tabs.sendMessage).not.toHaveBeenCalled();
+  });
+
   it('survives the content script not being there to answer', async () => {
     // Messaging a tab with no content script — a chrome:// page, say — sets
     // runtime.lastError instead of throwing. Reading the response without
