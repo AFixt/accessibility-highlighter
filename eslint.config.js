@@ -194,14 +194,6 @@ module.exports = [
     }
   },
 
-  // src/config.js uses ES module syntax (import/export).
-  {
-    files: ['src/config.js'],
-    languageOptions: {
-      sourceType: 'module'
-    }
-  },
-
   // Tests run under Jest with jsdom
   {
     files: ['tests/**/*.js', '**/*.test.js', '**/*.spec.js'],

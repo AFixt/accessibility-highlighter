@@ -53,7 +53,6 @@ function copyExtensionFiles(targetDir) {
     'elementChecks.js',
     'uiPanels.js',
     'reportGenerators.js',
-    'config.js',
     'icons',
     'modules'
   ];
