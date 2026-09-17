@@ -32,7 +32,7 @@ module.exports = {
   coverageThreshold: {
     // The floor for any source file added from here on.
     global: { statements: 20, branches: 27, functions: 15, lines: 20 },
-    './src/background.js': { statements: 95, branches: 96, functions: 92, lines: 95 },
+    './src/background.js': { statements: 98, branches: 98, functions: 92, lines: 98 },
     './src/contentScript.js': { statements: 46, branches: 38, functions: 50, lines: 46 },
     './src/elementChecks.js': { statements: 71, branches: 71, functions: 84, lines: 71 },
     // A floor must sit under the WORST run, not the best. contentScript.js
