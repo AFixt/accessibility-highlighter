@@ -5,8 +5,8 @@ on:
     tags:
       # Semver tags only. The floating major pointer (v1) sits on the same commit
       # as the release tag, and a bare 'v*' would fire this workflow for it too —
-      # where "Validate version format" rejects anything that is not vX.Y.Z, so
-      # every pointer move would leave a failed run behind.
+      # where "Extract and validate version" rejects anything that is not vX.Y.Z,
+      # so every pointer move would leave a failed run behind.
       - 'v[0-9]*.[0-9]*.[0-9]*'
   workflow_dispatch:
     inputs:
@@ -54,7 +54,9 @@ jobs:
             VERSION="${GITHUB_REF#refs/tags/}"
           fi
           if [[ ! $VERSION =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Error: Version must be in format v1.2.3"
+            # Echo the rejected value: it is a shell variable here, not source,
+            # and a release that fails on a typo should say which typo.
+            echo "Error: Version must be in format v1.2.3 (got: ${VERSION})"
             exit 1
           fi
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
