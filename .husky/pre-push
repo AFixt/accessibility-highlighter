@@ -1,13 +1,53 @@
-# Secret gate FIRST: it is the cheapest check (~0.2s, diff-scoped) and the
-# only irreversible one — a pushed credential must be rotated regardless.
-# Running it before the test suite means you learn in a second, not a minute,
-# and it cannot be skipped by an earlier `exit` in this hook.
-# Guarded because .husky/pre-push is tracked: without ~/.fleet-security
-# the missing file returns 127, and `|| exit 1` would block every push.
-# The gate itself already soft-skips when gitleaks is absent.
+# Secret gate FIRST: it is the cheapest check here and the only irreversible
+# one — a pushed credential must be rotated regardless, however fast you
+# force-push over it. It is scoped to the commits being pushed, so running it
+# before the test suite means you learn in about a second rather than after
+# several minutes, and putting it first means no earlier `exit` in this hook
+# can skip it.
+#
+# NOTE on false positives: do not reach for `git push --no-verify`. Bypassing
+# hooks is not permitted in this repository, and it would skip every other
+# check below as well. The gate reads no per-repository exclusion file. A
+# genuine false positive on one line is marked on that line with an inline
+# `trufflehog:ignore` comment, which stays visible in review; a detector that
+# is wrong in general is fixed in the gate itself (~/.fleet-security).
+#
+# Guarded because .husky/pre-push is tracked: without ~/.fleet-security the
+# missing file returns 127, and a bare `|| exit 1` would then block every push
+# in the repository for anyone who has not installed the toolkit. The gate
+# itself already soft-skips, with a warning, when its scanner is unusable.
+#
+# "$@" is the remote name and URL git hands this hook. The gate uses them to
+# scope the scan to commits not yet on that remote; without them it has to
+# guess, which is only safe while this repository has a single remote.
+#
+# Absent and broken are reported differently on purpose. Not installed is a
+# normal state and skips silently. Installed but not executable is a broken
+# install, and skipping that quietly would leave the secret gate off with
+# nothing to show for it — a scan that did not run looks exactly like a clean
+# scan.
+#
+# stdin carries the refs being pushed, and it can be read only once. The gate
+# reads all of it, so without this anything later in the hook that reads the
+# refs would silently see none. Capture it, hand the gate a copy, and restore
+# it. Skipped when stdin is a terminal, so running the hook by hand does not
+# hang waiting for input. An empty capture is replayed as empty, not as one
+# blank line: a `while read` loop later in the hook would run once for that.
+PUSH_REFS=""
+[ -t 0 ] || PUSH_REFS="$(cat)"
 FLEET_SECRET_GATE="$HOME/.fleet-security/bin/pre-push-secrets"
 if [ -x "$FLEET_SECRET_GATE" ]; then
-  "$FLEET_SECRET_GATE" || exit 1
+  { [ -z "$PUSH_REFS" ] || printf '%s\n' "$PUSH_REFS"; } | "$FLEET_SECRET_GATE" "$@" || exit 1
+elif [ -e "$FLEET_SECRET_GATE" ]; then
+  echo "  warn: $FLEET_SECRET_GATE is present but not executable." >&2
+  echo "        The pre-push secret scan was SKIPPED. chmod +x it, or remove it." >&2
+fi
+if [ -n "$PUSH_REFS" ]; then
+  exec <<PUSH_REFS_EOF
+$PUSH_REFS
+PUSH_REFS_EOF
+else
+  exec </dev/null
 fi
 
 npm run check
