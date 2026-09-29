@@ -320,8 +320,8 @@ describe('check-action-pins CLI', () => {
 
   it('does not fail over a deliberate branch pin, which can never resolve', async () => {
     // The other half of the split has to hold, or the fix just trades a
-    // fail-open for a fail-always. This is security.yml:303's exact shape —
-    // Dependency-Check_Action pinned to a `main` commit on purpose, with the
+    // fail-open for a fail-always. This was security.yml's exact shape until
+    // #148 — Dependency-Check_Action pinned to a `main` commit on purpose, with the
     // branch and date in the comment. The first cut of #109 failed the run on
     // it: `sha && tag` is true, `main` is not a tag, so the lookup 404s
     // forever and the check would have been permanently red.

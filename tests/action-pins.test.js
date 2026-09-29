@@ -211,8 +211,8 @@ describe('classifyPin', () => {
     });
 
     it('when the comment names a branch rather than a version tag', () => {
-      // security.yml pins Dependency-Check_Action to a `main` commit on
-      // purpose. `main` is a branch: it never resolves as a tag, so there is
+      // security.yml pinned Dependency-Check_Action to a `main` commit on
+      // purpose until #148. `main` is a branch: it never resolves as a tag, so there is
       // nothing to compare and never will be. That was harmless while every
       // unresolvable pin shared the non-failing bucket; since #109 a failed
       // lookup fails the run, so this has to be decided by shape rather than

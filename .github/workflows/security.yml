@@ -272,7 +272,7 @@ jobs:
             --recursive
             .
 
-  # OWASP Dependency Check (comprehensive - manual runs only)
+  # OWASP Dependency-Check: a GATE at CVSS >= 7 (#148).
   owasp-dependency-check:
     name: OWASP Dependency Check
     runs-on: ubuntu-latest
@@ -292,50 +292,111 @@ jobs:
       - name: Install dependencies
         run: npm ci --ignore-scripts
 
-      # Pinned to a maintained `main` commit, NOT the 1.1.0 tag. 1.1.0
-      # (2021-04-28) declares only project/path/format/others — it has no
-      # `args` and no `out` — so against that tag every flag below was
-      # silently discarded: the scan ran with no --enableExperimental and,
-      # more importantly, no failure gate at all. Its image is the floating
-      # `owasp/dependency-check-action:latest` either way, so the SHA pins the
-      # wrapper, not the scanner.
-      - name: OWASP Dependency Check
-        uses: dependency-check/Dependency-Check_Action@1e54355a8b4c8abaa8cc7d0b70aa655a3bb15a6c # main @ 2025-12-10
-        with:
-          project: ${{ github.repository }}
-          path: '.'
-          out: 'reports'
-          # `--format` takes a single value, not a comma-separated list, and
-          # the action offers no way to repeat it — 'HTML,JSON,SARIF' was
-          # rejected outright. 'ALL' is the supported way to get more than one,
-          # and it still writes dependency-check-report.sarif, which is the
-          # path the SARIF upload step below reads.
-          format: 'ALL'
-          # --nodeAuditAnalyzer and --nodePackageSkipDevDependencies false were
-          # both removed earlier and must not come back: the first does not
-          # exist (the Node Audit Analyzer is on unless --disableNodeAudit) and
-          # the second is a bare switch that *skips* dev dependencies — which
-          # would make this job scan nothing, since the extension ships zero
-          # production dependencies.
-          #
-          # --failOnCVSS 7 is the gate. Without it the scanner exits 0 whatever
-          # it finds and this job is a report generator, not a check.
-          args: >
-            --enableExperimental
-            --failOnCVSS 7
+      # The scanner image is pinned by DIGEST and run directly (#148),
+      # replacing the Dependency-Check_Action wrapper. The wrapper's Dockerfile
+      # is `FROM owasp/dependency-check-action:latest`, so pinning its commit
+      # pinned the wrapper and never the scanner or its CVE data, which were
+      # rebuilt daily under the job without review. Same shape as the
+      # AFixt/detect-features reference (#87, #89, #99, #101).
+      #
+      # Freshness: --noupdate scans against the CVE data baked into the image,
+      # so no NVD download or API key is needed, and findings are only as
+      # fresh as the pinned build. Nothing bumps the digest automatically (no
+      # Dependabot, no scheduled jobs), so the step prints the build date and
+      # warns once it is over DC_MAX_AGE_DAYS old. To bump: take the current
+      # `latest` digest (`docker buildx imagetools inspect
+      # owasp/dependency-check-action:latest`), then verify locally that this
+      # repo still exits 0 and a known-vulnerable lockfile exits 15.
+      #
+      # Gate: --failOnCVSS 7 exits 15 on any finding at CVSS >= 7. Without it
+      # the scanner exits 0 whatever it finds. Reviewed false positives go in
+      # .dependency-check-suppressions.xml, each with a reason and an `until`
+      # date. A real vulnerability gets fixed, not suppressed.
+      #
+      # Exit codes other than 0 and 15: when any analyzer throws, the CLI
+      # exits 14 WITHOUT evaluating --failOnCVSS, so 14 means the gate did not
+      # run and can hide a real finding. Any exit other than 0 or 15 is retried
+      # once (analyzer errors are usually transient: the npm audit API, a
+      # loaded runner); 15 is never retried; a second non-0/non-15 exit fails
+      # the job with an explicit error. It never passes.
+      #
+      # Flags that must not come back: --nodeAuditAnalyzer does not exist (the
+      # Node Audit Analyzer is on unless --disableNodeAudit), and
+      # --nodePackageSkipDevDependencies is a bare switch that *skips* dev
+      # dependencies, which would make this job scan nothing, since the
+      # extension ships zero production dependencies. --enableExperimental is
+      # dropped: its extra analyzers cover ecosystems this repo does not have,
+      # and each one is another way for an analyzer to throw (exit 14).
+      #
+      # The Yarn and pnpm audit analyzers are disabled: this is an npm project
+      # with neither lockfile, so they can find nothing.
+      #
+      # --out must already exist: the scanner exits 1 when the parent of the
+      # --out path is missing, hence the mkdir.
+      - name: OWASP Dependency-Check
+        env:
+          DC_IMAGE: owasp/dependency-check-action@sha256:1782f0b306f3e73e98e7c1f00f3fd8ae4a6214deaceebffa38ecb821874bbfcd # built 2026-09-25, dependency-check 13.0.0
+          DC_MAX_AGE_DAYS: '30'
+          PROJECT: ${{ github.event.repository.name }}
+        run: |
+          docker pull --quiet "$DC_IMAGE"
+          built=$(docker image inspect --format '{{.Created}}' "$DC_IMAGE")
+          age_days=$(( ( $(date -u +%s) - $(date -u -d "$built" +%s) ) / 86400 ))
+          echo "Scanner image built ${built} (age: ${age_days} day(s))"
+          {
+            echo "### OWASP Dependency-Check"
+            echo "CVE data from image built ${built}: **${age_days} day(s) old**."
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$age_days" -gt "$DC_MAX_AGE_DAYS" ]; then
+            echo "::warning title=Dependency-Check data is ${age_days} day(s) old::The pinned scanner image is older than ${DC_MAX_AGE_DAYS} days, so CVEs published since then are not checked. Bump DC_IMAGE in security.yml (see the comment above it)."
+          fi
+          mkdir -p reports
+          scan() {
+            docker run --rm -v "$PWD":/src -w /src "$DC_IMAGE" \
+              --project "$PROJECT" \
+              --scan /src \
+              --format HTML \
+              --format JSON \
+              --format SARIF \
+              --out /src/reports \
+              --noupdate \
+              --suppression /src/.dependency-check-suppressions.xml \
+              --failOnCVSS 7 \
+              --enableRetired \
+              --disableYarnAudit \
+              --disablePnpmAudit
+          }
+          rc=0
+          scan || rc=$?
+          if [ "$rc" -ne 0 ] && [ "$rc" -ne 15 ]; then
+            echo "::warning title=Dependency-Check did not complete (exit ${rc})::The scan did not complete, so the CVSS check did not run. Retrying once."
+            sleep 30
+            rc=0
+            scan || rc=$?
+          fi
+          case "$rc" in
+            0) ;;
+            15) echo "::error title=Dependency-Check found CVSS >= 7::See the owasp-dependency-check-report artifact." ;;
+            *) echo "::error title=Dependency-Check did not complete (exit ${rc}), twice::The CVSS check did not run, so a real finding may be hidden. This is not a pass. See the [ERROR] lines above, then re-run the job." ;;
+          esac
+          exit "$rc"
 
+      # always(): the report matters most when the gate has just failed.
       - name: Upload OWASP results
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        if: always()
         with:
           name: owasp-dependency-check-report
           path: reports/
           retention-days: 90
 
+      # hashFiles(): after a scan that never completed there is no SARIF, and
+      # an upload of a missing file would add a second, misleading failure.
       - name: Upload SARIF to GitHub Security
         uses: github/codeql-action/upload-sarif@b96794f015dfd88f77b49b1c93e0fa7110f94c63 # v4
         with:
           sarif_file: reports/dependency-check-report.sarif
-        if: always()
+        if: always() && hashFiles('reports/dependency-check-report.sarif') != ''
 
   # License compliance check
   license-check:

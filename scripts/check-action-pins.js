@@ -26,7 +26,7 @@
  * pinning exists for.
  *
  * References with nothing to compare (no SHA, no tag comment, or a branch pin
- * like Dependency-Check_Action's deliberate `main` pin) are reported as
+ * like the `main` pin Dependency-Check_Action once carried) are reported as
  * unknown and do not fail the run. "There was nothing to check" and "we could
  * not check" are different states and no longer share a bucket.
  *
