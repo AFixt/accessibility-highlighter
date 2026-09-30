@@ -64,10 +64,12 @@ const SHA_PATTERN = /^[0-9a-f]{40}$/;
 // What a version tag looks like: v6, v4.4.0, 1.2.3. Anything else in the
 // trailing comment is a branch or a note, not a tag to resolve.
 //
-// This repository has one such reference — Dependency-Check_Action pinned to a
-// `main` commit, deliberately, because its only tag predates the `args` and
-// `out` inputs the step depends on. The comment records `main @ 2025-12-10`,
-// and `main` is a branch: it never resolves as a tag, and never will. Before
+// This repository had one such reference — Dependency-Check_Action pinned to a
+// `main` commit, because its only tag predates the `args` and `out` inputs the
+// step depended on. The comment recorded `main @ 2025-12-10`, and `main` is a
+// branch: it never resolves as a tag, and never will. #148 replaced the wrapper
+// with the digest-pinned scanner image, but a branch pin is a legitimate shape
+// and the next one should not fail the check either. Before
 // #109 split unresolved out of unknown that cost nothing, because both were
 // the same non-failing bucket. It does not any more, so the distinction has to
 // be drawn before the lookup rather than after it — otherwise the one pin this

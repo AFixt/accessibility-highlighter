@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+    <!--
+        Reviewed false positives for the OWASP Dependency-Check gate in
+        .github/workflows/security.yml (fails at CVSS >= 7).
+
+        Suppress only a finding that has been reviewed and is not
+        exploitable here. Give each one the reason, the reviewer and a date
+        to review it again, so it can't quietly outlive its justification:
+
+        <suppress until="2026-12-31Z">
+            <notes>Not reachable: [reason]. Reviewed by [name] 2026-09-29.</notes>
+            <packageUrl regex="true">^pkg:npm/example@.*$</packageUrl>
+            <cve>CVE-2026-XXXXX</cve>
+        </suppress>
+
+        A real vulnerability gets fixed (upgrade, override, or replace the
+        dependency), not suppressed.
+    -->
+</suppressions>
