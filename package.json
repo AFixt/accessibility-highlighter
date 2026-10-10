@@ -80,9 +80,9 @@
     "eslint-plugin-unicorn": "^64.0.0",
     "globals": "^17.6.0",
     "husky": "^9.1.7",
-    "jest": "^29.7.0",
-    "jest-environment-jsdom": "^29.7.0",
-    "jscpd": "^4.0.5",
+    "jest": "^30.5.2",
+    "jest-environment-jsdom": "^30.5.2",
+    "jscpd": "5.4.0",
     "knip": "^6.36.0",
     "license-checker-rseidelsohn": "^4.4.2",
     "lint-staged": "^17.0.4",
@@ -106,5 +106,17 @@
       "path": "src/background.js",
       "limit": "5 KB"
     }
-  ]
+  ],
+  "overrides": {
+    "@istanbuljs/load-nyc-config": {
+      "js-yaml": "4.3.2"
+    },
+    "markdownlint-cli": {
+      "js-yaml": "5.4.1"
+    },
+    "micromark-extension-math": {
+      "katex": "^0.18.2"
+    },
+    "smol-toml": "1.9.0"
+  }
 }
