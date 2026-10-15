@@ -3,7 +3,7 @@
  *
  * The release workflow feeds the extracted section to `gh release create
  * --notes-file`, so a silent mismatch degrades every release to generic
- * boilerplate. These tests pin the heading shapes standard-version actually
+ * boilerplate. These tests pin the heading shapes the release tool actually
  * emits:
  *   - "## [1.1.0](compare-url) (date)"   minor and major bumps
  *   - "### [1.0.1](compare-url) (date)"  patch bumps

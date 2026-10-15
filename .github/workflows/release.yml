@@ -124,7 +124,7 @@ jobs:
           echo "Creating release notes for $VERSION"
 
           # Extract the CHANGELOG section for this version, if it has one. The
-          # tag is v-prefixed but standard-version writes the version bare in
+          # tag is v-prefixed but commit-and-tag-version writes the version bare in
           # the heading, so the matching lives in a tested script rather than
           # an inline one-liner (see tests/extract-release-notes.test.js).
           ./scripts/extract-release-notes.sh "$VERSION" CHANGELOG.md > release_notes.md || true

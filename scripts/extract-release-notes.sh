@@ -5,7 +5,7 @@
 # Usage: scripts/extract-release-notes.sh <version> [changelog-path]
 #
 # <version> may carry the leading "v" used by release tags (v1.0.5) or not
-# (1.0.5) — standard-version writes the version bare in the CHANGELOG heading,
+# (1.0.5) — commit-and-tag-version writes the version bare in the CHANGELOG heading,
 # so the prefix is stripped before matching.
 #
 # The matching section is written to stdout with surrounding blank lines
@@ -19,9 +19,9 @@ CHANGELOG="${2:-CHANGELOG.md}"
 
 [ -f "$CHANGELOG" ] || exit 0
 
-# standard-version writes one of:
-#   "## [1.1.0](compare-url) (date)"    minor and major bumps
-#   "### [1.0.1](compare-url) (date)"   patch bumps
+# commit-and-tag-version writes one of:
+#   "## [1.1.0](compare-url) (date)"    every bump, including patches
+#   "### [1.0.1](compare-url) (date)"   patch bumps, as standard-version wrote them
 #   "## 1.0.0 (date)"                   first release, which has no compare link
 # so match an h2 or h3 with the link brackets optional. Escape the dots so they
 # match literally rather than as regex wildcards, and require the version to be

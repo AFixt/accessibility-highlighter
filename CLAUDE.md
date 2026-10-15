@@ -31,12 +31,12 @@ This project follows Git Flow branching strategy. All development work must adhe
 
 This project promotes `develop` to `main` directly via pull request; the `release/` branch step above is not used in practice — every tag from v1.0.3 onward sits on a `Merge pull request ... from AFixt/develop` commit.
 
-1. Bump on develop with standard-version (`npm run release:patch` / `:minor` / `:major`). It updates package.json, package-lock.json, manifest.json and CHANGELOG.md, and commits as `chore(release): vX.Y.Z`.
+1. Bump on develop with commit-and-tag-version (`npm run release:patch` / `:minor` / `:major`). It updates package.json, package-lock.json, manifest.json and CHANGELOG.md, and commits as `chore(release): vX.Y.Z`.
 2. Open a `develop` → `main` pull request titled `Release vX.Y.Z`; merge once checks pass.
 3. Tag the merge commit on main and push the tag:
    `git tag -a vX.Y.Z -m "Release vX.Y.Z" && git push origin vX.Y.Z`.
    Pushing a `v*` tag triggers `.github/workflows/release.yml`, which builds the per-browser packages and creates the GitHub release from the matching CHANGELOG section.
-4. **Merge `main` back into `develop` and push.** This is the "and develop" half of workflow rule 4, and it is easy to lose because the release-branch step is skipped. Tags are created on main, so without it no tag is reachable from develop: `git describe` on develop goes stale and standard-version diffs against a long-superseded tag, producing a changelog that re-lists already-shipped work. (This was skipped from v1.0.2 until v1.0.6.) Expect an empty content diff — if real content appears, something reached main that develop never saw.
+4. **Merge `main` back into `develop` and push.** This is the "and develop" half of workflow rule 4, and it is easy to lose because the release-branch step is skipped. Tags are created on main, so without it no tag is reachable from develop: `git describe` on develop goes stale and commit-and-tag-version diffs against a long-superseded tag, producing a changelog that re-lists already-shipped work. (This was skipped from v1.0.2 until v1.0.6.) Expect an empty content diff — if real content appears, something reached main that develop never saw.
 
 ### Commit Messages
 
