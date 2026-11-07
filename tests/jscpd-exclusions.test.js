@@ -14,12 +14,13 @@
  * behind it to catch a mistake — it always exits 0. So these tests pin the two
  * things that decide whether its output is true:
  *
- *   1. THE BOUNDARIES, which are asymmetric and were measured against real
- *      jscpd, not inferred. maxLines drops at `>=`; maxSize drops at `>`. The
- *      first version of this script used `>` for both, and therefore reported a
- *      file of exactly maxLines as analysed when jscpd had dropped it —
- *      reproducing the exact defect it was written to report. `maxLines
- *      boundary` below is the regression test for that.
+ *   1. THE BOUNDARIES, which were measured against real jscpd, not inferred.
+ *      Under jscpd 4.x maxLines drops at `>=`; under 5.x it drops at `>`;
+ *      maxSize drops at `>` under both. The first version of this script used
+ *      `>` for both limits on 4.x, and therefore reported a file of exactly
+ *      maxLines as analysed when jscpd had dropped it — reproducing the exact
+ *      defect it was written to report. `maxLines boundary` below is the
+ *      regression test for that, and for the 5.x rule (AFixt/rest-base#199).
  *
  *   2. THE CANDIDATE SET. `gitignore: true` means jscpd respects .gitignore,
  *      not that it reads only tracked files; it analyses untracked, non-ignored
@@ -36,11 +37,14 @@ const os = require('node:os');
 const path = require('node:path');
 
 const {
+  matchBraces,
   globToRegExp,
+  compileIgnores,
   parseSize,
   countLines,
   extensionsFor,
   candidateFiles,
+  jscpdMajor,
   classify,
   collectExclusions
 } = require('../scripts/jscpd-exclusions');
@@ -155,9 +159,22 @@ function run(dir, extraEnv = {}) {
   }
 }
 
-describe('maxLines boundary — jscpd drops at >=, not >', () => {
-  // Measured against jscpd 4.x with maxLines 1000: a 999-line file is analysed,
-  // a 1000-line file is NOT. Getting this wrong under-reports in silence.
+/**
+ * Install a stand-in jscpd manifest, which is all the reporter reads of it.
+ *
+ * @param {string} dir - Repo root.
+ * @param {string} version - The version to claim.
+ */
+function fakeJscpd(dir, version) {
+  const pkgDir = path.join(dir, 'node_modules', 'jscpd');
+  fs.mkdirSync(pkgDir, { recursive: true });
+  fs.writeFileSync(path.join(pkgDir, 'package.json'), JSON.stringify({ name: 'jscpd', version }));
+}
+
+describe('maxLines boundary — jscpd 4.x drops at >=, not >', () => {
+  // Measured against jscpd 4.2.4 with maxLines 1000: a 999-line file is
+  // analysed, a 1000-line file is NOT. Getting this wrong under-reports in
+  // silence. 4.x is also the rule when the version cannot be read.
   test.each([
     [998, false],
     [999, false],
@@ -174,15 +191,82 @@ describe('maxLines boundary — jscpd drops at >=, not >', () => {
       config: { maxLines: 1000, format: ['javascript'] },
       tracked: { 'exact.js': lines(1000), 'under.js': lines(999) }
     });
+    fakeJscpd(dir, '4.2.4');
     const { code, output } = run(dir);
     expect(code).toBe(0);
     expect(output).toContain('exact.js');
     expect(output).not.toContain('under.js');
     expect(output).toContain('1 file(s) will NOT be analysed');
+    expect(output).toContain('maxLines rule: dropped at >= maxLines (jscpd 4.x)');
+    expect(output).not.toContain('could not read the installed jscpd version');
+  });
+
+  test('an unreadable jscpd version falls back to the 4.x rule, and says so', () => {
+    const dir = makeRepo({
+      config: { maxLines: 1000, format: ['javascript'] },
+      tracked: { 'exact.js': lines(1000) }
+    });
+    const { code, output } = run(dir);
+    expect(code).toBe(0);
+    expect(output).toContain('could not read the installed jscpd version');
+    expect(output).toContain('maxLines rule: dropped at >= maxLines (jscpd version unknown)');
+    expect(output).toContain('exact.js');
   });
 });
 
-describe('maxSize boundary — jscpd drops at >, deliberately unlike maxLines', () => {
+describe('maxLines boundary — jscpd 5.x drops at >, unlike 4.x (AFixt/rest-base#199)', () => {
+  // Measured against jscpd 5.4.1 with maxLines 1000: 1000 lines are analysed
+  // and 1001 are dropped, with or without a trailing newline.
+  test.each([
+    [999, false],
+    [1000, false],
+    [1001, true]
+  ])('a %i-line file is excluded: %s', (n, excluded) => {
+    const dir = makeRepo({ tracked: { 'f.js': lines(n) } });
+    const hit = classify(path.join(dir, 'f.js'), {
+      maxLines: 1000,
+      maxSize: null,
+      maxLinesInclusive: false
+    });
+    expect(hit === null ? false : hit.kind === 'lines').toBe(excluded);
+  });
+
+  test('the CLI applies the 5.x rule when jscpd 5 is installed', () => {
+    const dir = makeRepo({
+      config: { maxLines: 1000, format: ['javascript'] },
+      tracked: { 'exact.js': lines(1000), 'over.js': lines(1001) }
+    });
+    fakeJscpd(dir, '5.4.1');
+    const { code, output } = run(dir);
+    expect(code).toBe(0);
+    expect(output).toContain('over.js');
+    expect(output).not.toContain('exact.js');
+    expect(output).toContain('1 file(s) will NOT be analysed');
+    expect(output).toContain('maxLines rule: dropped at > maxLines (jscpd 5.x)');
+  });
+});
+
+describe('jscpdMajor', () => {
+  test('reads the major from the jscpd that resolves from the config directory', () => {
+    const dir = makeRepo();
+    fakeJscpd(dir, '5.4.1');
+    expect(jscpdMajor(dir)).toBe(5);
+  });
+
+  test('is null when jscpd is not installed', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jscpd-nomod-'));
+    dirs.push(dir);
+    expect(jscpdMajor(dir)).toBeNull();
+  });
+
+  test('is null when the version is not semver-shaped', () => {
+    const dir = makeRepo();
+    fakeJscpd(dir, 'latest');
+    expect(jscpdMajor(dir)).toBeNull();
+  });
+});
+
+describe('maxSize boundary — jscpd drops at >, under 4.x and 5.x alike', () => {
   test.each([
     [1023, false],
     [1024, false],
@@ -270,7 +354,20 @@ describe('ignore globs', () => {
     ['**/*.min.js', 'a.min.js', true],
     ['**/*.min.js', 'deep/a.min.js', true],
     ['**/*.min.js', 'a.js', false],
-    ['**/package-lock.json', 'package-lock.json', true]
+    ['**/package-lock.json', 'package-lock.json', true],
+    // Brace alternation. Escaping the braces as literals made these match
+    // nothing, so a test file jscpd really does ignore was reported as
+    // dropped by maxLines (AFixt/rest-base#197).
+    ['**/*.test.{js,cjs,ts,tsx,jsx}', 'src/a.test.ts', true],
+    ['**/*.test.{js,cjs,ts,tsx,jsx}', 'deep/b.test.jsx', true],
+    ['**/*.test.{js,cjs,ts,tsx,jsx}', 'src/a.ts', false],
+    ['**/*.test.{js,cjs,ts,tsx,jsx}', 'src/a.test.mjs', false],
+    // A single-member brace group is still a group, not a literal.
+    ['**/*.{js}', 'a.js', true],
+    ['**/*.{js}', 'a.{js}', false],
+    // Unpaired braces are literals, and the pattern still compiles.
+    ['a{b.js', 'a{b.js', true],
+    ['a}b.js', 'a}b.js', true]
   ])('%s matches %s: %s', (glob, candidate, expected) => {
     expect(globToRegExp(glob).test(candidate)).toBe(expected);
   });
@@ -389,5 +486,75 @@ describe('it reports rather than gating, and never passes silently', () => {
     fs.mkdirSync(path.join(dir, 'src'));
     fs.writeFileSync(path.join(dir, 'src', 'big.js'), lines(2000));
     expect(run(dir).output).toContain('1 of these are under src/, lib/ or app/');
+  });
+});
+
+describe('matchBraces', () => {
+  test('pairs a simple group', () => {
+    const { paired, unmatched } = matchBraces('*.{js,ts}');
+    expect([...paired].sort((a, b) => a - b)).toEqual([2, 8]);
+    expect(unmatched).toBe(0);
+  });
+
+  test('counts an unclosed brace as unmatched and leaves it unpaired', () => {
+    const { paired, unmatched } = matchBraces('{a');
+    expect([...paired]).toEqual([]);
+    expect(unmatched).toBe(1);
+  });
+
+  test('counts a stray closing brace as unmatched', () => {
+    const { paired, unmatched } = matchBraces('a}');
+    expect([...paired]).toEqual([]);
+    expect(unmatched).toBe(1);
+  });
+
+  test('pairs the inner group of {a{b} and reports the outer as unmatched', () => {
+    // The first version asked only whether some `}` appeared later and never
+    // rebalanced, so this opened two groups and closed one. The RegExp it
+    // built was invalid, `new RegExp` threw, and the `&&` after this CLI then
+    // kept jscpd from running at all.
+    const { paired, unmatched } = matchBraces('{a{b}');
+    expect([...paired].sort((a, b) => a - b)).toEqual([2, 4]);
+    expect(unmatched).toBe(1);
+  });
+});
+
+describe('compileIgnores', () => {
+  let logged;
+  let spy;
+
+  beforeEach(() => {
+    logged = [];
+    spy = jest.spyOn(console, 'log').mockImplementation((...args) => {
+      logged.push(args.join(' '));
+    });
+  });
+
+  afterEach(() => {
+    spy.mockRestore();
+  });
+
+  test('compiles every well-formed entry and says nothing', () => {
+    const out = compileIgnores(['**/vendor/**', '**/*.test.{js,ts}']);
+    expect(out).toHaveLength(2);
+    expect(out[1].test('src/a.test.ts')).toBe(true);
+    expect(logged).toEqual([]);
+  });
+
+  test('a non-array `ignore` yields no matchers rather than throwing', () => {
+    expect(compileIgnores(undefined)).toEqual([]);
+    expect(compileIgnores('**/*.js')).toEqual([]);
+  });
+
+  test('names an entry with unbalanced braces but still compiles it', () => {
+    const out = compileIgnores(['{a{b}']);
+    expect(out).toHaveLength(1);
+    expect(logged.join('\n')).toContain('"{a{b}" has unbalanced braces');
+  });
+
+  test('names a non-string entry and skips it', () => {
+    const out = compileIgnores([42]);
+    expect(out).toEqual([]);
+    expect(logged.join('\n')).toContain('could not parse ignore entry');
   });
 });
