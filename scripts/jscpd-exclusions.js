@@ -87,7 +87,44 @@ const SIZE_MULTIPLIER = new Map([
 const SRC_DIR = /^(?:src|lib|app)\//;
 
 /**
+ * Pair every `{` with the `}` that closes it, the way a parser would.
+ *
+ * A brace counts as alternation only when it has a partner. Asking merely
+ * whether some `}` appears later, without rebalancing, makes `{a{b}` open two
+ * groups and close one: the RegExp built from it is invalid, `new RegExp`
+ * throws, this CLI exits non-zero and the `&&` that follows then keeps jscpd
+ * from running at all. An unpaired brace is therefore a literal, and the caller
+ * is told about it.
+ * @param {string} glob - one `ignore` entry
+ * @returns {{paired: Set<number>, unmatched: number}} indices of paired braces,
+ *   and how many braces were left unpaired
+ */
+function matchBraces(glob) {
+  const paired = new Set();
+  const open = [];
+  let unmatched = 0;
+  for (let i = 0; i < glob.length; i += 1) {
+    const c = glob.charAt(i);
+    if (c === '{') {
+      open.push(i);
+    } else if (c === '}' && open.length > 0) {
+      paired.add(open.pop());
+      paired.add(i);
+    } else if (c === '}') {
+      unmatched += 1;
+    }
+  }
+  return { paired, unmatched: unmatched + open.length };
+}
+
+/**
  * Minimal glob -> RegExp, covering the shapes jscpd `ignore` entries use.
+ *
+ * That includes brace alternation, `**\/*.test.{js,ts}`. Escaping `{` and `}`
+ * as literals instead makes such a pattern match nothing, so every file it
+ * names is reported as dropped by maxLines when jscpd never considered it at
+ * all. A brace is an alternation only when matchBraces pairs it; otherwise it
+ * is a literal, so every pattern this builds has balanced groups.
  *
  * The pattern is built from this repository's own `.jscpd.json`, which is a
  * tracked file under review, not user input — so the dynamic RegExp here is not
@@ -96,10 +133,20 @@ const SRC_DIR = /^(?:src|lib|app)\//;
  * backtrack catastrophically.
  */
 function globToRegExp(glob) {
+  const { paired } = matchBraces(glob);
   let out = '';
+  let depth = 0;
   for (let i = 0; i < glob.length; i += 1) {
     const c = glob.charAt(i);
-    if (c === '*' && glob.charAt(i + 1) === '*' && glob.charAt(i + 2) === '/') {
+    if (c === '{' && paired.has(i)) {
+      out += '(?:';
+      depth += 1;
+    } else if (c === ',' && depth > 0) {
+      out += '|';
+    } else if (c === '}' && paired.has(i)) {
+      out += ')';
+      depth -= 1;
+    } else if (c === '*' && glob.charAt(i + 1) === '*' && glob.charAt(i + 2) === '/') {
       out += '(?:[^/]+/)*';
       i += 2;
     } else if (c === '*' && glob.charAt(i + 1) === '*') {
@@ -117,6 +164,47 @@ function globToRegExp(glob) {
   }
   // eslint-disable-next-line security/detect-non-literal-regexp -- built from the repo's own tracked config; see the doc comment above
   return new RegExp(`^${out}$`);
+}
+
+/**
+ * Compile the config's `ignore` entries, one at a time.
+ *
+ * One bad entry must not take the report down with it: this reporter always
+ * exits 0, and a throw here would also stop jscpd, which runs after it behind
+ * `&&`. So an entry that cannot be compiled is named and skipped, and an entry
+ * whose braces do not balance is named and compiled with the unpaired braces
+ * taken literally. Either way the output says the report may differ from
+ * jscpd's view, rather than leaving that to be discovered.
+ *
+ * A skipped entry can only make the report LONGER — the files it would have
+ * excluded are then reported as dropped — which is the safe direction for a
+ * reporter whose failure mode is silence.
+ * @param {unknown} entries - `ignore` as written in the config
+ * @returns {RegExp[]} matchers for the entries that compiled
+ */
+function compileIgnores(entries) {
+  const out = [];
+  for (const entry of Array.isArray(entries) ? entries : []) {
+    try {
+      if (typeof entry !== 'string') {
+        throw new TypeError(`expected a glob string, got ${typeof entry}`);
+      }
+      const { unmatched } = matchBraces(entry);
+      out.push(globToRegExp(entry));
+      if (unmatched > 0) {
+        console.log(
+          `jscpd exclusions: ignore entry ${JSON.stringify(entry)} has unbalanced braces;`
+        );
+        console.log('  the unpaired ones are taken literally here, which jscpd may not do.');
+      }
+    } catch (error) {
+      console.log(
+        `jscpd exclusions: could not parse ignore entry ${JSON.stringify(entry)} (${error.message}); it is not applied.`
+      );
+      console.log('  Files it covers may be reported below even though jscpd ignores them.');
+    }
+  }
+  return out;
 }
 
 /**
@@ -211,25 +299,46 @@ function candidateFiles(root) {
 }
 
 /**
+ * The major version of the jscpd that `lint:cpd` will run, or null when it
+ * cannot be read. Resolved from the config's directory, the way `npx jscpd`
+ * and an npm script find it.
+ *
+ * @param {string} root - Directory holding .jscpd.json.
+ * @returns {number|null} The major version, or null.
+ */
+function jscpdMajor(root) {
+  try {
+    const manifest = require.resolve('jscpd/package.json', { paths: [root] });
+    const { version } = JSON.parse(fs.readFileSync(manifest, 'utf8'));
+    const match = /^(\d+)\./.exec(String(version));
+    return match ? Number(match[1]) : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * How jscpd would treat one candidate file.
  * Returns null when the file is analysed normally or is not a candidate at all.
  *
- * THE TWO LIMITS ARE NOT SYMMETRIC, and this was measured against jscpd 4.x
- * rather than inferred, because reading the option names suggests otherwise:
+ * THE maxLines BOUNDARY DEPENDS ON THE jscpd MAJOR, and both were measured
+ * rather than inferred, with maxLines 1000 and newline-terminated files:
  *
- *   maxLines: dropped when lines >= maxLines.  999 analysed, 1000 DROPPED.
- *   maxSize:  dropped when bytes >  maxSize.   1024 analysed, 1025 dropped.
+ *   jscpd 4.x  maxLines: dropped when lines >= maxLines.  999 analysed, 1000 DROPPED.
+ *   jscpd 5.x  maxLines: dropped when lines >  maxLines.  1000 analysed, 1001 dropped.
+ *   both       maxSize:  dropped when bytes >  maxSize.   1024 analysed, 1025 dropped.
  *
- * Using `>` for both — the obvious reading — makes this script declare a file
- * of exactly maxLines "analysed" when jscpd silently dropped it, which is the
- * precise defect the script exists to report on. The unit tests pin both
- * boundaries; do not "tidy" them into agreement.
+ * `maxLinesInclusive` selects the 4.x rule. It is the default because, when the
+ * version is unknown, naming a file jscpd actually analysed is the harmless
+ * mistake; calling a dropped file "analysed" is the precise defect this script
+ * exists to report on. The unit tests pin every boundary; do not "tidy" them
+ * into agreement.
  *
  * Size is checked first and returns immediately, so a file over BOTH limits is
  * reported once, as oversize. Either reason is true and the remedy is the same;
  * reporting both would double-count it in the total.
  */
-function classify(abs, { maxLines, maxSize }) {
+function classify(abs, { maxLines, maxSize, maxLinesInclusive = true }) {
   let st;
   try {
     st = fs.statSync(abs);
@@ -247,7 +356,8 @@ function classify(abs, { maxLines, maxSize }) {
   }
   try {
     const n = countLines(abs);
-    return n >= maxLines ? { kind: 'lines', value: n } : null;
+    const dropped = maxLinesInclusive ? n >= maxLines : n > maxLines;
+    return dropped ? { kind: 'lines', value: n } : null;
   } catch {
     return null; // unreadable: counted nowhere, and not claimed as analysed
   }
@@ -274,11 +384,15 @@ function collectExclusions(root, files, opts) {
   return { overLines, overSize };
 }
 
-function report({ overLines, overSize }, cfg, maxLines) {
+function report({ overLines, overSize }, cfg, maxLines, lineRule) {
   const total = overLines.length + overSize.length;
   console.log('');
   console.log(`jscpd exclusions: ${total} file(s) will NOT be analysed for duplication.`);
   console.log(`  limits: maxLines=${maxLines ?? '(unset)'}  maxSize=${cfg.maxSize ?? '(unset)'}`);
+  if (maxLines && lineRule) {
+    // Which boundary was applied depends on the jscpd major, so say which one.
+    console.log(`  maxLines rule: ${lineRule}`);
+  }
   if (total === 0) {
     console.log('  Every candidate file is within the limits, so the gate saw all of them.');
     return;
@@ -338,8 +452,21 @@ function main() {
     return 0;
   }
 
-  const ignores = (cfg.ignore || []).map(globToRegExp);
-  report(collectExclusions(root, files, { exts, ignores, maxLines, maxSize }), cfg, maxLines);
+  const major = jscpdMajor(root);
+  if (maxLines && major === null) {
+    console.log('jscpd exclusions: could not read the installed jscpd version.');
+    console.log('  Assuming the 4.x maxLines rule, so a file of exactly maxLines is listed.');
+  }
+  const maxLinesInclusive = major === null || major < 5;
+  const ignores = compileIgnores(cfg.ignore);
+  const jscpdLabel = major === null ? 'jscpd version unknown' : `jscpd ${major}.x`;
+  const lineRule = `dropped at ${maxLinesInclusive ? '>=' : '>'} maxLines (${jscpdLabel})`;
+  report(
+    collectExclusions(root, files, { exts, ignores, maxLines, maxSize, maxLinesInclusive }),
+    cfg,
+    maxLines,
+    lineRule
+  );
   return 0;
 }
 
@@ -351,11 +478,14 @@ if (require.main === module) {
 }
 
 module.exports = {
+  matchBraces,
   globToRegExp,
+  compileIgnores,
   parseSize,
   countLines,
   extensionsFor,
   candidateFiles,
+  jscpdMajor,
   classify,
   collectExclusions,
   main
