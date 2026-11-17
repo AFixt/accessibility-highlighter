@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 #
 # scripts/bootstrap.sh — verify required tools are installed and run `npm ci`.
-# Optional binaries (gitleaks, lychee) are nice-to-have; missing ones are
-# warned about, not fatal.
+# Optional binaries (gitleaks, lychee, actionlint, shellcheck, semgrep) are
+# warned about, not fatal, here; `check:all` needs actionlint and semgrep.
 #
 set -euo pipefail
 
@@ -37,6 +37,9 @@ echo
 echo "Checking optional tools..."
 optional gitleaks "Install: 'brew install gitleaks' or download from https://github.com/gitleaks/gitleaks/releases"
 optional lychee   "Install: 'brew install lychee' or 'cargo install lychee' or https://github.com/lycheeverse/lychee/releases"
+optional actionlint "Needed by 'npm run lint:workflows' (check:all). Install: 'brew install actionlint'"
+optional shellcheck "Lets actionlint check workflow run: scripts. Install: 'brew install shellcheck'"
+optional semgrep  "Needed by 'npm run security:sast' (check:all). Install: 'brew install semgrep' or 'pipx install semgrep'"
 
 # Verify the active Node major matches .nvmrc / package.json engines.
 if [ -f .nvmrc ]; then
