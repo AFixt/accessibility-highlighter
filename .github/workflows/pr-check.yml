@@ -18,43 +18,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
-      - name: Validate workflow syntax
-        run: |
-          echo "Validating GitHub Actions workflow files..."
-          errors=0
-
-          for f in .github/workflows/*.yml .github/workflows/*.yaml; do
-            [ -f "$f" ] || continue
-            echo "Checking $f..."
-
-            # Basic YAML syntax check
-            if ! python3 -c "import yaml; yaml.safe_load(open('$f'))" 2>/dev/null; then
-              echo "ERROR: Invalid YAML in $f"
-              errors=$((errors + 1))
-            fi
-
-            # Check for required 'on' and 'jobs' keys
-            if ! grep -q '^on:' "$f" && ! grep -q "^'on':" "$f" && ! grep -q '^"on":' "$f"; then
-              echo "WARNING: Missing 'on' trigger in $f"
-            fi
-
-            if ! grep -q '^jobs:' "$f"; then
-              echo "WARNING: Missing 'jobs' section in $f"
-            fi
-          done
-
-          if [ $errors -gt 0 ]; then
-            echo "Found $errors workflow file(s) with errors"
-            exit 1
-          fi
-
-          echo "All workflow files are valid"
-
-      # The checks above only cover YAML syntax and the presence of top-level
-      # keys, so they cannot catch a misspelled action input — which is how
-      # `file:` instead of `files:` silently disabled the Codecov upload for
-      # months (#71). actionlint validates action inputs, expression syntax,
-      # and (via its bundled shellcheck) the inline `run:` scripts.
+      # actionlint, not just a YAML parse: a YAML check cannot catch a
+      # misspelled action input — which is how `file:` instead of `files:`
+      # silently disabled the Codecov upload for months (#71). actionlint
+      # validates action inputs, expression syntax, and (via shellcheck) the
+      # inline `run:` scripts.
       #
       # Pinned rather than tracking latest: this gates the build, so the
       # version is the one whose output was verified against these workflows.
@@ -107,5 +75,7 @@ jobs:
             echo "Installed to $bindir; add it to PATH to run actionlint."
           fi
 
-      - name: Run actionlint
-        run: actionlint -color
+      # The check itself lives in scripts/lint-workflows.sh so it runs the same
+      # way locally (`npm run lint:workflows`); see issue #156.
+      - name: Lint workflows
+        run: bash scripts/lint-workflows.sh

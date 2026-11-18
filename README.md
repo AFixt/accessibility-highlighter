@@ -50,10 +50,24 @@ npm run package
 # Lint, formatting, markdown, manifest version, duplication — in parallel
 npm run check
 
-# The full pre-merge suite: the above, plus knip, tests, build, size budget,
-# licence check, link check and npm audit
+# The full pre-merge suite: the above, plus workflow lint, knip, tests, build,
+# size budget, licence check, link check, npm audit and the SAST scan
 npm run check:all
+
+# Lint .github/workflows with actionlint (falls back to a YAML parse)
+npm run lint:workflows
+
+# Semgrep SAST (p/nodejsscan) over src/, the same gate CI runs
+npm run security:sast
 ```
+
+`lint:workflows` and `security:sast` are the checks CI runs, extracted so they
+run locally too. They need `actionlint` (with `shellcheck`) and `semgrep` on
+your PATH: `brew install actionlint shellcheck semgrep`. `security:sast` fails,
+rather than passes, without semgrep. `lint:workflows` without actionlint falls
+back to the old YAML parse, which cannot catch a misspelled action input, and
+fails only when PyYAML is missing too. `scripts/bootstrap.sh` reports which
+tools are missing.
 
 [Knip](https://knip.dev) finds unused files, exports and dependencies — the
 things ESLint cannot see, because `no-unused-vars` only ever looks at one file

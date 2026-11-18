@@ -1,0 +1,10 @@
+# actionlint settings, read by scripts/lint-workflows.sh (npm run lint:workflows)
+# and by the validate-workflows job in pr-check.yml.
+paths:
+  .github/workflows/release.yml:
+    ignore:
+      # The publish-to-Chrome-Web-Store job is switched off with `if: false`
+      # on purpose until the store credentials are configured. actionlint
+      # 1.7.8+ reports any constant condition; this one is deliberate, and the
+      # ignore is scoped to this file and this message only.
+      - 'constant expression "false" in condition'

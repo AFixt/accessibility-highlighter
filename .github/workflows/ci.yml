@@ -239,21 +239,18 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
           cat audit.txt
 
-      # Gates. The action's entrypoint is `set -e; sh -c "njsscan $*"`, so the
-      # trailing `|| true` the args used to carry was executed as shell and
-      # swallowed njsscan's exit code (#112).
-      #
-      # This gates on ERROR-severity rules only, which is worth knowing rather
-      # than assuming: measured, a planted eval(req.query.code) produces
-      # level=error findings and exit 1, while a WARNING rule
-      # (node_timing_attack) produces a finding and still exits 0. njsscan has
-      # 30 WARNING and 32 INFO rules that therefore pass silently here. Adding
-      # -w would gate on those too — a deliberate decision to make separately,
-      # since it changes how much this check will interrupt.
-      - name: Run security scan with njsscan
-        uses: ajinabraham/njsscan-action@231750a435d85095d33be7d192d52ec650625146 # v9
-        with:
-          args: '--sarif --output results.sarif src/'
+      # SAST gate. scripts/sast.sh runs Semgrep's p/nodejsscan ruleset (built
+      # from njsscan's rules) over src/, gating on ERROR-severity rules only, as
+      # the njsscan action did. It replaced that action so the same check runs
+      # locally as `npm run security:sast` (issue #156). The Semgrep engine is
+      # pinned, so bumping it is a deliberate change. The p/nodejsscan rules are
+      # not: they are fetched from the Semgrep registry on every run, so a
+      # registry update can change what this gate reports with no repo change.
+      - name: Install Semgrep
+        run: pipx install semgrep==1.182.1
+
+      - name: Run security scan with Semgrep (p/nodejsscan)
+        run: npm run security:sast -- --sarif --output results.sarif
 
       - name: Upload security scan results
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
