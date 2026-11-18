@@ -242,8 +242,10 @@ jobs:
       # SAST gate. scripts/sast.sh runs Semgrep's p/nodejsscan ruleset (built
       # from njsscan's rules) over src/, gating on ERROR-severity rules only, as
       # the njsscan action did. It replaced that action so the same check runs
-      # locally as `npm run security:sast` (issue #156). Semgrep is pinned so
-      # the gate is reproducible; bumping it is a deliberate change.
+      # locally as `npm run security:sast` (issue #156). The Semgrep engine is
+      # pinned, so bumping it is a deliberate change. The p/nodejsscan rules are
+      # not: they are fetched from the Semgrep registry on every run, so a
+      # registry update can change what this gate reports with no repo change.
       - name: Install Semgrep
         run: pipx install semgrep==1.182.1
 
