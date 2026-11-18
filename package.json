@@ -31,7 +31,7 @@
     "links": "scripts/check-links.sh",
     "lint:workflows": "scripts/lint-workflows.sh",
     "check": "run-p lint:check format:check lint:md version:check lint:cpd:ci",
-    "check:all": "run-s check lint:workflows knip test build size license:check links security:check security:sast",
+    "check:all": "run-s check lint:workflows knip test build size license:check links security:sast security:check",
     "prebuild": "npm run clean",
     "build": "mkdir -p dist && cp -r src/* manifest.json dist/",
     "build:all": "node scripts/build.js all",

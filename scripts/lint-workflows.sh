@@ -3,8 +3,7 @@
 #
 # One source of truth for the check pr-check.yml's `validate-workflows` job
 # runs, so it can be run before pushing (issue #156). The logic used to live only
-# inline in the workflow, and the Actions budget does not cover CI checks, so a
-# check that exists only in CI is a check that does not run.
+# inline in the workflow.
 #
 # - With `actionlint` on PATH (pr-check.yml installs a pinned build; locally
 #   `brew install actionlint`, see scripts/bootstrap.sh) the files are linted

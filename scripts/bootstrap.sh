@@ -2,7 +2,8 @@
 #
 # scripts/bootstrap.sh — verify required tools are installed and run `npm ci`.
 # Optional binaries (gitleaks, lychee, actionlint, shellcheck, semgrep) are
-# warned about, not fatal, here; `check:all` needs actionlint and semgrep.
+# warned about, not fatal, here. `check:all` needs semgrep, and without
+# actionlint its workflow lint falls back to a YAML parse only.
 #
 set -euo pipefail
 

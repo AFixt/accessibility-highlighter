@@ -63,8 +63,11 @@ npm run security:sast
 
 `lint:workflows` and `security:sast` are the checks CI runs, extracted so they
 run locally too. They need `actionlint` (with `shellcheck`) and `semgrep` on
-your PATH: `brew install actionlint shellcheck semgrep`. Both fail, rather than
-pass, when they cannot run; `scripts/bootstrap.sh` reports which are missing.
+your PATH: `brew install actionlint shellcheck semgrep`. `security:sast` fails,
+rather than passes, without semgrep. `lint:workflows` without actionlint falls
+back to the old YAML parse, which cannot catch a misspelled action input, and
+fails only when PyYAML is missing too. `scripts/bootstrap.sh` reports which
+tools are missing.
 
 [Knip](https://knip.dev) finds unused files, exports and dependencies — the
 things ESLint cannot see, because `no-unused-vars` only ever looks at one file

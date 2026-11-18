@@ -4,8 +4,8 @@
 #
 # One source of truth for the SAST gate in ci.yml's `security` job, so it can be
 # run before pushing (issue #156). It used to be the njsscan GitHub Action, which
-# existed only in CI; the Actions budget does not cover CI checks, and njsscan is
-# not installed locally. Semgrep's `p/nodejsscan` ruleset is built from
+# existed only in CI and could not be run before pushing; njsscan is not
+# installed locally. Semgrep's `p/nodejsscan` ruleset is built from
 # njsscan's rules, and it is the fleet's designated replacement.
 #
 # Gating matches what njsscan gated on: ERROR-severity rules only. Widening the
